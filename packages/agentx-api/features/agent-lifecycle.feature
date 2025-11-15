@@ -35,8 +35,8 @@ Feature: Agent Lifecycle Management
     And the agent should not be usable anymore
 
   Scenario: Multiple agents in same application
-    When I create agent A with model "claude-sonnet-4"
-    And I create agent B with model "claude-sonnet-4"
+    When I create agent A with model "claude-sonnet-4-20250514"
+    And I create agent B with model "claude-sonnet-4-20250514"
     Then agent A and agent B should have different IDs
     And they should have independent conversation histories
     And messages sent to agent A should not affect agent B

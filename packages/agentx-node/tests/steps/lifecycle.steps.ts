@@ -77,7 +77,7 @@ When("I create an agent", () => {
   // Create a new agent (in addition to Background agent)
   const newAgent = createTestAgent({
     apiKey: "test-key",
-    model: "claude-3-5-sonnet-20241022",
+    model: "claude-sonnet-4-20250514",
   });
 
   context.createdAgents.push(newAgent);

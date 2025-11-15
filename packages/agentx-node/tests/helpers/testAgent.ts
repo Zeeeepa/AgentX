@@ -72,7 +72,7 @@ export function createTestAgent(
     // Integration test mode - use real ClaudeProvider with credentials from .env.test
     const provider = new ClaudeProvider({
       ...finalConfig,
-      apiKey: testEnv.authToken!,
+      apiKey: testEnv.apiKey!,
       baseUrl: testEnv.baseUrl,
     });
     return createAgentCore(finalConfig, provider);
@@ -92,7 +92,7 @@ export function createTestAgent(
  */
 export function getDefaultTestConfig(): AgentConfig {
   return {
-    apiKey: useRealAPI() ? testEnv.authToken || "" : "mock-api-key",
+    apiKey: useRealAPI() ? testEnv.apiKey || "" : "mock-api-key",
     model: "claude-sonnet-4-20250514",
   };
 }
@@ -121,18 +121,16 @@ export function skipUnlessIntegration() {
  * Skip test if in integration mode
  *
  * Use this for tests that should only run with mock
+ * Returns early to skip the test when running with real API
  *
  * @example
  * ```typescript
- * Given("I simulate a network error", function() {
- *   skipIfIntegration();
+ * Given("I simulate a network error", () => {
+ *   if (skipIfIntegration()) return;
  *   // This test only runs in mock mode
  * });
  * ```
  */
-export function skipIfIntegration() {
-  if (useRealAPI()) {
-    // @ts-ignore - vitest provides this
-    this.skip();
-  }
+export function skipIfIntegration(): boolean {
+  return useRealAPI();
 }

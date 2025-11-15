@@ -4,4 +4,5 @@
  * Node.js-specific provider implementations.
  */
 
-export { ClaudeProvider } from "./ClaudeProvider";
+export { ClaudeAgentProvider } from "./ClaudeAgentProvider";
+export { PinoLoggerProvider, type PinoLoggerConfig } from "./PinoLoggerProvider";

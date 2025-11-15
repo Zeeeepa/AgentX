@@ -40,6 +40,7 @@ lerna-debug.log*
 coverage/
 .nyc_output/
 *.lcov
+test-results/
 
 # Test environment variables (contains credentials)
 .env.test

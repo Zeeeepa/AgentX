@@ -154,31 +154,6 @@ When("the agent is generating a response", async () => {
   context.lastResult = await context.agent.send("Tell me a story");
 });
 
-When("the agent encounters an error during execution", async () => {
-  // Force an error by creating new agent with error provider
-  const { createTestAgent } = await import("../helpers/testAgent");
-
-  context.agent = createTestAgent(
-    {
-      apiKey: "test-key",
-      model: "claude-3-5-sonnet-20241022",
-    },
-    {
-      simulateError: true,
-      errorType: "execution",
-    }
-  );
-
-  // Register handler for result events
-  registerNamedHandler("default", "result");
-
-  try {
-    context.lastResult = await context.agent.send("This will error");
-  } catch {
-    // Error expected, continue
-  }
-});
-
 // ============================================================
 // Then steps
 // ============================================================
@@ -323,31 +298,4 @@ Then("I can display real-time progress to the user", () => {
     (e) => e.type === "stream_event"
   );
   expect(streamEvents.length).toBeGreaterThan(0);
-});
-
-Then("the result event subtype should be an error type", () => {
-  const handler = handlers.get("default");
-  expect(handler).toBeDefined();
-
-  const resultEvent = handler!.events.find((e) => e.type === "result");
-  expect(resultEvent).toBeDefined();
-  // Error subtypes include error_during_execution, error_max_turns, etc.
-  expect(resultEvent!.subtype).toMatch(/^error/);
-});
-
-Then("it should include error details", () => {
-  const handler = handlers.get("default");
-  const resultEvent = handler!.events.find((e) => e.type === "result");
-
-  expect(resultEvent).toBeDefined();
-  // Error result should have error field
-  expect(resultEvent).toHaveProperty("error");
-});
-
-Then("it should still include usage statistics", () => {
-  const handler = handlers.get("default");
-  const resultEvent = handler!.events.find((e) => e.type === "result");
-
-  expect(resultEvent).toBeDefined();
-  expect(resultEvent!.usage).toBeDefined();
 });

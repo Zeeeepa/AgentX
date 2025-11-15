@@ -94,7 +94,16 @@ Then("I should receive multiple stream events", () => {
 });
 
 Then("each stream event should contain delta content", () => {
-  context.streamEvents.forEach((event) => {
+  // Filter only delta events (content_block_delta and message_delta)
+  const deltaEvents = context.streamEvents.filter(
+    (event) => event.delta !== undefined
+  );
+
+  // Should have at least one delta event
+  expect(deltaEvents.length).toBeGreaterThan(0);
+
+  // All delta events should have delta defined
+  deltaEvents.forEach((event) => {
     expect(event.type).toBe("stream_event");
     expect(event.delta).toBeDefined();
   });

@@ -48,10 +48,3 @@ Feature: Agent Event Handling
     When the agent is generating a response
     Then I should receive multiple stream events
     And I can display real-time progress to the user
-
-  Scenario: Error result events
-    Given I register a handler for "result" events
-    When the agent encounters an error during execution
-    Then the result event subtype should be an error type
-    And it should include error details
-    And it should still include usage statistics

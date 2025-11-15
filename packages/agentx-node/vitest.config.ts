@@ -16,6 +16,15 @@ export default defineConfig({
     exclude: ["**/node_modules/**", "**/cypress/**"],
     setupFiles: ["./tests/setup.ts"],
     testTimeout: 120000, // 120 seconds (2 minutes) for real API calls
+    reporters: [
+      "default",
+      "html",
+      "json",
+    ],
+    outputFile: {
+      html: "./test-results/index.html",
+      json: "./test-results/results.json",
+    },
   },
   resolve: {
     alias: {

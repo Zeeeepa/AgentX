@@ -1,0 +1,293 @@
+
+> @deepractice-ai/agentx-node@0.1.0 test /Users/sean/Deepractice/projects/Agent/packages/agentx-node
+> pnpm run copy:features && vitest run
+
+
+> @deepractice-ai/agentx-node@0.1.0 copy:features /Users/sean/Deepractice/projects/Agent/packages/agentx-node
+> mkdir -p dist/features && cp -r node_modules/@deepractice-ai/agentx-api/features/* dist/features/
+
+
+ RUN  v3.2.4 /Users/sean/Deepractice/projects/Agent/packages/agentx-node
+
+stdout | dist/features/error-handling.feature
+
+============================================================
+🌐 Test Mode: Real Claude API
+   Base URL: http://118.178.86.178/api
+   Auth Token: cr_9e35c66a9ceb9d89c...
+============================================================
+
+
+stdout | dist/features/agent-lifecycle.feature
+
+============================================================
+🌐 Test Mode: Real Claude API
+   Base URL: http://118.178.86.178/api
+   Auth Token: cr_9e35c66a9ceb9d89c...
+============================================================
+
+
+stdout | dist/features/agent-messaging.feature
+
+============================================================
+🌐 Test Mode: Real Claude API
+   Base URL: http://118.178.86.178/api
+   Auth Token: cr_9e35c66a9ceb9d89c...
+============================================================
+
+
+stdout | dist/features/agent-events.feature
+
+============================================================
+🌐 Test Mode: Real Claude API
+   Base URL: http://118.178.86.178/api
+   Auth Token: cr_9e35c66a9ceb9d89c...
+============================================================
+
+
+stdout | dist/features/agent-configuration.feature
+
+============================================================
+🌐 Test Mode: Real Claude API
+   Base URL: http://118.178.86.178/api
+   Auth Token: cr_9e35c66a9ceb9d89c...
+============================================================
+
+
+ ✓ dist/features/agent-configuration.feature (9 tests) 24829ms
+   ✓ Agent Configuration > Configure system prompt  9014ms
+   ✓ Agent Configuration > Configure MCP servers with stdio transport  15694ms
+ ❯ dist/features/error-handling.feature (10 tests | 6 failed) 42888ms
+   ✓ Error Handling > Handle configuration errors 2ms
+   × Error Handling > Catch abort errors 9480ms
+     → expected Error: Claude Code process exited with co… to be undefined
+   × Error Handling > Handle network failures 9683ms
+     → expected 'Claude Code process exited with code 1' to match /network|simulated/i
+   × Error Handling > Handle API errors 5099ms
+     → expected 'success' to match /^error/
+   × Error Handling > Handle max turns error 5362ms
+     → expected 'success' to be 'error_max_turns' // Object.is equality
+   × Error Handling > Handle execution errors 7902ms
+     → expected 'success' to be 'error_during_execution' // Object.is equality
+   ✓ Error Handling > Distinguish error types 1ms
+   ✓ Error Handling > Error includes stack trace 1ms
+   ✓ Error Handling > Errors don't leak sensitive information 1ms
+   × Error Handling > Graceful degradation on partial failures 5238ms
+     → Claude Code process exited with code 1
+ ❯ dist/features/agent-lifecycle.feature (8 tests | 2 failed) 62956ms
+   ✓ Agent Lifecycle Management > Agent has unique ID 3ms
+   × Agent Lifecycle Management > Agent tracks session ID 8958ms
+     → Claude Code process exited with code 1
+   ✓ Agent Lifecycle Management > Clear conversation history  40741ms
+   ✓ Agent Lifecycle Management > Abort ongoing operation 13ms
+   ✓ Agent Lifecycle Management > Destroy agent and cleanup resources 1ms
+   × Agent Lifecycle Management > Multiple agents in same application 5955ms
+     → Claude Code process exited with code 1
+   ✓ Agent Lifecycle Management > Session persistence across restarts  7152ms
+   ✓ Agent Lifecycle Management > Graceful error handling during destroy 15ms
+ ❯ dist/features/agent-events.feature (8 tests | 1 failed) 67223ms
+   ✓ Agent Event Handling > Listen for assistant messages  9048ms
+   ✓ Agent Event Handling > Listen for result events  10295ms
+   ✓ Agent Event Handling > Unregister event handlers  6992ms
+   ✓ Agent Event Handling > Multiple handlers for same event  7795ms
+   ✓ Agent Event Handling > Event handlers receive typed data  6996ms
+   ✓ Agent Event Handling > Listen for system initialization  8326ms
+   ✓ Agent Event Handling > Stream events during response  14034ms
+   × Agent Event Handling > Error result events 3616ms
+     → expected 'success' to match /^error/
+ ❯ dist/features/agent-messaging.feature (7 tests | 1 failed) 87179ms
+   ✓ Agent Messaging > Send a simple text message  6309ms
+   × Agent Messaging > Receive streaming responses 22314ms
+     → expected undefined to be defined
+   ✓ Agent Messaging > Access conversation history  24159ms
+   ✓ Agent Messaging > Send message with context  10885ms
+   ✓ Agent Messaging > Track token usage  6718ms
+   ✓ Agent Messaging > Track conversation cost  5199ms
+   ✓ Agent Messaging > Multiple messages in sequence  11477ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  dist/features/agent-events.feature > Agent Event Handling > Error result events
+AssertionError: expected 'success' to match /^error/
+
+[32m- Expected:[39m 
+/^error/
+
+[31m+ Received:[39m 
+"success"
+
+ ❯ Object.<anonymous> tests/steps/events.steps.ts:335:32
+    333|   expect(resultEvent).toBeDefined();
+    334|   // Error subtypes include error_during_execution, error_max_turns, e…
+    335|   expect(resultEvent!.subtype).toMatch(/^error/);
+       |                                ^
+    336| });
+    337| 
+ ❯ StepExecutor.execute ../../node_modules/.pnpm/@deepracticex+vitest-cucumber@1.4.0_vitest@3.2.4/node_modules/@deepracticex/vitest-cucumber/src/core/runtime/StepExecutor.ts:31:25
+ ❯ dist/features/agent-events.feature:298:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  dist/features/agent-lifecycle.feature > Agent Lifecycle Management > Agent tracks session ID
+ FAIL  dist/features/agent-lifecycle.feature > Agent Lifecycle Management > Multiple agents in same application
+ FAIL  dist/features/error-handling.feature > Error Handling > Graceful degradation on partial failures
+Error: Claude Code process exited with code 1
+ ❯ ProcessTransport.getProcessExitError ../../node_modules/.pnpm/@anthropic-ai+claude-agent-sdk@0.1.30_zod@4.1.12/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs:6564:14
+ ❯ ChildProcess.exitHandler ../../node_modules/.pnpm/@anthropic-ai+claude-agent-sdk@0.1.30_zod@4.1.12/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs:6701:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  dist/features/agent-messaging.feature > Agent Messaging > Receive streaming responses
+AssertionError: expected undefined to be defined
+ ❯ tests/steps/messaging.steps.ts:99:25
+     97|   context.streamEvents.forEach((event) => {
+     98|     expect(event.type).toBe("stream_event");
+     99|     expect(event.delta).toBeDefined();
+       |                         ^
+    100|   });
+    101| });
+ ❯ Object.<anonymous> tests/steps/messaging.steps.ts:97:24
+ ❯ StepExecutor.execute ../../node_modules/.pnpm/@deepracticex+vitest-cucumber@1.4.0_vitest@3.2.4/node_modules/@deepracticex/vitest-cucumber/src/core/runtime/StepExecutor.ts:31:25
+ ❯ dist/features/agent-messaging.feature:112:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  dist/features/error-handling.feature > Error Handling > Catch abort errors
+AssertionError: expected Error: Claude Code process exited with co… to be undefined
+
+[32m- Expected:[39m 
+undefined
+
+[31m+ Received:[39m 
+Error {
+  "message": "Claude Code process exited with code 1",
+}
+
+ ❯ Object.<anonymous> tests/steps/error-handling.steps.ts:279:19
+    277|   } catch (error: any) {
+    278|     // Should not throw
+    279|     expect(error).toBeUndefined();
+       |                   ^
+    280|   }
+    281| });
+ ❯ StepExecutor.execute ../../node_modules/.pnpm/@deepracticex+vitest-cucumber@1.4.0_vitest@3.2.4/node_modules/@deepracticex/vitest-cucumber/src/core/runtime/StepExecutor.ts:31:5
+ ❯ dist/features/error-handling.feature:96:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+ FAIL  dist/features/error-handling.feature > Error Handling > Handle network failures
+AssertionError: expected 'Claude Code process exited with code 1' to match /network|simulated/i
+
+[32m- Expected:[39m 
+/network|simulated/i
+
+[31m+ Received:[39m 
+"Claude Code process exited with code 1"
+
+ ❯ Object.<anonymous> tests/steps/error-handling.steps.ts:297:35
+    295|   // Error can be in context.error OR in resultEvents
+    296|   if (context.error) {
+    297|     expect(context.error.message).toMatch(/network|simulated/i);
+       |                                   ^
+    298|   } else if (context.resultEvents && context.resultEvents.length > 0) {
+    299|     const resultEvent = context.resultEvents[0];
+ ❯ StepExecutor.execute ../../node_modules/.pnpm/@deepracticex+vitest-cucumber@1.4.0_vitest@3.2.4/node_modules/@deepracticex/vitest-cucumber/src/core/runtime/StepExecutor.ts:31:25
+ ❯ dist/features/error-handling.feature:135:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+
+ FAIL  dist/features/error-handling.feature > Error Handling > Handle API errors
+AssertionError: expected 'success' to match /^error/
+
+[32m- Expected:[39m 
+/^error/
+
+[31m+ Received:[39m 
+"success"
+
+ ❯ Object.<anonymous> tests/steps/error-handling.steps.ts:323:31
+    321| 
+    322|   const resultEvent = context.resultEvents![0];
+    323|   expect(resultEvent.subtype).toMatch(/^error/);
+       |                               ^
+    324| });
+    325| 
+ ❯ StepExecutor.execute ../../node_modules/.pnpm/@deepracticex+vitest-cucumber@1.4.0_vitest@3.2.4/node_modules/@deepracticex/vitest-cucumber/src/core/runtime/StepExecutor.ts:31:25
+ ❯ dist/features/error-handling.feature:169:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯
+
+ FAIL  dist/features/error-handling.feature > Error Handling > Handle max turns error
+AssertionError: expected 'success' to be 'error_max_turns' // Object.is equality
+
+Expected: [32m"[7merror_max_turn[27ms"[39m
+Received: [31m"[7msucces[27ms"[39m
+
+ ❯ Object.<anonymous> tests/steps/error-handling.steps.ts:340:31
+    338| 
+    339|   const resultEvent = context.resultEvents![0];
+    340|   expect(resultEvent.subtype).toBe(subtype);
+       |                               ^
+    341| });
+    342| 
+ ❯ StepExecutor.execute ../../node_modules/.pnpm/@deepracticex+vitest-cucumber@1.4.0_vitest@3.2.4/node_modules/@deepracticex/vitest-cucumber/src/core/runtime/StepExecutor.ts:31:25
+ ❯ dist/features/error-handling.feature:203:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯
+
+ FAIL  dist/features/error-handling.feature > Error Handling > Handle execution errors
+AssertionError: expected 'success' to be 'error_during_execution' // Object.is equality
+
+Expected: [32m"error_during_execution"[39m
+Received: [31m"success"[39m
+
+ ❯ Object.<anonymous> tests/steps/error-handling.steps.ts:340:31
+    338| 
+    339|   const resultEvent = context.resultEvents![0];
+    340|   expect(resultEvent.subtype).toBe(subtype);
+       |                               ^
+    341| });
+    342| 
+ ❯ StepExecutor.execute ../../node_modules/.pnpm/@deepracticex+vitest-cucumber@1.4.0_vitest@3.2.4/node_modules/@deepracticex/vitest-cucumber/src/core/runtime/StepExecutor.ts:31:25
+ ❯ dist/features/error-handling.feature:237:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Claude Code process aborted by user
+ ❯ ChildProcess.<anonymous> ../../node_modules/.pnpm/@anthropic-ai+claude-agent-sdk@0.1.30_zod@4.1.12/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs:6538:28
+ ❯ ChildProcess.emit node:events:518:28
+ ❯ abortChildProcess node:child_process:716:13
+ ❯ AbortSignal.onAbortListener node:child_process:786:7
+ ❯ AbortSignal.[nodejs.internal.kHybridDispatch] node:internal/event_target:827:20
+ ❯ AbortSignal.dispatchEvent node:internal/event_target:762:26
+ ❯ runAbort node:internal/abort_controller:447:10
+ ❯ abortSignal node:internal/abort_controller:433:3
+ ❯ AbortController.abort node:internal/abort_controller:466:5
+ ❯ ClaudeProvider.abort src/providers/ClaudeProvider.ts:87:26
+     85| 
+     86|   abort(): void {
+     87|     this.abortController.abort();
+       |                          ^
+     88|     this.abortController = new AbortController();
+     89|   }
+
+This error originated in "dist/features/error-handling.feature" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "Catch abort errors". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  4 failed | 1 passed (5)
+      Tests  10 failed | 32 passed (42)
+     Errors  1 error
+   Start at  16:06:54
+   Duration  87.63s (transform 240ms, setup 97ms, collect 318ms, tests 285.08s, environment 1ms, prepare 724ms)
+
+ ELIFECYCLE  Test failed. See above for more details.

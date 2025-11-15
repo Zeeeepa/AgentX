@@ -24,15 +24,18 @@ import type { AgentProvider } from "./AgentProvider";
  *
  * @param config - Agent configuration
  * @param provider - Platform-specific provider implementation
+ * @param logger - Optional logger provider for agent logging
  * @returns Agent instance
  *
  * @example
  * ```typescript
  * import { createAgent } from "@deepractice-ai/agentx-core";
  * import { ClaudeProvider } from "@deepractice-ai/agentx-node";
+ * import { NodeLoggerProvider } from "@deepractice-ai/agentx-node";
  *
  * const provider = new ClaudeProvider(config);
- * const agent = createAgent(config, provider);
+ * const logger = new NodeLoggerProvider();
+ * const agent = createAgent(config, provider, logger);
  *
  * agent.on("assistant_message", (event) => {
  *   console.log("Assistant:", event.message);
@@ -41,8 +44,12 @@ import type { AgentProvider } from "./AgentProvider";
  * await agent.send("Hello!");
  * ```
  */
-export function createAgent(config: AgentConfig, provider: AgentProvider): IAgent {
-  return new Agent(config, provider);
+export function createAgent(
+  config: AgentConfig,
+  provider: AgentProvider,
+  logger?: import("./LoggerProvider").LoggerProvider
+): IAgent {
+  return new Agent(config, provider, logger);
 }
 
 // Re-export types from API for convenience
@@ -59,6 +66,10 @@ export type {
 
 // Export AgentProvider (SPI)
 export type { AgentProvider } from "./AgentProvider";
+
+// Export LoggerProvider (SPI)
+export type { LoggerProvider, LogContext } from "./LoggerProvider";
+export { LogLevel, LogFormatter } from "./LoggerProvider";
 
 // Re-export errors
 export { AgentConfigError, AgentAbortError } from "@deepractice-ai/agentx-api";

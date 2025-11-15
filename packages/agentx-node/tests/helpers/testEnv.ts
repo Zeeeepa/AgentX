@@ -15,9 +15,9 @@ const __dirname = dirname(__filename);
 export interface TestEnvironment {
   /** Whether to use real Claude API */
   useRealAPI: boolean;
-  /** Anthropic auth token (if using real API) */
-  authToken?: string;
-  /** Anthropic base URL (if using real API) */
+  /** Agent API key (if using real API) */
+  apiKey?: string;
+  /** Agent base URL (if using real API) */
   baseUrl?: string;
 }
 
@@ -65,19 +65,19 @@ export function getTestEnvironment(): TestEnvironment {
   // Load .env.test if exists
   const envFile = loadEnvFile();
 
-  // Get auth token (env var > .env.test)
-  const authToken =
-    process.env.ANTHROPIC_AUTH_TOKEN || envFile.ANTHROPIC_AUTH_TOKEN;
+  // Get API key (env var > .env.test)
+  const apiKey =
+    process.env.AGENT_API_KEY || envFile.AGENT_API_KEY;
 
   // Get base URL (env var > .env.test)
-  const baseUrl = process.env.ANTHROPIC_BASE_URL || envFile.ANTHROPIC_BASE_URL;
+  const baseUrl = process.env.AGENT_BASE_URL || envFile.AGENT_BASE_URL;
 
   // Use real API if both credentials are provided
-  const useRealAPI = Boolean(authToken && baseUrl);
+  const useRealAPI = Boolean(apiKey && baseUrl);
 
   return {
     useRealAPI,
-    authToken: useRealAPI ? authToken : undefined,
+    apiKey: useRealAPI ? apiKey : undefined,
     baseUrl: useRealAPI ? baseUrl : undefined,
   };
 }
@@ -94,7 +94,7 @@ export function logTestEnvironment(): void {
   if (testEnv.useRealAPI) {
     console.log("🌐 Test Mode: Real Claude API");
     console.log(`   Base URL: ${testEnv.baseUrl}`);
-    console.log(`   Auth Token: ${testEnv.authToken?.substring(0, 20)}...`);
+    console.log(`   API Key: ${testEnv.apiKey?.substring(0, 20)}...`);
   } else {
     console.log("🎭 Test Mode: MockProvider (default)");
     console.log("   Tip: Create .env.test with credentials to use real API");

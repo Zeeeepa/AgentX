@@ -1,5 +1,5 @@
 /**
- * ClaudeProvider
+ * ClaudeAgentProvider
  *
  * Adapts @anthropic-ai/claude-agent-sdk to AgentEvent standard.
  * This is the Node.js-specific implementation.
@@ -11,7 +11,7 @@ import type { AgentConfig, AgentEvent } from "@deepractice-ai/agentx-api";
 import { AgentConfigError } from "@deepractice-ai/agentx-api";
 import type { Message } from "@deepractice-ai/agentx-types";
 
-export class ClaudeProvider implements AgentProvider {
+export class ClaudeAgentProvider implements AgentProvider {
   readonly sessionId: string;
   providerSessionId: string | null = null; // Claude SDK's real session ID
   private abortController: AbortController;
@@ -35,6 +35,9 @@ export class ClaudeProvider implements AgentProvider {
         timestamp: Date.now(),
       });
 
+      // Capture stderr for debugging
+      const stderrLines: string[] = [];
+
       // Create Claude SDK query
       // Use resume for subsequent messages to maintain conversation context
       this.currentQuery = query({
@@ -48,6 +51,18 @@ export class ClaudeProvider implements AgentProvider {
           includePartialMessages: true, // Enable stream_event and user message events
           // Resume with provider's session ID (SDK's real session ID)
           resume: this.providerSessionId || undefined,
+          // Pass API credentials to Claude Code subprocess via env
+          // Must include process.env to preserve PATH and other system variables
+          env: {
+            ...process.env,
+            ANTHROPIC_API_KEY: this.config.apiKey,
+            ...(this.config.baseUrl ? { ANTHROPIC_BASE_URL: this.config.baseUrl } : {}),
+          },
+          // Capture stderr output for debugging
+          stderr: (data: string) => {
+            stderrLines.push(data);
+            console.error('[ClaudeAgentProvider stderr]', data);
+          },
         },
       });
 

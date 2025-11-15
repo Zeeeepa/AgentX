@@ -1,7 +1,7 @@
 import { Given, When, Then } from "@deepracticex/vitest-cucumber";
 import { expect } from "vitest";
 import { sharedContext as context } from "../helpers/sharedContext";
-import { createTestAgent } from "../helpers/testAgent";
+import { createTestAgent, skipIfIntegration } from "../helpers/testAgent";
 import { AgentConfigError, AgentAbortError } from "@deepractice-ai/agentx-api";
 
 // ============================================================
@@ -28,6 +28,9 @@ Given("I have an agent processing a request", async () => {
 });
 
 Given("the API is unreachable", () => {
+  // This test requires MockProvider to simulate network errors
+  if (skipIfIntegration()) return;
+
   // Create agent with error-simulating provider
   const agent = createTestAgent(
     {
@@ -45,6 +48,9 @@ Given("the API is unreachable", () => {
 });
 
 Given("the API returns an error response", () => {
+  // This test requires MockProvider to simulate API errors
+  if (skipIfIntegration()) return;
+
   // Create agent with API error simulation
   const agent = createTestAgent(
     {
@@ -62,6 +68,9 @@ Given("the API returns an error response", () => {
 });
 
 Given("the agent has reached maximum conversation turns", () => {
+  // This test requires MockProvider to simulate max turns error
+  if (skipIfIntegration()) return;
+
   // Create agent that simulates max turns error
   const agent = createTestAgent(
     {
@@ -79,6 +88,9 @@ Given("the agent has reached maximum conversation turns", () => {
 });
 
 Given("the agent encounters an error during tool execution", () => {
+  // This test requires MockProvider to simulate execution errors
+  if (skipIfIntegration()) return;
+
   // Create agent that simulates execution error
   const agent = createTestAgent(
     {
