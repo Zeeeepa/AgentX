@@ -38,6 +38,9 @@ export class Agent implements IAgent {
   }
 
   async send(message: string): Promise<void> {
+    if (process.env.DEBUG_TESTS) {
+      console.log(`[AGENT] send() called with message: "${message}"`);
+    }
     // Add user message to history
     const userMessage: Message = {
       role: "user",
@@ -54,8 +57,14 @@ export class Agent implements IAgent {
     });
 
     try {
+      if (process.env.DEBUG_TESTS) {
+        console.log(`[AGENT] Starting provider.send() iteration`);
+      }
       // Provider yields AgentEvent directly (already transformed)
       for await (const agentEvent of this.provider.send(message, this._messages)) {
+        if (process.env.DEBUG_TESTS) {
+          console.log(`[AGENT] Received event from provider: type=${agentEvent.type}`);
+        }
         this.emitEvent(agentEvent);
 
         // Update messages on assistant response
@@ -65,6 +74,9 @@ export class Agent implements IAgent {
             content: agentEvent.message.content,
           });
         }
+      }
+      if (process.env.DEBUG_TESTS) {
+        console.log(`[AGENT] provider.send() iteration complete`);
       }
     } catch (error) {
       // Handle errors
@@ -125,10 +137,20 @@ export class Agent implements IAgent {
   }
 
   private emitEvent(event: AgentEvent): void {
+    if (process.env.DEBUG_TESTS) {
+      console.log(`[AGENT] Emitting event: type=${event.type}, subtype=${event.subtype}`);
+      console.log(`[AGENT] Registered handlers:`, Array.from(this.eventHandlers.keys()));
+    }
     const handlers = this.eventHandlers.get(event.type);
+    if (process.env.DEBUG_TESTS) {
+      console.log(`[AGENT] Handlers for "${event.type}":`, handlers ? `${handlers.size} handler(s)` : 'none');
+    }
     if (handlers) {
       handlers.forEach((handler) => {
         try {
+          if (process.env.DEBUG_TESTS) {
+            console.log(`[AGENT] Calling handler for "${event.type}"`);
+          }
           handler(event);
         } catch (error) {
           console.error(`Error in event handler for ${event.type}:`, error);

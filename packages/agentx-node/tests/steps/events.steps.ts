@@ -2,6 +2,7 @@ import { Given, When, Then } from "@deepracticex/vitest-cucumber";
 import { expect } from "vitest";
 import { sharedContext as context } from "../helpers/sharedContext";
 import type { AgentEvent } from "@deepractice-ai/agentx-types";
+import { debugLog } from "../helpers/debug";
 
 // Handler tracking for tests
 interface HandlerRecord {
@@ -37,17 +38,23 @@ function registerNamedHandler(
 
   // Create the handler function
   const handler = (event: AgentEvent) => {
+    debugLog(`Handler "${name}" received event: type=${event.type}, subtype=${event.subtype}, filter=${subtype}`);
+
     // Filter by subtype if specified
     if (subtype && event.subtype !== subtype) {
+      debugLog(`Handler "${name}" filtered out (subtype mismatch)`);
       return;
     }
 
+    debugLog(`Handler "${name}" recording event`);
     record.called = true;
     record.events.push(event);
   };
 
   // Register with agent
   const unregister = context.agent.on(eventType as any, handler);
+
+  debugLog(`Registered handler "${name}" for event "${eventType}"${subtype ? ` with subtype "${subtype}"` : ""}`);
 
   // Store unregister function for later
   context.unregisterHandlers = context.unregisterHandlers || new Map();
@@ -128,11 +135,15 @@ When("the result event is emitted", async () => {
 When("the agent initializes", async () => {
   // Agent is already initialized in Background
   // Just trigger first interaction to emit system init
+  debugLog("[WHEN] 'the agent initializes' step executing");
   if (!context.agent) {
+    debugLog("[WHEN] ERROR: Agent not initialized!");
     throw new Error("Agent not initialized");
   }
 
+  debugLog("[WHEN] Agent exists, calling send('Hello')");
   context.lastResult = await context.agent.send("Hello");
+  debugLog("[WHEN] send() completed");
 });
 
 When("the agent is generating a response", async () => {
@@ -286,10 +297,21 @@ Then("it should include the current working directory", () => {
 });
 
 Then("I should receive multiple stream events", () => {
+  // This step can be called from either agent-events or agent-messaging features
+  // Check which context we're in:
+
+  // If handler was registered (events.steps.ts flow)
   const handler = handlers.get("default");
-  expect(handler).toBeDefined();
-  expect(handler!.called).toBe(true);
-  expect(handler!.events.length).toBeGreaterThan(1);
+  if (handler) {
+    debugLog("Using events.steps.ts handler-based verification");
+    expect(handler.called).toBe(true);
+    expect(handler.events.length).toBeGreaterThan(1);
+    return;
+  }
+
+  // Otherwise use sharedContext (messaging.steps.ts flow)
+  debugLog("Using messaging.steps.ts context-based verification");
+  expect(context.streamEvents.length).toBeGreaterThan(1);
 });
 
 Then("I can display real-time progress to the user", () => {
