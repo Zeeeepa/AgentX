@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
-import { SearchInput } from "./SearchInput";
+import { SearchInput, type SearchInputProps } from "./SearchInput";
 import { Filter, User, Mail } from "lucide-react";
 
 const meta: Meta<typeof SearchInput> = {

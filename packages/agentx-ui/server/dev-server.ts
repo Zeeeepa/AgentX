@@ -6,23 +6,45 @@
  */
 
 import { createAgent, createWebSocketServer } from "@deepractice-ai/agentx-node";
+import { config } from "dotenv";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+// Get __dirname equivalent in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables from .env.test file
+const envPath = resolve(__dirname, "../../agentx-node/.env.test");
+config({ path: envPath });
 
 async function startDevServer() {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  // Support both AGENT_API_KEY and ANTHROPIC_API_KEY
+  const apiKey = process.env.AGENT_API_KEY || process.env.ANTHROPIC_API_KEY;
+  const baseUrl = process.env.AGENT_BASE_URL;
 
   if (!apiKey) {
-    console.error("❌ Error: ANTHROPIC_API_KEY is not set");
-    console.log("\nPlease set your API key:");
-    console.log("  export ANTHROPIC_API_KEY='your-api-key'");
+    console.error("❌ Error: API key is not set");
+    console.log("\nPlease set your API key in one of these ways:");
+    console.log("  1. Create .env.test file in agentx-node package");
+    console.log("  2. export AGENT_API_KEY='your-api-key'");
+    console.log("  3. export ANTHROPIC_API_KEY='your-api-key'");
     process.exit(1);
   }
 
   console.log("🚀 Starting AgentX Development Server...\n");
+  console.log("📝 Configuration:");
+  console.log(`   API Key: ${apiKey.substring(0, 10)}...`);
+  if (baseUrl) {
+    console.log(`   Base URL: ${baseUrl}`);
+  }
+  console.log();
 
   // Create Agent
   const agent = createAgent(
     {
       apiKey,
+      baseUrl,
       model: "claude-sonnet-4-20250514",
       systemPrompt: "You are a helpful AI assistant for UI development testing.",
     },

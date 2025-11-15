@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@deepractice-ai/agentx-browser": "workspace:*",
+    "@deepractice-ai/agentx-types": "workspace:*",
     "allotment": "^1.20.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -57,6 +58,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "concurrently": "^9.1.0",
+    "dotenv": "^16.6.1",
     "postcss": "^8.4.49",
     "storybook": "^8.4.7",
     "tailwindcss": "^3.4.15",

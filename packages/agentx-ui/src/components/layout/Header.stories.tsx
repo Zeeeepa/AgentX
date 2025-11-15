@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { useState } from "react";
 import { Header } from "./Header";
 import { Button } from "../elements/Button";
 import { SearchInput } from "../elements/SearchInput";
@@ -28,7 +29,7 @@ export const Default: Story = {
     <Header
       left={
         <div className="flex items-center gap-2">
-          <AgentLogo size="sm" />
+          <AgentLogo className="w-5 h-5" />
           <span className="font-semibold">Deepractice Agent</span>
         </div>
       }
@@ -50,31 +51,34 @@ export const Default: Story = {
 };
 
 export const WithSearch: Story = {
-  render: () => (
-    <Header
-      left={
-        <div className="flex items-center gap-2">
-          <AgentLogo size="sm" />
-          <span className="font-semibold">Deepractice Agent</span>
-        </div>
-      }
-      center={
-        <div className="max-w-xl w-full">
-          <SearchInput placeholder="Search sessions, messages..." />
-        </div>
-      }
-      right={
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm">
-            <Bell className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="sm">
-            <User className="w-4 h-4" />
-          </Button>
-        </div>
-      }
-    />
-  ),
+  render: () => {
+    const [search, setSearch] = useState("");
+    return (
+      <Header
+        left={
+          <div className="flex items-center gap-2">
+            <AgentLogo className="w-5 h-5" />
+            <span className="font-semibold">Deepractice Agent</span>
+          </div>
+        }
+        center={
+          <div className="max-w-xl w-full">
+            <SearchInput value={search} onChange={setSearch} placeholder="Search sessions, messages..." />
+          </div>
+        }
+        right={
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm">
+              <Bell className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm">
+              <User className="w-4 h-4" />
+            </Button>
+          </div>
+        }
+      />
+    );
+  },
 };
 
 export const WithTabs: Story = {
@@ -82,7 +86,7 @@ export const WithTabs: Story = {
     <Header
       left={
         <div className="flex items-center gap-2">
-          <AgentLogo size="sm" />
+          <AgentLogo className="w-5 h-5" />
           <span className="font-semibold">Deepractice</span>
         </div>
       }
@@ -141,7 +145,7 @@ export const WithUserInfo: Story = {
     <Header
       left={
         <div className="flex items-center gap-2">
-          <AgentLogo size="sm" />
+          <AgentLogo className="w-5 h-5" />
           <span className="font-semibold">Deepractice Agent</span>
         </div>
       }
@@ -172,7 +176,7 @@ export const CustomHeight: Story = {
       height={72}
       left={
         <div className="flex items-center gap-3">
-          <AgentLogo size="md" />
+          <AgentLogo className="w-8 h-8" />
           <div>
             <div className="font-bold text-lg">Deepractice Agent</div>
             <div className="text-xs text-muted-foreground">AI-Powered Development</div>
@@ -194,33 +198,36 @@ export const CustomHeight: Story = {
 };
 
 export const InLayout: Story = {
-  render: () => (
-    <div className="h-screen flex flex-col">
-      <Header
-        left={
-          <div className="flex items-center gap-2">
-            <AgentLogo size="sm" />
-            <span className="font-semibold">Deepractice Agent</span>
+  render: () => {
+    const [search, setSearch] = useState("");
+    return (
+      <div className="h-screen flex flex-col">
+        <Header
+          left={
+            <div className="flex items-center gap-2">
+              <AgentLogo className="w-5 h-5" />
+              <span className="font-semibold">Deepractice Agent</span>
+            </div>
+          }
+          center={<SearchInput value={search} onChange={setSearch} placeholder="Search..." className="max-w-md" />}
+          right={
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm">
+                <Bell className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="sm">
+                <User className="w-4 h-4" />
+              </Button>
+            </div>
+          }
+        />
+        <div className="flex-1 flex items-center justify-center bg-muted/20">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2">Application Content</h2>
+            <p className="text-muted-foreground">Header is fixed at the top</p>
           </div>
-        }
-        center={<SearchInput placeholder="Search..." className="max-w-md" />}
-        right={
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">
-              <Bell className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <User className="w-4 h-4" />
-            </Button>
-          </div>
-        }
-      />
-      <div className="flex-1 flex items-center justify-center bg-muted/20">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Application Content</h2>
-          <p className="text-muted-foreground">Header is fixed at the top</p>
         </div>
       </div>
-    </div>
-  ),
+    );
+  },
 };

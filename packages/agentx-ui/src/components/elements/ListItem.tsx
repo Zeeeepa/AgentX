@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "~/utils/utils";
 
-export interface ListItemProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface ListItemProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   /**
    * Whether the item is selected
    */
