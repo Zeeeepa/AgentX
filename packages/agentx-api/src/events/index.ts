@@ -12,5 +12,13 @@ export type { StreamDeltaEvent, StreamEventType, ContentBlockDelta } from "./Str
 export type { ResultEvent } from "./ResultEvent";
 export type { SystemInitEvent } from "./SystemInitEvent";
 export type { ErrorEvent, ErrorSeverity, ErrorSubtype } from "./ErrorEvent";
-export type { AgentEvent, EventType, EventPayload, RequestEvent, ResponseEvent } from "./AgentEvent";
+export type { ToolUseEvent, ToolUseData } from "./ToolUseEvent";
+export type { ToolResultEvent, ToolResultData } from "./ToolResultEvent";
+export type {
+  AgentEvent,
+  EventType,
+  EventPayload,
+  RequestEvent,
+  ResponseEvent,
+} from "./AgentEvent";
 export { ALL_EVENT_TYPES, REQUEST_EVENT_TYPES, RESPONSE_EVENT_TYPES } from "./AgentEvent";

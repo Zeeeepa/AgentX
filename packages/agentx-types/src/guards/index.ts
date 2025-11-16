@@ -5,7 +5,13 @@
  */
 
 // Message guards
-export { isUserMessage, isAssistantMessage, isSystemMessage, isToolMessage } from "./MessageGuards";
+export {
+  isUserMessage,
+  isAssistantMessage,
+  isSystemMessage,
+  isToolUseMessage,
+  isErrorMessage,
+} from "./MessageGuards";
 
 // ContentPart guards
 export {

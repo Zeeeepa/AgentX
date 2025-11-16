@@ -34,6 +34,14 @@ export interface CreateAgentOptions {
    * @default 'info'
    */
   logLevel?: LogLevel;
+
+  /**
+   * Log file destination path
+   * If not specified, logs to stdout
+   * @example '/var/log/agent.log'
+   * @example './logs/dev.log'
+   */
+  logDestination?: string;
 }
 
 /**
@@ -95,6 +103,7 @@ export function createAgent(config: NodeAgentConfig, options?: CreateAgentOption
     ? new PinoLoggerProvider({
         level: (options.logLevel || "info") as LogLevel,
         pretty: options.prettyLogs || false,
+        destination: options.logDestination,
       })
     : undefined;
 

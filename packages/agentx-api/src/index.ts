@@ -35,9 +35,17 @@ export type {
   ErrorEvent,
   ErrorSeverity,
   ErrorSubtype,
+  ToolUseEvent,
+  ToolUseData,
+  ToolResultEvent,
+  ToolResultData,
 } from "./events";
 
 export { ALL_EVENT_TYPES, REQUEST_EVENT_TYPES, RESPONSE_EVENT_TYPES } from "./events";
+
+// === Handlers ===
+export type { EventHandler } from "./handlers";
+export { EventHandlerChain } from "./handlers";
 
 // === Errors ===
 export { AgentConfigError, AgentAbortError } from "./errors";

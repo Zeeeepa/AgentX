@@ -9,7 +9,8 @@ export type { Message } from "./Message";
 export type { UserMessage } from "./UserMessage";
 export type { AssistantMessage } from "./AssistantMessage";
 export type { SystemMessage } from "./SystemMessage";
-export type { ToolMessage } from "./ToolMessage";
+export type { ToolUseMessage } from "./ToolUseMessage";
+export type { ErrorMessage, ErrorSubtype, ErrorSeverity } from "./ErrorMessage";
 
 // Message metadata
 export type { MessageRole } from "./MessageRole";

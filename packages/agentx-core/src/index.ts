@@ -74,5 +74,9 @@ export { AgentEventBus } from "./AgentEventBus";
 export type { LoggerProvider, LogContext } from "./LoggerProvider";
 export { LogLevel, LogFormatter } from "./LoggerProvider";
 
+// Export Handlers (Framework)
+export type { MessageHandler } from "./handlers";
+export { MessageHandlerChain } from "./handlers";
+
 // Re-export errors
 export { AgentConfigError, AgentAbortError } from "@deepractice-ai/agentx-api";

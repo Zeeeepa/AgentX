@@ -52,8 +52,11 @@ async function startDevServer() {
       enableLogging: true,
       prettyLogs: true,
       logLevel: "debug",
+      logDestination: resolve(__dirname, "../logs/dev-server.log"),
     }
   );
+
+  console.log(`📄 Logs: ${resolve(__dirname, "../logs/dev-server.log")}`);
 
   // Create WebSocket Server
   const wsServer = createWebSocketServer({

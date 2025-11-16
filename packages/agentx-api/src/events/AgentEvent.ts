@@ -11,12 +11,14 @@ import type { StreamDeltaEvent } from "./StreamDeltaEvent";
 import type { ResultEvent } from "./ResultEvent";
 import type { SystemInitEvent } from "./SystemInitEvent";
 import type { ErrorEvent } from "./ErrorEvent";
+import type { ToolUseEvent } from "./ToolUseEvent";
+import type { ToolResultEvent } from "./ToolResultEvent";
 
 /**
  * Request events (Client → Server)
  * Events sent from client to initiate actions
  */
-export type RequestEvent = UserMessageEvent;
+export type RequestEvent = UserMessageEvent | ToolResultEvent;
 
 /**
  * Response events (Server → Client)
@@ -27,7 +29,8 @@ export type ResponseEvent =
   | StreamDeltaEvent
   | ResultEvent
   | SystemInitEvent
-  | ErrorEvent;
+  | ErrorEvent
+  | ToolUseEvent;
 
 /**
  * Union of all agent events
@@ -42,7 +45,10 @@ export type EventType = AgentEvent["type"];
 /**
  * Request event types (Client → Server only)
  */
-export const REQUEST_EVENT_TYPES = ["user"] as const satisfies readonly RequestEvent["type"][];
+export const REQUEST_EVENT_TYPES = [
+  "user",
+  "tool_result",
+] as const satisfies readonly RequestEvent["type"][];
 
 /**
  * Response event types (Server → Client only)
@@ -53,6 +59,7 @@ export const RESPONSE_EVENT_TYPES = [
   "result",
   "system",
   "error",
+  "tool_use",
 ] as const satisfies readonly ResponseEvent["type"][];
 
 /**

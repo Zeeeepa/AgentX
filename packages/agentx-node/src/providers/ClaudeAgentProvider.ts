@@ -13,10 +13,19 @@
 
 import { query, type SDKMessage, type Query } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentProvider, AgentEventBus } from "@deepractice-ai/agentx-core";
-import type { AgentEvent, UserMessageEvent, ErrorEvent } from "@deepractice-ai/agentx-api";
+import type { AgentEvent, UserMessageEvent, ErrorEvent, ToolUseEvent } from "@deepractice-ai/agentx-api";
 import { AgentConfigError } from "@deepractice-ai/agentx-api";
 import type { NodeAgentConfig } from "../config/NodeAgentConfig";
 import { observableToAsyncIterable } from "../utils/observableToAsyncIterable";
+
+/**
+ * Pending tool use state during stream parsing
+ */
+interface PendingToolUse {
+  id: string;
+  name: string;
+  inputJson: string; // Accumulated JSON string
+}
 
 export class ClaudeAgentProvider implements AgentProvider {
   readonly sessionId: string;
@@ -138,8 +147,56 @@ export class ClaudeAgentProvider implements AgentProvider {
       return;
     }
 
+    // Track pending tool_use during stream parsing
+    let pendingToolUse: PendingToolUse | null = null;
+
     try {
       for await (const sdkMessage of this.currentQuery) {
+        // First, check for tool_use in stream_event
+        if (sdkMessage.type === "stream_event") {
+          const streamEvent = sdkMessage.event as any;
+
+          // Detect tool_use start in content_block_start
+          if (streamEvent.type === "content_block_start" &&
+              streamEvent.content_block?.type === "tool_use") {
+            pendingToolUse = {
+              id: streamEvent.content_block.id,
+              name: streamEvent.content_block.name,
+              inputJson: '',
+            };
+          }
+
+          // Accumulate tool input JSON in content_block_delta
+          if (streamEvent.type === "content_block_delta" &&
+              streamEvent.delta?.type === "input_json_delta" &&
+              pendingToolUse) {
+            pendingToolUse.inputJson += streamEvent.delta.partial_json;
+          }
+
+          // Tool input complete in content_block_stop - emit ToolUseEvent
+          if (streamEvent.type === "content_block_stop" && pendingToolUse) {
+            try {
+              const toolUseEvent: ToolUseEvent = {
+                type: "tool_use",
+                uuid: this.generateId(),
+                sessionId: this.sessionId,
+                toolUse: {
+                  id: pendingToolUse.id,
+                  name: pendingToolUse.name,
+                  input: JSON.parse(pendingToolUse.inputJson),
+                },
+                timestamp: Date.now(),
+              };
+              this.eventBus.emit(toolUseEvent);
+            } catch (parseError) {
+              console.error('[ClaudeAgentProvider] Failed to parse tool input JSON:', parseError);
+            } finally {
+              pendingToolUse = null;
+            }
+          }
+        }
+
+        // Transform and emit other agent events
         const agentEvent = this.transformToAgentEvent(sdkMessage);
         if (agentEvent) {
           // Capture provider session ID from system init event
@@ -222,6 +279,12 @@ export class ClaudeAgentProvider implements AgentProvider {
         };
 
       case "assistant":
+        // Filter out tool_use from content since we emit ToolUseEvent separately
+        const rawContent = (sdkMessage.message as any).content ?? [];
+        const filteredContent = Array.isArray(rawContent)
+          ? rawContent.filter((part: any) => part.type !== "tool_use")
+          : rawContent;
+
         return {
           type: "assistant",
           uuid,
@@ -229,7 +292,7 @@ export class ClaudeAgentProvider implements AgentProvider {
           message: {
             id: uuid,
             role: "assistant",
-            content: (sdkMessage.message as any).content ?? [],
+            content: filteredContent,
             timestamp,
           },
           timestamp,

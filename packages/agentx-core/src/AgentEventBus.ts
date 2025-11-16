@@ -1,104 +1,136 @@
 /**
- * AgentEventBus
+ * AgentEventBus Implementation
  *
- * Core event bus for Agent-Provider communication.
- * Replaces repeated SDK process spawning with a persistent event stream.
- *
- * Architecture:
- * - Outbound: UserMessageEvent (Agent → Provider)
- * - Inbound: AssistantMessageEvent | StreamDeltaEvent | ResultEvent | SystemInitEvent (Provider → Agent)
- *
- * Performance:
- * - First message: ~6-7s (process startup)
- * - Subsequent messages: ~1-2s (3-5x faster)
- *
- * Design:
- * - Uses ReplaySubject for outbound to buffer user messages
- * - Prevents message loss when provider subscribes after emit
- * - Uses regular Subject for inbound (no replay needed)
+ * RxJS-based implementation of the EventBus interface.
+ * Implements producer-consumer pattern for event-driven communication.
  */
 
-import { Subject, ReplaySubject, type Observable } from "rxjs";
+import { Subject, type Observable, type Subscription } from "rxjs";
 import { filter } from "rxjs/operators";
-import type { AgentEvent, UserMessageEvent } from "@deepractice-ai/agentx-api";
+import type { EventBus, EventProducer, EventConsumer, Unsubscribe } from "@deepractice-ai/agentx-event/bus";
+import type { AgentEventType } from "@deepractice-ai/agentx-event/base";
 
-export class AgentEventBus {
-  private events$ = new Subject<AgentEvent>();
-  private outbound$ = new ReplaySubject<UserMessageEvent>(10); // Buffer last 10 user messages
+/**
+ * RxJS-based EventBus implementation
+ */
+export class AgentEventBus implements EventBus {
+  private events$ = new Subject<AgentEventType>();
   private closed = false;
 
-  /**
-   * Emit an event to the bus
-   *
-   * Note: Silently ignores events if bus is closed (graceful degradation)
-   */
-  emit(event: AgentEvent): void {
+  createProducer(): EventProducer {
     if (this.closed) {
-      console.warn("[AgentEventBus] Cannot emit event: bus is closed", event.type);
-      return;
+      throw new Error("[AgentEventBus] Cannot create producer: bus is closed");
     }
+    return new RxJSEventProducer(this.events$, () => this.closed);
+  }
 
-    // Emit to general stream
-    this.events$.next(event);
-
-    // Also emit to outbound buffer if it's a user message
-    if (event.type === "user") {
-      this.outbound$.next(event);
+  createConsumer(): EventConsumer {
+    if (this.closed) {
+      throw new Error("[AgentEventBus] Cannot create consumer: bus is closed");
     }
+    return new RxJSEventConsumer(this.events$.asObservable(), () => this.closed);
   }
 
-  /**
-   * Subscribe to outbound events (user messages)
-   * Provider consumes these to send to AI
-   *
-   * Uses ReplaySubject to buffer messages, preventing loss
-   * when provider subscribes after message emission.
-   *
-   * @returns Observable of UserMessageEvent
-   */
-  outbound(): Observable<UserMessageEvent> {
-    return this.outbound$.asObservable();
-  }
-
-  /**
-   * Subscribe to inbound events (AI responses)
-   * Agent/UI consume these to display results
-   *
-   * @returns Observable of all events except UserMessageEvent
-   */
-  inbound(): Observable<Exclude<AgentEvent, UserMessageEvent>> {
-    return this.events$.pipe(
-      filter(
-        (event): event is Exclude<AgentEvent, UserMessageEvent> => event.type !== "user"
-      )
-    );
-  }
-
-  /**
-   * Subscribe to all events (debugging, logging)
-   *
-   * @returns Observable of all AgentEvent
-   */
-  all(): Observable<AgentEvent> {
-    return this.events$.asObservable();
-  }
-
-  /**
-   * Close the event bus
-   * Completes all subscriptions
-   */
   close(): void {
     if (!this.closed) {
       this.closed = true;
       this.events$.complete();
-      this.outbound$.complete();
     }
   }
 
-  /**
-   * Check if the bus is closed
-   */
   isClosed(): boolean {
     return this.closed;
+  }
+}
+
+/**
+ * RxJS-based EventProducer implementation
+ */
+class RxJSEventProducer implements EventProducer {
+  constructor(
+    private subject: Subject<AgentEventType>,
+    private isBusClosed: () => boolean
+  ) {}
+
+  produce(event: AgentEventType): void {
+    if (this.isBusClosed()) {
+      console.warn("[EventProducer] Cannot produce event: bus is closed", event.type);
+      return;
+    }
+    this.subject.next(event);
+  }
+
+  isActive(): boolean {
+    return !this.isBusClosed();
+  }
+}
+
+/**
+ * RxJS-based EventConsumer implementation
+ */
+class RxJSEventConsumer implements EventConsumer {
+  private subscriptions: Subscription[] = [];
+
+  constructor(
+    private events$: Observable<AgentEventType>,
+    private isBusClosed: () => boolean
+  ) {}
+
+  consume(handler: (event: AgentEventType) => void): Unsubscribe {
+    const subscription = this.events$.subscribe({
+      next: handler,
+      error: (error: Error) => console.error("[EventConsumer] Stream error:", error),
+    });
+
+    this.subscriptions.push(subscription);
+    return () => {
+      subscription.unsubscribe();
+      this.subscriptions = this.subscriptions.filter((s) => s !== subscription);
+    };
+  }
+
+  consumeByType<T extends AgentEventType>(
+    type: T["type"],
+    handler: (event: T) => void
+  ): Unsubscribe {
+    const subscription = this.events$
+      .pipe(filter((event): event is T => event.type === type))
+      .subscribe({
+        next: handler,
+        error: (error: Error) => console.error("[EventConsumer] Stream error:", error),
+      });
+
+    this.subscriptions.push(subscription);
+    return () => {
+      subscription.unsubscribe();
+      this.subscriptions = this.subscriptions.filter((s) => s !== subscription);
+    };
+  }
+
+  consumeByTypes<T extends AgentEventType["type"]>(
+    types: T[],
+    handler: (event: Extract<AgentEventType, { type: T }>) => void
+  ): Unsubscribe {
+    const typeSet = new Set(types);
+    const subscription = this.events$
+      .pipe(
+        filter((event): event is Extract<AgentEventType, { type: T }> =>
+          typeSet.has(event.type as T)
+        )
+      )
+      .subscribe({
+        next: handler,
+        error: (error: Error) => console.error("[EventConsumer] Stream error:", error),
+      });
+
+    this.subscriptions.push(subscription);
+    return () => {
+      subscription.unsubscribe();
+      this.subscriptions = this.subscriptions.filter((s) => s !== subscription);
+    };
+  }
+
+  isActive(): boolean {
+    return !this.isBusClosed();
   }
 }

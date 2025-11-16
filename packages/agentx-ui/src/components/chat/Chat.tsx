@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { Agent } from "@deepractice-ai/agentx-browser";
 import type { Message } from "@deepractice-ai/agentx-types";
 import type { ErrorEvent } from "@deepractice-ai/agentx-api";
+import { EventHandlerChain, ALL_EVENT_TYPES } from "@deepractice-ai/agentx-api";
 import { ChatMessageList } from "./ChatMessageList";
 import { ChatInput } from "./ChatInput";
 import { ErrorMessage } from "./ErrorMessage";
+import { UserEventHandler, AssistantEventHandler, ToolUseEventHandler } from "~/handlers";
 
 export interface ChatProps {
   /**
@@ -57,67 +59,65 @@ export function Chat({ agent, initialMessages = [], onMessageSend, className = "
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<ErrorEvent[]>([]);
 
+  // Create EventHandlerChain (memoized)
+  const eventChain = useMemo(
+    () =>
+      new EventHandlerChain<Message>()
+        .addHandler(new UserEventHandler())
+        .addHandler(new AssistantEventHandler())
+        .addHandler(new ToolUseEventHandler()),
+    []
+  );
+
   useEffect(() => {
-    console.log("[Chat] Setting up event listeners");
+    console.log("[Chat] Setting up event listeners with EventHandlerChain");
 
-    // Listen for assistant messages (complete)
-    const unsubAssistant = agent.on("assistant", (event) => {
-      console.log("[Chat] assistant event received:", event.uuid, event.message.content);
-      setMessages((prev) => {
-        console.log("[Chat] Adding assistant message, current count:", prev.length);
-        return [
-          ...prev,
-          {
-            id: event.uuid,
-            role: "assistant",
-            content: event.message.content as string,
-            timestamp: event.timestamp,
-          },
-        ];
-      });
-      setStreaming("");
-      setIsLoading(false);
-    });
-
-    // Listen for streaming chunks
-    const unsubStream = agent.on("stream_event", (event) => {
-      const delta = event.delta;
-      if (delta?.type === "text_delta" && 'text' in delta) {
-        console.log("[Chat] stream_event delta:", delta.text);
-        setStreaming((prev) => prev + delta.text);
+    // Subscribe to all event types
+    const unsubscribes = ALL_EVENT_TYPES.map((eventType) => {
+      if (eventType === "stream_event") {
+        // Special handling for streaming
+        return agent.on(eventType, (event) => {
+          const delta = event.delta;
+          if (delta?.type === "text_delta" && "text" in delta) {
+            console.log("[Chat] stream_event delta:", delta.text);
+            setStreaming((prev) => prev + delta.text);
+          }
+        });
       }
+
+      if (eventType === "error") {
+        // Special handling for errors
+        return agent.on(eventType, (event) => {
+          console.error("[Chat] error event received:", event);
+          setErrors((prev) => [...prev, event]);
+          setIsLoading(false);
+        });
+      }
+
+      if (eventType === "assistant") {
+        // Clear streaming state when assistant message completes
+        return agent.on(eventType, (event) => {
+          console.log("[Chat] assistant event received:", event.uuid);
+          const msgs = eventChain.process(event);
+          setMessages((prev) => [...prev, ...msgs]);
+          setStreaming("");
+          setIsLoading(false);
+        });
+      }
+
+      // For other events, use the EventHandlerChain
+      return agent.on(eventType, (event) => {
+        console.log(`[Chat] ${eventType} event received:`, event.uuid);
+        const msgs = eventChain.process(event);
+        setMessages((prev) => [...prev, ...msgs]);
+      });
     });
 
-    // Listen for user messages
-    const unsubUser = agent.on("user", (event) => {
-      console.log("[Chat] user event received:", event.uuid);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: event.uuid,
-          role: "user",
-          content: event.message.content as string,
-          timestamp: event.timestamp,
-        },
-      ]);
-    });
-
-    // Listen for error events
-    const unsubError = agent.on("error", (event) => {
-      console.error("[Chat] error event received:", event);
-      setErrors((prev) => [...prev, event]);
-      setIsLoading(false); // Stop loading on error
-    });
-
-    // Cleanup on unmount - only unsubscribe, don't destroy agent
-    // Agent lifecycle is managed by parent component
+    // Cleanup on unmount
     return () => {
-      unsubAssistant();
-      unsubStream();
-      unsubUser();
-      unsubError();
+      unsubscribes.forEach((unsub) => unsub());
     };
-  }, [agent]);
+  }, [agent, eventChain]);
 
   const handleSend = async (text: string) => {
     setIsLoading(true);

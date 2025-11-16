@@ -2,7 +2,8 @@ import type { Message } from "~/message/Message";
 import type { UserMessage } from "~/message/UserMessage";
 import type { AssistantMessage } from "~/message/AssistantMessage";
 import type { SystemMessage } from "~/message/SystemMessage";
-import type { ToolMessage } from "~/message/ToolMessage";
+import type { ToolUseMessage } from "~/message/ToolUseMessage";
+import type { ErrorMessage } from "~/message/ErrorMessage";
 
 /**
  * Type guard for UserMessage
@@ -26,8 +27,15 @@ export function isSystemMessage(message: Message): message is SystemMessage {
 }
 
 /**
- * Type guard for ToolMessage
+ * Type guard for ToolUseMessage
  */
-export function isToolMessage(message: Message): message is ToolMessage {
-  return message.role === "tool";
+export function isToolUseMessage(message: Message): message is ToolUseMessage {
+  return message.role === "tool-use";
+}
+
+/**
+ * Type guard for ErrorMessage
+ */
+export function isErrorMessage(message: Message): message is ErrorMessage {
+  return message.role === "error";
 }

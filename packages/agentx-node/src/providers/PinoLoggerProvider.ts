@@ -107,8 +107,22 @@ export class PinoLoggerProvider implements LoggerProvider {
       ...config.pinoOptions,
     };
 
-    // Build transport config for pretty-printing
-    if (config.pretty) {
+    // Build transport config for pretty-printing + file destination
+    if (config.pretty && config.destination) {
+      // Pretty-print to file
+      pinoOptions.transport = {
+        target: "pino-pretty",
+        options: {
+          destination: config.destination,
+          colorize: false, // Disable colors when writing to file
+          translateTime: "HH:MM:ss.l",
+          ignore: "pid,hostname",
+          ...config.prettyOptions,
+        },
+      };
+      this.pino = pino(pinoOptions);
+    } else if (config.pretty) {
+      // Pretty-print to stdout
       pinoOptions.transport = {
         target: "pino-pretty",
         options: {
@@ -118,12 +132,12 @@ export class PinoLoggerProvider implements LoggerProvider {
           ...config.prettyOptions,
         },
       };
-    }
-
-    // Create logger
-    if (config.destination) {
+      this.pino = pino(pinoOptions);
+    } else if (config.destination) {
+      // JSON to file (no pretty)
       this.pino = pino(pinoOptions, pino.destination(config.destination));
     } else {
+      // JSON to stdout (no pretty)
       this.pino = pino(pinoOptions);
     }
   }
