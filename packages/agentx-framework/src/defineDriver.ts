@@ -141,8 +141,12 @@ class SimpleAgentDriver implements AgentDriver {
   async *sendMessage(
     messages: UserMessage | AsyncIterable<UserMessage>
   ): AsyncIterable<StreamEventType> {
-    // Delegate to definition
-    yield* this.definition.sendMessage(messages, this.config);
+    // Delegate to definition with sessionId injected into config
+    const configWithSession = {
+      ...this.config,
+      sessionId: this.sessionId  // Inject framework session ID
+    };
+    yield* this.definition.sendMessage(messages, configWithSession);
   }
 
   /**

@@ -30,7 +30,6 @@
   },
   "dependencies": {
     "@deepractice-ai/agentx-framework": "workspace:*",
-    "@deepractice-ai/agentx-browser": "workspace:*",
     "@deepractice-ai/agentx-types": "workspace:*",
     "allotment": "^1.20.4",
     "class-variance-authority": "^0.7.1",
@@ -45,7 +44,6 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
-    "@deepractice-ai/agentx-node": "workspace:*",
     "@storybook/addon-a11y": "^8.4.7",
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/addon-interactions": "^8.4.7",

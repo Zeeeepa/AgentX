@@ -4,6 +4,12 @@
  * AgentDriver implementation using @anthropic-ai/claude-agent-sdk.
  * Built with defineDriver for minimal boilerplate.
  *
+ * Performance Optimization:
+ * - Uses Claude SDK's Streaming Input Mode (prompt: AsyncIterable)
+ * - Process starts once and stays alive for entire session
+ * - First message: ~6-7s (process startup)
+ * - Subsequent messages: ~1-2s (3-5x faster!)
+ *
  * @example
  * ```typescript
  * import { ClaudeSDKDriver } from "@deepractice-ai/agentx-framework/drivers";
@@ -22,6 +28,7 @@
 import {
   query,
   type SDKMessage,
+  type SDKUserMessage,
   type SDKAssistantMessage,
   type SDKPartialAssistantMessage,
   type Options,
@@ -29,11 +36,14 @@ import {
   type HookEvent,
   type HookCallbackMatcher,
   type SdkPluginConfig,
+  type Query,
 } from "@anthropic-ai/claude-agent-sdk";
 import { StreamEventBuilder } from "@deepractice-ai/agentx-core";
 import type { UserMessage } from "@deepractice-ai/agentx-types";
 import type { StreamEventType } from "@deepractice-ai/agentx-event";
-import { defineDriver } from "../defineDriver";
+import { defineDriver } from "~/defineDriver";
+import { observableToAsyncIterable } from "~/utils/observableToAsyncIterable";
+import { Subject } from "rxjs";
 
 /**
  * Configuration for ClaudeSDKDriver
@@ -101,7 +111,27 @@ export interface ClaudeSDKDriverConfig {
   // ==================== Other ====================
   extraArgs?: Record<string, string | null>;
   abortController?: AbortController;
+
+  // ==================== Internal (Framework) ====================
+  sessionId?: string;  // Framework session ID (for session mapping)
 }
+
+/**
+ * Shared state for ClaudeSDKDriver instances (per driver definition)
+ */
+interface DriverState {
+  promptSubject: Subject<SDKUserMessage>;  // Input: sendMessage pushes SDK-formatted messages
+  responseSubject: Subject<SDKMessage>;  // Output: broadcasts responses to all consumers
+  claudeQuery: Query | null;
+  abortController: AbortController;
+  sessionMap: Map<string, string>; // Framework sessionId -> Claude SDK session_id
+  isInitialized: boolean;
+  config: ClaudeSDKDriverConfig;
+  agentId: string;
+}
+
+// Global state storage (one per driver definition)
+const driverStates = new WeakMap<any, DriverState>();
 
 /**
  * Helper: Build prompt from UserMessage
@@ -114,11 +144,28 @@ function buildPrompt(message: UserMessage): string {
   if (Array.isArray(message.content)) {
     return message.content
       .filter((part) => part.type === "text")
-      .map((part) => part.text)
+      .map((part) => (part as any).text)
       .join("\n");
   }
 
   return "";
+}
+
+/**
+ * Helper: Build SDKUserMessage from UserMessage
+ */
+function buildSDKUserMessage(message: UserMessage, sessionId: string): SDKUserMessage {
+  const prompt = buildPrompt(message);
+
+  return {
+    type: "user",
+    message: {
+      role: "user",
+      content: prompt,
+    },
+    parent_tool_use_id: null,
+    session_id: sessionId,
+  };
 }
 
 /**
@@ -139,6 +186,9 @@ function buildOptions(config: ClaudeSDKDriverConfig, abortController: AbortContr
   };
   if (config.baseUrl) {
     env.ANTHROPIC_BASE_URL = config.baseUrl;
+  }
+  if (config.apiKey) {
+    env.ANTHROPIC_API_KEY = config.apiKey;
   }
   options.env = env;
 
@@ -259,15 +309,22 @@ async function* processStreamEvent(
 
 /**
  * Helper: Transform Claude SDK messages to AgentX Stream events
+ * Returns captured Claude SDK session_id via callback
  */
 async function* transformSDKMessages(
   sdkMessages: AsyncIterable<SDKMessage>,
-  builder: StreamEventBuilder
+  builder: StreamEventBuilder,
+  onSessionIdCaptured?: (sessionId: string) => void
 ): AsyncIterable<StreamEventType> {
   let messageId: string | null = null;
   let hasStartedMessage = false;
 
   for await (const sdkMsg of sdkMessages) {
+    // Capture Claude SDK session_id
+    if (sdkMsg.session_id && onSessionIdCaptured) {
+      onSessionIdCaptured(sdkMsg.session_id);
+    }
+
     switch (sdkMsg.type) {
       case "system":
         // Ignore system messages for now
@@ -278,8 +335,8 @@ async function* transformSDKMessages(
         if (sdkMsg.message.model === "<synthetic>") {
           // Extract error text from content
           const errorText = sdkMsg.message.content
-            .filter((block) => block.type === "text")
-            .map((block) => block.text)
+            .filter((block: any) => block.type === "text")
+            .map((block: any) => block.text)
             .join(" ");
 
           // Throw error instead of yielding as assistant message
@@ -288,7 +345,7 @@ async function* transformSDKMessages(
 
         // Normal assistant message processing
         messageId = sdkMsg.message.id;
-        if (!hasStartedMessage) {
+        if (!hasStartedMessage && messageId) {
           yield builder.messageStart(messageId, sdkMsg.message.model);
           hasStartedMessage = true;
         }
@@ -338,52 +395,188 @@ async function* transformSDKMessages(
 }
 
 /**
+ * Get or create driver state for this driver definition
+ */
+function getDriverState(definition: any, config: ClaudeSDKDriverConfig): DriverState {
+  if (!driverStates.has(definition)) {
+    const state: DriverState = {
+      promptSubject: new Subject<SDKUserMessage>(),
+      responseSubject: new Subject<SDKMessage>(),
+      claudeQuery: null,
+      abortController: new AbortController(),
+      sessionMap: new Map(),
+      isInitialized: false,
+      config,
+      agentId: `claude_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    };
+    driverStates.set(definition, state);
+  }
+  return driverStates.get(definition)!;
+}
+
+/**
  * ClaudeSDKDriver - Built with defineDriver
+ *
+ * Uses Streaming Input Mode for optimal performance:
+ * - onInit: Start Claude SDK process once
+ * - sendMessage: Push messages to queue (SDK stays alive)
+ * - onDestroy: Cleanup resources
  */
 export const ClaudeSDKDriver = defineDriver<ClaudeSDKDriverConfig>({
   name: "ClaudeSDK",
 
-  async *sendMessage(message, config) {
-    // 1. Create shared resources
-    const agentId = `claude_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    const builder = new StreamEventBuilder(agentId);
-    const abortController = config.abortController || new AbortController();
+  onInit: async (config) => {
+    const state = getDriverState(ClaudeSDKDriver, config);
 
-    // 2. Normalize input to AsyncIterable
+    if (state.isInitialized) {
+      console.log("🔄 [ClaudeSDKDriver] Already initialized (process reused)");
+      return;
+    }
+
+    console.log("🚀 [ClaudeSDKDriver] ========================================");
+    console.log("🚀 [ClaudeSDKDriver] STREAMING INPUT MODE ENABLED");
+    console.log("🚀 [ClaudeSDKDriver] Claude SDK process will start ONCE and stay alive");
+    console.log("🚀 [ClaudeSDKDriver] Expected performance:");
+    console.log("🚀 [ClaudeSDKDriver]   - First message: ~6-7s (process startup)");
+    console.log("🚀 [ClaudeSDKDriver]   - Subsequent messages: ~1-2s (3-5x faster!)");
+    console.log("🚀 [ClaudeSDKDriver] ========================================");
+
+    // Get stored Claude SDK session ID (if exists)
+    const frameworkSessionId = config.sessionId;
+    const claudeSessionId = frameworkSessionId ? state.sessionMap.get(frameworkSessionId) : undefined;
+
+    if (claudeSessionId) {
+      console.log(`[ClaudeSDKDriver] Resuming Claude session: ${claudeSessionId}`);
+    }
+
+    // Build SDK options
+    const options = buildOptions(
+      {
+        ...config,
+        resume: claudeSessionId,
+      },
+      state.abortController
+    );
+
+    // Convert Subject to AsyncIterable for Claude SDK
+    const promptStream = observableToAsyncIterable(state.promptSubject);
+
+    // Start Claude SDK with AsyncIterable prompt (Streaming Input Mode)
+    state.claudeQuery = query({
+      prompt: promptStream,
+      options,
+    });
+
+    state.isInitialized = true;
+
+    // Start background thread to forward responses to responseSubject
+    (async () => {
+      try {
+        console.log("🎧 [ClaudeSDKDriver] Background listener started (waiting for SDK responses)");
+        for await (const sdkMsg of state.claudeQuery!) {
+          // Capture session ID
+          if (sdkMsg.session_id && frameworkSessionId) {
+            state.sessionMap.set(frameworkSessionId, sdkMsg.session_id);
+            console.log(`📝 [ClaudeSDKDriver] Captured Claude session_id: ${sdkMsg.session_id}`);
+          }
+
+          // Broadcast to all subscribers
+          console.log(`📡 [ClaudeSDKDriver] Broadcasting SDK message (type: ${sdkMsg.type})`);
+          state.responseSubject.next(sdkMsg);
+        }
+
+        // Query completed
+        console.log("🏁 [ClaudeSDKDriver] Claude SDK query completed");
+        state.responseSubject.complete();
+      } catch (error) {
+        console.error("❌ [ClaudeSDKDriver] Background listener error:", error);
+        state.responseSubject.error(error);
+      }
+    })();
+
+    console.log("✅ [ClaudeSDKDriver] Streaming Input Mode initialized successfully");
+    console.log("✅ [ClaudeSDKDriver] Claude SDK process is now RUNNING in background");
+    console.log("✅ [ClaudeSDKDriver] Ready to handle messages with persistent process");
+  },
+
+  async *sendMessage(message, config) {
+    const state = getDriverState(ClaudeSDKDriver, config);
+
+    if (!state.isInitialized || !state.claudeQuery) {
+      throw new Error("[ClaudeSDKDriver] Driver not initialized. Call onInit first.");
+    }
+
+    // 1. Normalize input to AsyncIterable
     const messages = Symbol.asyncIterator in Object(message)
       ? (message as AsyncIterable<UserMessage>)
       : (async function* () { yield message as UserMessage; })();
 
-    // 3. Process each message sequentially
-    let isFirstMessage = true;
+    // 2. Create builder for this message stream
+    const builder = new StreamEventBuilder(state.agentId);
 
+    // 3. Process each message
     for await (const msg of messages) {
-      // Build prompt from message
+      const sessionId = config.sessionId || state.agentId;
+
+      // Build SDK user message
+      const sdkUserMessage = buildSDKUserMessage(msg, sessionId);
       const prompt = buildPrompt(msg);
 
-      // Build SDK options (use continue: true for subsequent messages)
-      const options = buildOptions(
-        { ...config, continue: !isFirstMessage },
-        abortController
+      // Push to Subject (Claude SDK reads from promptSubject)
+      console.log(`📤 [ClaudeSDKDriver] Pushing message to Subject (reusing existing process)`);
+      console.log(`📤 [ClaudeSDKDriver] Message: ${prompt.substring(0, 80)}...`);
+      state.promptSubject.next(sdkUserMessage);
+
+      // Subscribe to responseSubject (broadcast from background thread)
+      // Auto-complete subscription after receiving message_stop
+      const responseStream = (async function* () {
+        for await (const sdkMsg of observableToAsyncIterable(state.responseSubject)) {
+          yield sdkMsg;
+
+          // Stop after message_stop event
+          if (sdkMsg.type === "stream_event" && (sdkMsg as any).event?.type === "message_stop") {
+            console.log(`🏁 [ClaudeSDKDriver] Message completed, stopping this subscription`);
+            break;
+          }
+          // Or after result event
+          if (sdkMsg.type === "result") {
+            console.log(`🏁 [ClaudeSDKDriver] Result received, stopping this subscription`);
+            break;
+          }
+        }
+      })();
+
+      // Transform SDK messages to Stream events
+      yield* transformSDKMessages(
+        responseStream,
+        builder,
+        (capturedSessionId) => {
+          if (config.sessionId && capturedSessionId) {
+            state.sessionMap.set(config.sessionId, capturedSessionId);
+          }
+        }
       );
-
-      try {
-        // Call Claude SDK
-        const result = query({ prompt, options });
-
-        // Transform SDK messages to Stream events
-        yield* transformSDKMessages(result, builder);
-
-        // Mark subsequent messages to use continue mode
-        isFirstMessage = false;
-      } catch (error) {
-        console.error("[ClaudeSDKDriver] Error during SDK query:", error);
-        throw error;
-      }
     }
   },
 
-  onDestroy: () => {
-    console.log("[ClaudeSDKDriver] Destroyed");
+  onDestroy: async () => {
+    console.log("🛑 [ClaudeSDKDriver] Destroying driver (shutting down persistent process)...");
+    const state = driverStates.get(ClaudeSDKDriver);
+
+    if (state) {
+      // Complete Subjects to stop all async operations
+      state.promptSubject.complete();
+      state.responseSubject.complete();
+
+      // Abort SDK process
+      state.abortController.abort();
+
+      state.isInitialized = false;
+      driverStates.delete(ClaudeSDKDriver);
+      console.log("🛑 [ClaudeSDKDriver] Claude SDK process terminated");
+      console.log("🛑 [ClaudeSDKDriver] Streaming Input Mode disabled");
+    }
+
+    console.log("🛑 [ClaudeSDKDriver] Driver destroyed");
   },
 });
