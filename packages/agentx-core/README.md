@@ -1,10 +1,10 @@
 # @deepractice-ai/agentx-core
 
-**AgentX Core** - Platform-agnostic core engine for building AI agents with event-driven architecture.
+**AgentX Core** - Platform-agnostic core engine for building AI agents with event-driven Reactor architecture.
 
 ## Overview
 
-AgentX Core is the heart of the AgentX ecosystem, providing a **Reactor-based event-driven architecture** for building AI agents. It's platform-agnostic and requires a Driver implementation to connect to specific LLM providers.
+AgentX Core is the foundational layer of the AgentX ecosystem, providing a **Reactor-based event-driven architecture** for building AI agents. It's completely platform-agnostic and relies on Driver implementations to connect to specific LLM providers.
 
 ### Key Features
 
@@ -13,19 +13,63 @@ AgentX Core is the heart of the AgentX ecosystem, providing a **Reactor-based ev
 - 📊 **4-Layer Events** - Stream, State, Message, and Exchange events for different perspectives
 - 🎯 **Type-Safe** - Full TypeScript support with strict event types
 - 🪶 **Lightweight** - Zero dependencies on specific LLM SDKs
+- 🧩 **Agent-as-Driver** - Agents can be composed as Drivers (nested composition)
 
 ## Architecture
 
 ```
-AgentEngine
-  ├── EventBus (RxJS-based communication backbone)
-  └── ReactorRegistry
-        ├── DriverReactor (Driver → Stream Events)
-        ├── StateMachineReactor (Stream → State Events)
-        ├── MessageAssemblerReactor (Stream → Message Events)
-        ├── ExchangeTrackerReactor (Message → Exchange Events)
-        └── User Reactors (custom event handlers)
+User Code
+    ↓
+createAgent() [Facade API]
+    ↓
+AgentService (implements AgentService extends AgentDriver)
+    ↓
+AgentEngine (orchestration)
+    ↓
+AgentReactorRegistry
+    ├── AgentDriverBridge (Driver → Stream Events)
+    ├── AgentStateMachine (Stream → State Events)
+    ├── AgentMessageAssembler (Stream → Message Events)
+    ├── AgentExchangeTracker (Message → Exchange Events)
+    └── User Reactors (custom event handlers)
+    ↓
+EventBus (RxJS-based communication backbone)
 ```
+
+### Core Components
+
+#### Facade Layer (`facade/`)
+- **`createAgent()`** - Primary API for creating agents (uses mixin pattern)
+- Simple, user-friendly interface
+- Combines Agent data (from `agentx-types`) with AgentService methods
+
+#### Interfaces (`interfaces/`)
+**Service Provider Interfaces (SPI)**:
+- **`AgentService`** - User-facing runtime API (extends AgentDriver)
+- **`AgentDriver`** - Platform-specific LLM driver contract
+- **`AgentReactor`** - Low-level event processor contract
+- **`AgentReactorContext`** - Context provided to reactors
+
+**User-Friendly Reactor Interfaces**:
+- **`StreamReactor`** - Stream layer event handlers
+- **`StateReactor`** - State layer event handlers
+- **`MessageReactor`** - Message layer event handlers
+- **`ExchangeReactor`** - Exchange layer event handlers
+
+#### Core Implementation (`core/agent/`)
+- **`AgentEngine`** - Orchestrates all reactors via ReactorRegistry
+- **`AgentServiceImpl`** - Default implementation of AgentService
+- **`AgentEventBus`** - RxJS-based event communication
+- **`AgentReactorRegistry`** - Manages reactor lifecycle
+- **`AgentDriverBridge`** - Connects AgentDriver to EventBus
+- **`AgentStateMachine`** - State machine reactor
+- **`AgentMessageAssembler`** - Message assembly reactor
+- **`AgentExchangeTracker`** - Exchange tracking reactor
+
+#### Utilities (`utils/`)
+- **`ReactorAdapter`** - Adapts user-friendly reactor interfaces to AgentReactor
+- **`emitError`** - Unified error emission utility
+- **`StreamEventBuilder`** - Helper for building stream events
 
 ### 4-Layer Event System
 
@@ -47,16 +91,16 @@ pnpm add @deepractice-ai/agentx-core
 **Platform-Specific SDKs:**
 
 For most use cases, use a platform-specific SDK instead:
-- **Node.js**: `@deepractice-ai/agentx-node` (includes ClaudeDriver)
-- **Browser**: `@deepractice-ai/agentx-browser` (includes WebSocketDriver)
+- **Node.js**: `@deepractice-ai/agentx-framework` (includes ClaudeSDKDriver)
+- **Browser**: `@deepractice-ai/agentx-framework/browser` (includes WebSocketDriver)
 
 ## Quick Start
 
-### Basic Usage
+### Basic Usage with Facade API
 
 ```typescript
-import { AgentService } from "@deepractice-ai/agentx-core";
-import { ClaudeDriver } from "@deepractice-ai/agentx-node";
+import { createAgent } from "@deepractice-ai/agentx-core";
+import { ClaudeDriver } from "@deepractice-ai/agentx-framework";
 
 // Create driver (platform-specific)
 const driver = new ClaudeDriver({
@@ -64,8 +108,11 @@ const driver = new ClaudeDriver({
   sessionId: "my-session",
 });
 
-// Create agent
-const agent = new AgentService(driver);
+// Create agent using facade API
+const agent = createAgent("my-agent", driver, {
+  name: "Code Assistant",
+  description: "Helps with coding tasks",
+});
 
 // Initialize
 await agent.initialize();
@@ -125,7 +172,7 @@ interface AgentDriver {
   readonly driverSessionId: string | null;
 
   // Returns async iterable of Stream events
-  sendMessage(message: UserMessage): AsyncIterable<StreamEventType>;
+  sendMessage(messages: UserMessage | AsyncIterable<UserMessage>): AsyncIterable<StreamEventType>;
 
   abort(): void;
   destroy(): Promise<void>;
@@ -133,88 +180,124 @@ interface AgentDriver {
 ```
 
 **Driver Implementations:**
-- `ClaudeDriver` - Uses `@anthropic-ai/sdk` (Node.js)
+- `ClaudeSDKDriver` - Uses `@anthropic-ai/sdk` (Node.js)
 - `WebSocketDriver` - Connects to AgentX server (Browser)
 - `MockDriver` - For testing
+
+### AgentService (User-Facing API)
+
+`AgentService` is the primary interface users interact with. It **extends AgentDriver**, enabling the Agent-as-Driver pattern:
+
+```typescript
+interface AgentService extends AgentDriver {
+  readonly id: string;
+  readonly agent: Readonly<Agent>;
+  readonly messages: ReadonlyArray<Message>;
+
+  initialize(): Promise<void>;
+  send(message: string): Promise<void>;
+  react(handlers: Record<string, any>): () => void;
+  clear(): void;
+  exportToSession(): Omit<Session, 'id'>;
+
+  // Inherited from AgentDriver:
+  // sendMessage(), abort(), destroy()
+}
+```
+
+**Agent-as-Driver Pattern:**
+Since `AgentService extends AgentDriver`, any agent instance can be used as a Driver for another agent, enabling powerful nested compositions.
+
+```typescript
+// Create inner agent
+const innerAgent = createAgent("inner", innerDriver);
+await innerAgent.initialize();
+
+// Use innerAgent as Driver for outer agent
+const outerAgent = createAgent("outer", innerAgent, {
+  reactors: [new MonitoringReactor()],
+});
+await outerAgent.initialize();
+
+// Request flows through both agents
+await outerAgent.send("Hello!");
+```
 
 ### Reactor Pattern
 
 Reactors are event processors with managed lifecycles:
 
 ```typescript
-interface Reactor {
+interface AgentReactor {
   readonly id: string;
   readonly name: string;
 
-  initialize(context: ReactorContext): void | Promise<void>;
+  initialize(context: AgentReactorContext): void | Promise<void>;
   destroy(): void | Promise<void>;
+}
+
+interface AgentReactorContext {
+  readonly agentId: string;
+  readonly sessionId: string;
+  readonly consumer: EventConsumer;
+  readonly producer: EventProducer;
 }
 ```
 
 **Built-in Reactors:**
-- `DriverReactor` - Transforms Driver output to Stream events
-- `StateMachineReactor` - Generates State events from Stream events
-- `MessageAssemblerReactor` - Assembles Message events from Stream deltas
-- `ExchangeTrackerReactor` - Tracks request-response pairs
+- `AgentDriverBridge` - Connects Driver to EventBus
+- `AgentStateMachine` - Generates State events from Stream events
+- `AgentMessageAssembler` - Assembles Message events from Stream deltas
+- `AgentExchangeTracker` - Tracks request-response pairs
 
-**Custom Reactors:**
+**User-Friendly Reactor Interfaces:**
+
+Instead of implementing `AgentReactor` directly, you can use the 4-layer interfaces:
 
 ```typescript
-class MyAnalyticsReactor implements Reactor {
-  readonly id = "analytics";
-  readonly name = "AnalyticsReactor";
+import { StreamReactor, MessageReactor, AgentReactorContext } from "@deepractice-ai/agentx-core";
 
-  async initialize(context: ReactorContext): Promise<void> {
-    // Subscribe to events
-    context.consumer.consumeByType("exchange_response", (event) => {
-      this.trackCost(event.data.costUsd);
-    });
-  }
+class MyReactor implements MessageReactor {
+  // Lifecycle hooks
+  onInitialize?(context: AgentReactorContext): void | Promise<void>;
+  onDestroy?(): void | Promise<void>;
 
-  async destroy(): Promise<void> {
-    // Cleanup
-  }
-
-  private trackCost(cost: number) {
-    // Your analytics logic
-  }
+  // Message layer handlers
+  onUserMessage?(event: UserMessageEvent): void;
+  onAssistantMessage?(event: AssistantMessageEvent): void;
+  onToolUseMessage?(event: ToolUseMessageEvent): void;
+  onErrorMessage?(event: ErrorMessageEvent): void;
 }
 
-// Register custom reactor
-const agent = new AgentService(driver, logger, {
-  reactors: [new MyAnalyticsReactor()],
+// Wrap with ReactorAdapter before passing to createAgent
+import { wrapUserReactor } from "@deepractice-ai/agentx-core";
+
+const agent = createAgent("my-agent", driver, {
+  reactors: [wrapUserReactor(new MyReactor())],
 });
 ```
+
+**ReactorAdapter** automatically:
+- Detects which layer interface you implemented
+- Subscribes to appropriate events
+- Manages lifecycle (onInitialize/onDestroy)
 
 ### AgentEngine
 
-`AgentEngine` orchestrates all Reactors:
+`AgentEngine` orchestrates all Reactors via `AgentReactorRegistry`:
 
 ```typescript
-const engine = new AgentEngine(driver, logger, {
-  reactors: [new MyReactor()],
-});
+class AgentEngine {
+  readonly agentId: string;
+  readonly sessionId: string;
+  readonly eventBus: AgentEventBus;
 
-await engine.initialize(); // Initializes all Reactors
-await engine.destroy();    // Destroys all Reactors (reverse order)
-```
+  constructor(driver: AgentDriver, config?: EngineConfig);
 
-### AgentService
-
-`AgentService` is the user-friendly API facade:
-
-```typescript
-const agent = new AgentService(driver, logger, config);
-
-// Public API
-await agent.initialize();
-await agent.send("Hello");
-agent.react({ onAssistantMessage(e) {} });
-agent.clear();
-await agent.destroy();
-
-// Access message history
-const messages = agent.messages;
+  async initialize(): Promise<void>; // Initializes all Reactors
+  abort(): void;
+  async destroy(): Promise<void>;   // Destroys all Reactors (reverse order)
+}
 ```
 
 ### Error Handling
@@ -286,97 +369,6 @@ agent.react({
 });
 ```
 
-#### Error Emission (Internal)
-
-Components use the `emitError()` utility to emit errors:
-
-```typescript
-import { emitError } from "@deepractice-ai/agentx-core/utils/emitError";
-
-// In a Reactor or component
-try {
-  // Some operation
-} catch (error) {
-  emitError(
-    context.producer,
-    error,
-    "validation",  // subtype
-    {
-      agentId: context.agentId,
-      componentName: "MyReactor",
-    },
-    {
-      code: "MY_ERROR_CODE",
-      severity: "error",
-      details: { /* additional context */ }
-    }
-  );
-}
-```
-
-#### Error Sources
-
-All layers emit error_message events:
-
-1. **DriverReactor** - Driver/LLM errors
-2. **ReactorRegistry** - Reactor initialization/destruction errors
-3. **MessageAssembler** - Content parsing errors
-4. **AgentService** - Validation errors (empty messages, etc.)
-5. **Custom Reactors** - Application-specific errors
-
-#### Best Practices
-
-1. ✅ **Always subscribe to error events** in production
-2. ✅ **Check `recoverable` flag** to decide whether to continue
-3. ✅ **Use `subtype` and `code`** for programmatic error handling
-4. ✅ **Log error details** for debugging
-5. ⚠️ **Don't ignore fatal errors** - they require cleanup
-
-#### Example: Complete Error Handling
-
-```typescript
-const agent = new AgentService(driver, logger);
-
-agent.react({
-  onErrorMessage(event) {
-    const { subtype, severity, message, code, recoverable } = event.data;
-
-    // Log error
-    logger.error(`Error [${subtype}/${severity}]: ${message}`, {
-      code,
-      recoverable,
-    });
-
-    // Handle specific error types
-    switch (subtype) {
-      case "validation":
-        showValidationError(message);
-        break;
-      case "llm":
-        if (code === "RATE_LIMIT") {
-          scheduleRetry();
-        }
-        break;
-      case "system":
-        if (!recoverable) {
-          await agent.destroy();
-          showFatalError(message);
-        }
-        break;
-    }
-  }
-});
-
-await agent.initialize();
-
-try {
-  await agent.send(""); // Validation error
-} catch (error) {
-  // Error also thrown for user code to catch
-  // But error_message event was already emitted
-}
-```
-
 ## Event Types
 
 ### Stream Events
@@ -388,7 +380,9 @@ Real-time incremental events during streaming:
 - `TextContentBlockStartEvent` / `TextContentBlockStopEvent`
 - `ToolUseContentBlockStartEvent` / `ToolUseContentBlockStopEvent`
 - `InputJsonDeltaEvent` - Tool input chunk
+- `MessageDeltaEvent` - Message metadata delta
 - `MessageStopEvent` - Message complete
+- `ToolCallEvent` - Complete tool call assembled
 
 ### State Events
 
@@ -418,36 +412,36 @@ Request-response analytics:
 
 ## Advanced Usage
 
-### Custom Logger
+### Custom Reactors
 
 ```typescript
-import { AgentLogger, LogLevel, LogContext } from "@deepractice-ai/agentx-core";
+import { MessageReactor, wrapUserReactor } from "@deepractice-ai/agentx-core";
 
-class MyLogger implements AgentLogger {
-  log(level: LogLevel, message: string, ...args: any[]): void {
-    // Your logging logic
+class AnalyticsReactor implements MessageReactor {
+  onAssistantMessage(event) {
+    // Track analytics
   }
 
-  debug(message: string, ...args: any[]): void {
-    this.log(LogLevel.DEBUG, message, ...args);
+  onErrorMessage(event) {
+    // Track errors
   }
-
-  // ... implement other methods
 }
 
-const agent = new AgentService(driver, new MyLogger());
+const agent = createAgent("my-agent", driver, {
+  reactors: [wrapUserReactor(new AnalyticsReactor())],
+});
 ```
 
 ### Direct EventBus Access
 
 ```typescript
-const agent = new AgentService(driver);
+const agent = createAgent("my-agent", driver);
 await agent.initialize();
 
-// Access EventBus directly
-const consumer = agent.engine.eventBus.createConsumer();
+// Access internal engine (not recommended for normal use)
+const consumer = agent.eventBus?.createConsumer();
 
-consumer.consumeByType("text_delta", (event) => {
+consumer?.consumeByType("text_delta", (event) => {
   console.log(event.data.text);
 });
 ```
@@ -455,7 +449,7 @@ consumer.consumeByType("text_delta", (event) => {
 ### Message History
 
 ```typescript
-const agent = new AgentService(driver);
+const agent = createAgent("my-agent", driver);
 
 await agent.send("Hello");
 await agent.send("How are you?");
@@ -469,27 +463,57 @@ console.log(agent.messages);
 //   { role: "assistant", content: "I'm doing well!", ... }
 // ]
 
+// Export to session format
+const session = agent.exportToSession();
+
 // Clear history
 agent.clear();
 ```
 
 ## API Reference
 
+### createAgent (Facade API)
+
+```typescript
+function createAgent(
+  id: string,
+  driver: AgentDriver,
+  options?: CreateAgentOptions
+): AgentInstance;
+
+interface CreateAgentOptions {
+  reactors?: AgentReactor[];
+  name?: string;
+  description?: string;
+  tags?: string[];
+  version?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// AgentInstance = Agent data + AgentService methods (via mixin)
+type AgentInstance = Agent & AgentService;
+```
+
 ### AgentService
 
 ```typescript
-class AgentService {
+interface AgentService extends AgentDriver {
   readonly id: string;
-  readonly sessionId: string;
+  readonly agent: Readonly<Agent>;
   readonly messages: ReadonlyArray<Message>;
-
-  constructor(driver: AgentDriver, logger?: AgentLogger, config?: EngineConfig);
 
   initialize(): Promise<void>;
   send(message: string): Promise<void>;
   react(handlers: Record<string, Function>): () => void;
   clear(): void;
+  exportToSession(): Omit<Session, 'id'>;
   destroy(): Promise<void>;
+
+  // Inherited from AgentDriver:
+  readonly sessionId: string;
+  readonly driverSessionId: string | null;
+  sendMessage(messages: UserMessage | AsyncIterable<UserMessage>): AsyncIterable<StreamEventType>;
+  abort(): void;
 }
 ```
 
@@ -501,7 +525,7 @@ class AgentEngine {
   readonly sessionId: string;
   readonly eventBus: AgentEventBus;
 
-  constructor(driver: AgentDriver, logger?: AgentLogger, config?: EngineConfig);
+  constructor(driver: AgentDriver, config?: EngineConfig);
 
   initialize(): Promise<void>;
   abort(): void;
@@ -513,8 +537,23 @@ class AgentEngine {
 
 ```typescript
 interface EngineConfig {
-  reactors?: Reactor[];
+  reactors?: AgentReactor[];
 }
+```
+
+### ReactorAdapter (Utility)
+
+```typescript
+// Wrap user-friendly reactor interfaces
+function wrapUserReactor(userReactor: UserReactor): AgentReactor;
+
+type UserReactor = StreamReactor | StateReactor | MessageReactor | ExchangeReactor;
+
+// Or use specific adapters
+class StreamReactorAdapter extends BaseReactorAdapter { }
+class StateReactorAdapter extends BaseReactorAdapter { }
+class MessageReactorAdapter extends BaseReactorAdapter { }
+class ExchangeReactorAdapter extends BaseReactorAdapter { }
 ```
 
 ## Design Principles
@@ -525,13 +564,14 @@ interface EngineConfig {
 4. **Reactor Pattern** - Managed lifecycle for all event processors
 5. **Layered Events** - Multiple perspectives on the same interaction
 6. **Type Safety** - Strict TypeScript types throughout
+7. **Separation of Concerns** - Core only handles business logic, no logging
+8. **Agent-as-Driver** - Agents can be composed as nested Drivers
 
 ## Related Packages
 
-- **[@deepractice-ai/agentx-types](../agentx-types)** - Message and content types
+- **[@deepractice-ai/agentx-types](../agentx-types)** - Message, content, and agent types
 - **[@deepractice-ai/agentx-event](../agentx-event)** - Event type definitions
-- **[@deepractice-ai/agentx-node](../agentx-node)** - Node.js provider with ClaudeDriver
-- **[@deepractice-ai/agentx-browser](../agentx-browser)** - Browser WebSocket client
+- **[@deepractice-ai/agentx-framework](../agentx-framework)** - Full-featured framework with drivers and reactors
 
 ## License
 

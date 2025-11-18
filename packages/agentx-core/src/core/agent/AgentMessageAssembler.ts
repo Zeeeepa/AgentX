@@ -19,8 +19,7 @@
  * 4. Assemble and emit complete Message events
  */
 
-import type { Reactor } from "./reactor/Reactor";
-import type { ReactorContext } from "./reactor/ReactorContext";
+import type { AgentReactor, AgentReactorContext } from "~/interfaces/AgentReactor";
 import type {
   // Stream Events (input)
   TextDeltaEvent,
@@ -61,44 +60,25 @@ interface PendingContent {
  *
  * Assembles complete Message events from Stream deltas.
  */
-export class AgentMessageAssembler implements Reactor {
+export class AgentMessageAssembler implements AgentReactor {
   readonly id = "message-assembler";
   readonly name = "MessageAssemblerReactor";
 
-  private context: ReactorContext | null = null;
+  private context: AgentReactorContext | null = null;
 
   // Content accumulation
   private pendingContents: Map<number, PendingContent> = new Map();
   private currentMessageId: string | null = null;
   private messageStartTime: number | null = null;
 
-  async initialize(context: ReactorContext): Promise<void> {
+  async initialize(context: AgentReactorContext): Promise<void> {
     this.context = context;
-
-    context.logger?.debug(`[MessageAssemblerReactor] Initializing`, {
-      reactorId: this.id,
-    });
-
     this.subscribeToStreamEvents();
-
-    context.logger?.info(`[MessageAssemblerReactor] Initialized`, {
-      reactorId: this.id,
-    });
   }
 
   async destroy(): Promise<void> {
-    const logger = this.context?.logger;
-
-    logger?.debug(`[MessageAssemblerReactor] Destroying`, {
-      reactorId: this.id,
-    });
-
     this.pendingContents.clear();
     this.context = null;
-
-    logger?.info(`[MessageAssemblerReactor] Destroyed`, {
-      reactorId: this.id,
-    });
   }
 
   /**
@@ -110,33 +90,33 @@ export class AgentMessageAssembler implements Reactor {
     const { consumer } = this.context;
 
     // Text content deltas
-    consumer.consumeByType("text_delta", (event) => {
+    consumer.consumeByType("text_delta", (event: any) => {
       this.onTextDelta(event as TextDeltaEvent);
     });
 
-    consumer.consumeByType("text_content_block_stop", (event) => {
+    consumer.consumeByType("text_content_block_stop", (event: any) => {
       this.onTextContentBlockStop(event as TextContentBlockStopEvent);
     });
 
     // Tool use content
-    consumer.consumeByType("tool_use_content_block_start", (event) => {
+    consumer.consumeByType("tool_use_content_block_start", (event: any) => {
       this.onToolUseContentBlockStart(event as ToolUseContentBlockStartEvent);
     });
 
-    consumer.consumeByType("input_json_delta", (event) => {
+    consumer.consumeByType("input_json_delta", (event: any) => {
       this.onInputJsonDelta(event as InputJsonDeltaEvent);
     });
 
-    consumer.consumeByType("tool_use_content_block_stop", (event) => {
+    consumer.consumeByType("tool_use_content_block_stop", (event: any) => {
       this.onToolUseContentBlockStop(event as ToolUseContentBlockStopEvent);
     });
 
     // Message lifecycle
-    consumer.consumeByType("message_start", (event) => {
+    consumer.consumeByType("message_start", (event: any) => {
       this.onMessageStart(event);
     });
 
-    consumer.consumeByType("message_stop", (event) => {
+    consumer.consumeByType("message_stop", (event: any) => {
       this.onMessageStop(event as MessageStopEvent);
     });
 

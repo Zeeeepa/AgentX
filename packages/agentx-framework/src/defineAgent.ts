@@ -38,7 +38,7 @@
  * ```
  */
 
-import { createAgent, AgentService, type AgentDriver } from "@deepractice-ai/agentx-core";
+import { createAgent, type AgentService, type AgentDriver } from "@deepractice-ai/agentx-core";
 import type { DefinedDriver } from "./defineDriver";
 import type { DefinedReactor } from "./defineReactor";
 import type { DefinedConfig, ConfigSchema, InferConfig } from "./defineConfig";
@@ -179,10 +179,10 @@ export function defineAgent<TConfig extends ConfigSchema = any>(
       // 2. Create or get driver
       let driver: AgentDriver;
 
-      // Check if driver is an AgentService instance
-      if (definition.driver instanceof AgentService) {
-        // Direct AgentService instance
-        driver = definition.driver;
+      // Check if driver is an AgentService instance (duck typing)
+      if (typeof definition.driver === "object" && "send" in definition.driver && "initialize" in definition.driver) {
+        // Direct AgentService instance - it implements AgentDriver interface
+        driver = definition.driver as AgentDriver;
       } else if ("create" in definition.driver) {
         // DefinedDriver or DefinedAgent - both have create() method
         driver = definition.driver.create(config);
@@ -195,9 +195,9 @@ export function defineAgent<TConfig extends ConfigSchema = any>(
 
       // 4. Create agent using core API
       return createAgent(
-        driver,
-        definition.logger,
-        reactors ? { reactors } : undefined
+        definition.name, // id
+        driver,          // driver
+        reactors ? { reactors } : undefined // options
       );
     },
 

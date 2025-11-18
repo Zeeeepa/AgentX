@@ -20,8 +20,7 @@
  * 5. Emit Exchange Layer events
  */
 
-import type { Reactor } from "./reactor/Reactor";
-import type { ReactorContext } from "./reactor/ReactorContext";
+import type { AgentReactor, AgentReactorContext } from "~/interfaces/AgentReactor";
 import type {
   // Stream Events (input)
   MessageDeltaEvent,
@@ -49,11 +48,11 @@ interface PendingExchange {
  *
  * Tracks request-response pairs and generates Exchange events.
  */
-export class AgentExchangeTracker implements Reactor {
+export class AgentExchangeTracker implements AgentReactor {
   readonly id = "exchange-tracker";
   readonly name = "ExchangeTrackerReactor";
 
-  private context: ReactorContext | null = null;
+  private context: AgentReactorContext | null = null;
 
   // Exchange tracking
   private pendingExchange: PendingExchange | null = null;
@@ -62,33 +61,14 @@ export class AgentExchangeTracker implements Reactor {
   private costPerInputToken: number = 0.000003; // $3 per 1M tokens
   private costPerOutputToken: number = 0.000015; // $15 per 1M tokens
 
-  async initialize(context: ReactorContext): Promise<void> {
+  async initialize(context: AgentReactorContext): Promise<void> {
     this.context = context;
-
-    context.logger?.debug(`[ExchangeTrackerReactor] Initializing`, {
-      reactorId: this.id,
-    });
-
     this.subscribeToMessageEvents();
-
-    context.logger?.info(`[ExchangeTrackerReactor] Initialized`, {
-      reactorId: this.id,
-    });
   }
 
   async destroy(): Promise<void> {
-    const logger = this.context?.logger;
-
-    logger?.debug(`[ExchangeTrackerReactor] Destroying`, {
-      reactorId: this.id,
-    });
-
     this.pendingExchange = null;
     this.context = null;
-
-    logger?.info(`[ExchangeTrackerReactor] Destroyed`, {
-      reactorId: this.id,
-    });
   }
 
   /**
@@ -108,17 +88,17 @@ export class AgentExchangeTracker implements Reactor {
     const { consumer } = this.context;
 
     // User messages start new exchanges
-    consumer.consumeByType("user_message", (event) => {
+    consumer.consumeByType("user_message", (event: any) => {
       this.onUserMessage(event as UserMessageEvent);
     });
 
     // Message delta events contain stop reason
-    consumer.consumeByType("message_delta", (event) => {
+    consumer.consumeByType("message_delta", (event: any) => {
       this.onMessageDelta(event as MessageDeltaEvent);
     });
 
     // Assistant messages may complete exchanges (depending on stop reason)
-    consumer.consumeByType("assistant_message", (event) => {
+    consumer.consumeByType("assistant_message", (event: any) => {
       this.onAssistantMessage(event as AssistantMessageEvent);
     });
   }

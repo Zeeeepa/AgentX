@@ -32,8 +32,7 @@
  * ```
  */
 
-import type { Reactor } from "./reactor/Reactor";
-import type { ReactorContext } from "./reactor/ReactorContext";
+import type { AgentReactor, AgentReactorContext } from "~/interfaces/AgentReactor";
 import type {
   // Stream Events (input)
   MessageStartEvent,
@@ -71,11 +70,11 @@ type AgentState =
  *
  * Automatically generates State Layer events from Stream Layer events.
  */
-export class AgentStateMachine implements Reactor {
+export class AgentStateMachine implements AgentReactor {
   readonly id = "state-machine";
   readonly name = "StateMachineReactor";
 
-  private context: ReactorContext | null = null;
+  private context: AgentReactorContext | null = null;
 
   // State tracking
   private currentState: AgentState = "initializing";
@@ -83,35 +82,16 @@ export class AgentStateMachine implements Reactor {
   // Conversation tracking
   private conversationStartTime: number | null = null;
 
-  async initialize(context: ReactorContext): Promise<void> {
+  async initialize(context: AgentReactorContext): Promise<void> {
     this.context = context;
-
-    context.logger?.debug(`[StateMachineReactor] Initializing`, {
-      reactorId: this.id,
-    });
 
     // Subscribe to Stream Layer events
     this.subscribeToStreamEvents();
-
-    context.logger?.info(`[StateMachineReactor] Initialized`, {
-      reactorId: this.id,
-    });
   }
 
   async destroy(): Promise<void> {
-    const logger = this.context?.logger;
-
-    logger?.debug(`[StateMachineReactor] Destroying`, {
-      reactorId: this.id,
-    });
-
     // No explicit unsubscribe needed - ReactorContext handles lifecycle
-
     this.context = null;
-
-    logger?.info(`[StateMachineReactor] Destroyed`, {
-      reactorId: this.id,
-    });
   }
 
   /**

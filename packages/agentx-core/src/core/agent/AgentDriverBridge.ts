@@ -22,7 +22,7 @@ import type { ErrorMessage } from "@deepractice-ai/agentx-types";
  *
  * Bridges AgentDriver to EventBus using Reactor pattern.
  */
-export class AgentDriverBridge implements Reactor {
+export class AgentDriverBridge implements AgentReactor {
   readonly id = "driver";
   readonly name = "AgentDriverBridge";
 
@@ -37,29 +37,13 @@ export class AgentDriverBridge implements Reactor {
     console.log("[AgentDriverBridge] ========== INITIALIZING ==========");
     console.log("[AgentDriverBridge] About to subscribe to user_message events");
 
-    context.logger?.debug(`[AgentDriverBridge] Initializing`, {
-      driverId: this.id,
-      sessionId: context.sessionId,
-    });
-
     // Subscribe to user_message events
     context.consumer.consumeByType("user_message", this.handleUserMessage.bind(this));
 
     console.log("[AgentDriverBridge] Successfully subscribed to user_message");
-
-    context.logger?.info(`[AgentDriverBridge] Initialized`, {
-      driverId: this.id,
-      driverSessionId: this.driver.driverSessionId,
-    });
   }
 
   async destroy(): Promise<void> {
-    const logger = this.context?.logger;
-
-    logger?.debug(`[AgentDriverBridge] Destroying`, {
-      driverId: this.id,
-    });
-
     // Abort any ongoing operations
     if (this.abortController) {
       this.abortController.abort();
@@ -71,10 +55,6 @@ export class AgentDriverBridge implements Reactor {
     await this.driver.destroy();
 
     this.context = null;
-
-    logger?.info(`[AgentDriverBridge] Destroyed`, {
-      driverId: this.id,
-    });
   }
 
   /**
@@ -95,10 +75,6 @@ export class AgentDriverBridge implements Reactor {
 
     // Save context reference (might become null during async operations)
     const context = this.context;
-
-    context.logger?.debug(`[AgentDriverBridge] Handling user message`, {
-      messageId: event.data.id,
-    });
 
     // Create new AbortController for this request
     this.abortController = new AbortController();
@@ -121,32 +97,14 @@ export class AgentDriverBridge implements Reactor {
 
         // Check if aborted (null-safe check)
         if (this.abortController?.signal.aborted) {
-          context.logger?.debug(`[AgentDriverBridge] Stream aborted`, {
-            messageId: event.data.id,
-          });
           break;
         }
 
         // Forward event to EventBus (no transformation needed)
         context.producer.produce(streamEvent);
-
-        context.logger?.debug(`[AgentDriverBridge] Stream event forwarded`, {
-          eventType: streamEvent.type,
-          messageId: event.data.id,
-        });
       }
-
-      context.logger?.info(`[AgentDriverBridge] Message processing complete`, {
-        messageId: event.data.id,
-        eventCount,
-      });
     } catch (error) {
       console.error("[AgentDriverBridge] Error processing stream:", error);
-
-      context.logger?.error(`[AgentDriverBridge] Error processing stream`, {
-        error,
-        messageId: event.data.id,
-      });
 
       // Create and emit ErrorMessageEvent
       const errorMessage: ErrorMessage = {

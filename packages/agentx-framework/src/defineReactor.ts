@@ -28,7 +28,7 @@
  * ```
  */
 
-import type { Reactor, ReactorContext } from "@deepractice-ai/agentx-core";
+import type { AgentReactor, AgentReactorContext } from "@deepractice-ai/agentx-core";
 import type {
   // Stream events
   MessageStartEvent,
@@ -81,7 +81,7 @@ export interface ReactorDefinition<TConfig = any> {
   /**
    * Called when reactor is initialized
    */
-  onInit?: (context: ReactorContext, config: TConfig) => void | Promise<void>;
+  onInit?: (context: AgentReactorContext, config: TConfig) => void | Promise<void>;
 
   /**
    * Called when reactor is destroyed
@@ -138,13 +138,13 @@ export interface DefinedReactor<TConfig = any> {
   /**
    * Create a reactor instance
    */
-  create: (config?: TConfig) => Reactor;
+  create: (config?: TConfig) => AgentReactor;
 }
 
 /**
  * Internal reactor implementation
  */
-class SimpleReactor implements Reactor {
+class SimpleReactor implements AgentReactor {
   readonly id: string;
   readonly name: string;
 
@@ -156,7 +156,7 @@ class SimpleReactor implements Reactor {
     this.name = definition.name;
   }
 
-  async initialize(context: ReactorContext): Promise<void> {
+  async initialize(context: AgentReactorContext): Promise<void> {
     // Subscribe to all events defined in the definition
     this.subscribeEvents(context);
 
@@ -175,102 +175,102 @@ class SimpleReactor implements Reactor {
   /**
    * Subscribe to all events that have handlers
    */
-  private subscribeEvents(context: ReactorContext): void {
+  private subscribeEvents(context: AgentReactorContext): void {
     const def = this.definition;
 
     // Stream layer
     if (def.onMessageStart) {
-      context.consumer.consumeByType("message_start", (e) => def.onMessageStart!(e, this.config));
+      context.consumer.consumeByType("message_start", (e: any) => def.onMessageStart!(e, this.config));
     }
     if (def.onMessageDelta) {
-      context.consumer.consumeByType("message_delta", (e) => def.onMessageDelta!(e, this.config));
+      context.consumer.consumeByType("message_delta", (e: any) => def.onMessageDelta!(e, this.config));
     }
     if (def.onMessageStop) {
-      context.consumer.consumeByType("message_stop", (e) => def.onMessageStop!(e, this.config));
+      context.consumer.consumeByType("message_stop", (e: any) => def.onMessageStop!(e, this.config));
     }
     if (def.onTextContentBlockStart) {
-      context.consumer.consumeByType("text_content_block_start", (e) => def.onTextContentBlockStart!(e, this.config));
+      context.consumer.consumeByType("text_content_block_start", (e: any) => def.onTextContentBlockStart!(e, this.config));
     }
     if (def.onTextDelta) {
-      context.consumer.consumeByType("text_delta", (e) => def.onTextDelta!(e, this.config));
+      context.consumer.consumeByType("text_delta", (e: any) => def.onTextDelta!(e, this.config));
     }
     if (def.onTextContentBlockStop) {
-      context.consumer.consumeByType("text_content_block_stop", (e) => def.onTextContentBlockStop!(e, this.config));
+      context.consumer.consumeByType("text_content_block_stop", (e: any) => def.onTextContentBlockStop!(e, this.config));
     }
     if (def.onToolUseContentBlockStart) {
-      context.consumer.consumeByType("tool_use_content_block_start", (e) => def.onToolUseContentBlockStart!(e, this.config));
+      context.consumer.consumeByType("tool_use_content_block_start", (e: any) => def.onToolUseContentBlockStart!(e, this.config));
     }
     if (def.onInputJsonDelta) {
-      context.consumer.consumeByType("input_json_delta", (e) => def.onInputJsonDelta!(e, this.config));
+      context.consumer.consumeByType("input_json_delta", (e: any) => def.onInputJsonDelta!(e, this.config));
     }
     if (def.onToolUseContentBlockStop) {
-      context.consumer.consumeByType("tool_use_content_block_stop", (e) => def.onToolUseContentBlockStop!(e, this.config));
+      context.consumer.consumeByType("tool_use_content_block_stop", (e: any) => def.onToolUseContentBlockStop!(e, this.config));
     }
     if (def.onToolCall) {
-      context.consumer.consumeByType("tool_call", (e) => def.onToolCall!(e, this.config));
+      context.consumer.consumeByType("tool_call", (e: any) => def.onToolCall!(e, this.config));
     }
     if (def.onToolResult) {
-      context.consumer.consumeByType("tool_result", (e) => def.onToolResult!(e, this.config));
+      context.consumer.consumeByType("tool_result", (e: any) => def.onToolResult!(e, this.config));
     }
 
     // State layer
     if (def.onAgentReady) {
-      context.consumer.consumeByType("agent_ready", (e) => def.onAgentReady!(e, this.config));
+      context.consumer.consumeByType("agent_ready", (e: any) => def.onAgentReady!(e, this.config));
     }
     if (def.onConversationStart) {
-      context.consumer.consumeByType("conversation_start", (e) => def.onConversationStart!(e, this.config));
+      context.consumer.consumeByType("conversation_start", (e: any) => def.onConversationStart!(e, this.config));
     }
     if (def.onConversationThinking) {
-      context.consumer.consumeByType("conversation_thinking", (e) => def.onConversationThinking!(e, this.config));
+      context.consumer.consumeByType("conversation_thinking", (e: any) => def.onConversationThinking!(e, this.config));
     }
     if (def.onConversationResponding) {
-      context.consumer.consumeByType("conversation_responding", (e) => def.onConversationResponding!(e, this.config));
+      context.consumer.consumeByType("conversation_responding", (e: any) => def.onConversationResponding!(e, this.config));
     }
     if (def.onConversationEnd) {
-      context.consumer.consumeByType("conversation_end", (e) => def.onConversationEnd!(e, this.config));
+      context.consumer.consumeByType("conversation_end", (e: any) => def.onConversationEnd!(e, this.config));
     }
     if (def.onToolPlanned) {
-      context.consumer.consumeByType("tool_planned", (e) => def.onToolPlanned!(e, this.config));
+      context.consumer.consumeByType("tool_planned", (e: any) => def.onToolPlanned!(e, this.config));
     }
     if (def.onToolExecuting) {
-      context.consumer.consumeByType("tool_executing", (e) => def.onToolExecuting!(e, this.config));
+      context.consumer.consumeByType("tool_executing", (e: any) => def.onToolExecuting!(e, this.config));
     }
     if (def.onToolCompleted) {
-      context.consumer.consumeByType("tool_completed", (e) => def.onToolCompleted!(e, this.config));
+      context.consumer.consumeByType("tool_completed", (e: any) => def.onToolCompleted!(e, this.config));
     }
     if (def.onToolFailed) {
-      context.consumer.consumeByType("tool_failed", (e) => def.onToolFailed!(e, this.config));
+      context.consumer.consumeByType("tool_failed", (e: any) => def.onToolFailed!(e, this.config));
     }
     if (def.onStreamStart) {
-      context.consumer.consumeByType("stream_start", (e) => def.onStreamStart!(e, this.config));
+      context.consumer.consumeByType("stream_start", (e: any) => def.onStreamStart!(e, this.config));
     }
     if (def.onStreamComplete) {
-      context.consumer.consumeByType("stream_complete", (e) => def.onStreamComplete!(e, this.config));
+      context.consumer.consumeByType("stream_complete", (e: any) => def.onStreamComplete!(e, this.config));
     }
     if (def.onErrorOccurred) {
-      context.consumer.consumeByType("error_occurred", (e) => def.onErrorOccurred!(e, this.config));
+      context.consumer.consumeByType("error_occurred", (e: any) => def.onErrorOccurred!(e, this.config));
     }
 
     // Message layer
     if (def.onUserMessage) {
-      context.consumer.consumeByType("user_message", (e) => def.onUserMessage!(e, this.config));
+      context.consumer.consumeByType("user_message", (e: any) => def.onUserMessage!(e, this.config));
     }
     if (def.onAssistantMessage) {
-      context.consumer.consumeByType("assistant_message", (e) => def.onAssistantMessage!(e, this.config));
+      context.consumer.consumeByType("assistant_message", (e: any) => def.onAssistantMessage!(e, this.config));
     }
     if (def.onToolUseMessage) {
-      context.consumer.consumeByType("tool_use_message", (e) => def.onToolUseMessage!(e, this.config));
+      context.consumer.consumeByType("tool_use_message", (e: any) => def.onToolUseMessage!(e, this.config));
     }
     if (def.onErrorMessage) {
-      context.consumer.consumeByType("error_message", (e) => def.onErrorMessage!(e, this.config));
+      context.consumer.consumeByType("error_message", (e: any) => def.onErrorMessage!(e, this.config));
     }
 
     // Exchange layer
     if (def.onExchangeRequest) {
-      context.consumer.consumeByType("exchange_request", (e) => def.onExchangeRequest!(e, this.config));
+      context.consumer.consumeByType("exchange_request", (e: any) => def.onExchangeRequest!(e, this.config));
     }
     if (def.onExchangeResponse) {
-      context.consumer.consumeByType("exchange_response", (e) => def.onExchangeResponse!(e, this.config));
+      context.consumer.consumeByType("exchange_response", (e: any) => def.onExchangeResponse!(e, this.config));
     }
   }
 }

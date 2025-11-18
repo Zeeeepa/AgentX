@@ -8,7 +8,7 @@
 
 // ==================== Core API ====================
 export { createAgent } from "@deepractice-ai/agentx-core";
-export { AgentService } from "@deepractice-ai/agentx-core";
+export type { AgentService } from "@deepractice-ai/agentx-core";
 
 // ==================== Messages (User Data) ====================
 export type {
@@ -120,8 +120,6 @@ export type {
 
 // ==================== Platform Abstraction ====================
 export type { AgentDriver } from "@deepractice-ai/agentx-core";
-export type { AgentLogger, LogContext } from "@deepractice-ai/agentx-core";
-export { LogLevel, LogFormatter } from "@deepractice-ai/agentx-core";
 export type { EngineConfig } from "@deepractice-ai/agentx-core";
 
 // ==================== Framework Define API ====================

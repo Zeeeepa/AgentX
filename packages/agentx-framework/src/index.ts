@@ -30,7 +30,7 @@ export { createAgent } from "@deepractice-ai/agentx-core";
  * Methods: initialize(), send(), react(), clear(), destroy()
  * Properties: id, sessionId, messages
  */
-export { AgentService } from "@deepractice-ai/agentx-core";
+export type { AgentService } from "@deepractice-ai/agentx-core";
 
 // ==================== Messages (User Data) ====================
 // Re-export from @deepractice-ai/agentx-types
@@ -140,8 +140,8 @@ export type {
 
 // Core reactor types (from @deepractice-ai/agentx-core)
 export type {
-  Reactor,
-  ReactorContext,
+  AgentReactor,
+  AgentReactorContext,
 } from "@deepractice-ai/agentx-core";
 
 // 4-layer user-facing reactor interfaces (framework-provided)
@@ -150,7 +150,7 @@ export type {
   StateReactor,
   MessageReactor,
   ExchangeReactor,
-} from "./interfaces";
+} from "@deepractice-ai/agentx-core";
 
 // Reactor adapters (for advanced framework usage)
 export {
@@ -160,7 +160,7 @@ export {
   ExchangeReactorAdapter,
   wrapUserReactor,
   type UserReactor,
-} from "./reactors";
+} from "@deepractice-ai/agentx-core";
 
 // ==================== Platform Abstraction ====================
 // Re-export from @deepractice-ai/agentx-core
@@ -173,12 +173,6 @@ export {
  * - BrowserDriver from @deepractice-ai/agentx-browser
  */
 export type { AgentDriver } from "@deepractice-ai/agentx-core";
-
-/**
- * AgentLogger interface - for custom logging
- */
-export type { AgentLogger, LogContext } from "@deepractice-ai/agentx-core";
-export { LogLevel, LogFormatter } from "@deepractice-ai/agentx-core";
 
 /**
  * EngineConfig - for configuring agent engine runtime
