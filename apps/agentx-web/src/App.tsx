@@ -10,11 +10,10 @@ export default function App() {
   useEffect(() => {
     // Create agent with WebSocket connection
     // In development, connect to localhost:5200
-    // In production, use same host
+    // In production, use same host with proper protocol (ws/wss based on page protocol)
     const isDev = import.meta.env.DEV;
-    const wsUrl = isDev
-      ? "ws://localhost:5200/ws"
-      : `ws://${window.location.host}/ws`;
+    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = isDev ? "ws://localhost:5200/ws" : `${wsProtocol}//${window.location.host}/ws`;
 
     // Create WebSocket browser agent
     const sessionId = `session-${Date.now()}`;

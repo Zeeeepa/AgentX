@@ -23,7 +23,7 @@ export interface TextContentProps {
  */
 export function TextContent({ text, isStreaming = false }: TextContentProps) {
   return (
-    <div className="w-full text-sm text-gray-900 dark:text-gray-100">
+    <div className="w-full text-sm text-black">
       <MarkdownText>{text}</MarkdownText>
 
       {/* Streaming cursor */}

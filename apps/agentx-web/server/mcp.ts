@@ -6,10 +6,10 @@
  */
 
 export const mcpServers: Record<string, any> = {
-  // PromptX MCP Server
+  // PromptX MCP Server (using pre-installed CLI)
   promptx: {
-    command: "npx",
-    args: ["-y", "@promptx/mcp-server"],
+    command: "promptx",
+    args: ["mcp-server"],
   },
 
   // Example: Filesystem server

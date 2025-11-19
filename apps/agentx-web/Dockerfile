@@ -8,6 +8,9 @@ FROM deepracticexs/agent-runtime:${RUNTIME_VERSION}
 # Switch to root for installations
 USER root
 
+# Install PromptX CLI globally (includes MCP server, pre-install to avoid npx delays)
+RUN npm install -g @promptx/cli
+
 WORKDIR /app
 
 # Copy entire monorepo (pre-built on host) with correct ownership
