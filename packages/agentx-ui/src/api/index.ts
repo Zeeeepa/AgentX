@@ -4,17 +4,20 @@
 // React Hooks
 export * from "~/hooks";
 
-// Agent Components (status indicator)
-export * from "~/components/agent";
+// Container Components (business panes)
+export * from "~/components/container";
 
-// Chat Components
-export * from "~/components/chat";
+// Message Components (message display)
+export * from "~/components/message";
 
-// Layout Components
+// Input Components (user input)
+export * from "~/components/input";
+
+// Layout Components (structural)
 export * from "~/components/layout";
 
-// Element Components (Atomic UI)
-export * from "~/components/elements";
+// Element Components (atomic UI)
+export * from "~/components/element";
 
 // Typography Components
 export * from "~/components/typography";

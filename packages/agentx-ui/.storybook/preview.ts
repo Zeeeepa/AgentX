@@ -22,6 +22,20 @@ const preview: Preview = {
         },
       ],
     },
+    options: {
+      // Sort: Business first, then UI components
+      storySort: {
+        order: [
+          "Container", // Business logic (highest level)
+          "Message", // Message display
+          "Input", // User input
+          "Layout", // Structural layout
+          "Element", // Atomic UI components
+          "Typography", // Text rendering
+          "*",
+        ],
+      },
+    },
   },
 };
 

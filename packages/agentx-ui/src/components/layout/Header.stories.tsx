@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { Header } from "./Header";
-import { Button } from "../elements/Button";
-import { SearchInput } from "../elements/SearchInput";
-import { AgentLogo } from "../elements/AgentLogo";
+import { Button } from "../element/Button";
+import { SearchInput } from "../element/SearchInput";
+import { AgentLogo } from "../element/AgentLogo";
 import { Bell, Settings, User, Menu } from "lucide-react";
 
 const meta: Meta<typeof Header> = {

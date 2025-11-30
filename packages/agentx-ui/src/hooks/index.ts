@@ -27,3 +27,4 @@
 
 export { useAgent, type UseAgentResult, type UseAgentOptions } from "./useAgent";
 export { useAgentX } from "./useAgentX";
+export { useContainer, type UseContainerOptions } from "./useContainer";

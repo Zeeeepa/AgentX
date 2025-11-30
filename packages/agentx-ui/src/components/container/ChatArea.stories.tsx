@@ -1,0 +1,272 @@
+/**
+ * ChatArea Stories
+ *
+ * Demonstrates the composition of AgentPane + InputPane.
+ * This is the recommended pattern for building chat interfaces.
+ */
+
+import type { Meta, StoryObj } from "@storybook/react";
+import { Allotment } from "allotment";
+import "allotment/dist/style.css";
+import { useState } from "react";
+
+import { AgentPane } from "./AgentPane";
+import { InputPane } from "./InputPane";
+import type { AgentDefinitionItem, SessionItem } from "./types";
+
+const meta: Meta = {
+  title: "Container/ChatArea",
+  parameters: {
+    layout: "fullscreen",
+    docs: {
+      description: {
+        component:
+          "ChatArea demonstrates how to compose AgentPane + InputPane using Allotment. AgentPane displays messages, InputPane handles user input.",
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div className="h-screen bg-background">
+        <Story />
+      </div>
+    ),
+  ],
+};
+
+export default meta;
+type Story = StoryObj;
+
+// Mock data
+const mockDefinition: AgentDefinitionItem = {
+  name: "Claude",
+  description: "General purpose assistant",
+  icon: "C",
+  color: "bg-blue-500",
+  isOnline: true,
+};
+
+const mockSession: SessionItem = {
+  sessionId: "session_1",
+  agentId: "Claude",
+  createdAt: Date.now() - 3600000,
+  title: "Code Refactoring Discussion",
+  status: "active",
+  lastActivityAt: Date.now(),
+};
+
+const mockMessages = [
+  {
+    id: "1",
+    role: "user" as const,
+    subtype: "user" as const,
+    content: "Hello! Can you help me refactor this code?",
+    timestamp: Date.now() - 120000,
+  },
+  {
+    id: "2",
+    role: "assistant" as const,
+    subtype: "assistant" as const,
+    content:
+      "Of course! I'd be happy to help you refactor your code. Please share the code you'd like to improve.",
+    timestamp: Date.now() - 60000,
+  },
+  {
+    id: "3",
+    role: "user" as const,
+    subtype: "user" as const,
+    content:
+      "Here's the function I want to refactor:\n\nfunction getUserData() {\n  // complex logic\n}",
+    timestamp: Date.now() - 30000,
+  },
+];
+
+/**
+ * Basic composition: AgentPane + InputPane
+ */
+function BasicCompositionComponent() {
+  const [messages, setMessages] = useState(mockMessages);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSend = (text: string) => {
+    console.log("Send:", text);
+    const newMessage = {
+      id: String(Date.now()),
+      role: "user" as const,
+      subtype: "user" as const,
+      content: text,
+      timestamp: Date.now(),
+    };
+    setMessages([...messages, newMessage]);
+    setIsLoading(true);
+    setTimeout(() => setIsLoading(false), 2000);
+  };
+
+  return (
+    <Allotment vertical>
+      <Allotment.Pane>
+        <AgentPane
+          definition={mockDefinition}
+          session={mockSession}
+          messages={messages}
+          isLoading={isLoading}
+        />
+      </Allotment.Pane>
+
+      <Allotment.Pane minSize={80} maxSize={400} preferredSize={120}>
+        <InputPane onSend={handleSend} disabled={isLoading} />
+      </Allotment.Pane>
+    </Allotment>
+  );
+}
+
+export const BasicComposition: Story = {
+  render: () => <BasicCompositionComponent />,
+};
+
+/**
+ * With streaming response
+ */
+function WithStreamingComponent() {
+  const [messages, setMessages] = useState(mockMessages);
+  const [streaming, setStreaming] = useState("I'm analyzing your code...");
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleSend = (text: string) => {
+    console.log("Send:", text);
+    const newMessage = {
+      id: String(Date.now()),
+      role: "user" as const,
+      subtype: "user" as const,
+      content: text,
+      timestamp: Date.now(),
+    };
+    setMessages([...messages, newMessage]);
+    setIsLoading(true);
+    setStreaming("Processing your request...");
+  };
+
+  return (
+    <Allotment vertical>
+      <Allotment.Pane>
+        <AgentPane
+          definition={mockDefinition}
+          session={mockSession}
+          messages={messages}
+          streaming={streaming}
+          isLoading={isLoading}
+        />
+      </Allotment.Pane>
+
+      <Allotment.Pane minSize={80} maxSize={400} preferredSize={120}>
+        <InputPane onSend={handleSend} disabled={isLoading} />
+      </Allotment.Pane>
+    </Allotment>
+  );
+}
+
+export const WithStreaming: Story = {
+  render: () => <WithStreamingComponent />,
+};
+
+/**
+ * Empty conversation
+ */
+function EmptyConversationComponent() {
+  const [messages, setMessages] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSend = (text: string) => {
+    console.log("Send:", text);
+    const newMessage = {
+      id: String(Date.now()),
+      role: "user" as const,
+      subtype: "user" as const,
+      content: text,
+      timestamp: Date.now(),
+    };
+    setMessages([newMessage]);
+    setIsLoading(true);
+  };
+
+  return (
+    <Allotment vertical>
+      <Allotment.Pane>
+        <AgentPane
+          definition={mockDefinition}
+          session={mockSession}
+          messages={messages}
+          isLoading={isLoading}
+        />
+      </Allotment.Pane>
+
+      <Allotment.Pane minSize={80} maxSize={400} preferredSize={120}>
+        <InputPane onSend={handleSend} disabled={isLoading} />
+      </Allotment.Pane>
+    </Allotment>
+  );
+}
+
+export const EmptyConversation: Story = {
+  render: () => <EmptyConversationComponent />,
+};
+
+/**
+ * Custom input pane size
+ */
+function LargeInputPaneComponent() {
+  const [messages] = useState(mockMessages);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSend = (text: string) => {
+    console.log("Send:", text);
+    setIsLoading(true);
+  };
+
+  return (
+    <Allotment vertical>
+      <Allotment.Pane>
+        <AgentPane
+          definition={mockDefinition}
+          session={mockSession}
+          messages={messages}
+          isLoading={isLoading}
+        />
+      </Allotment.Pane>
+
+      <Allotment.Pane minSize={120} maxSize={400} preferredSize={200}>
+        <InputPane
+          onSend={handleSend}
+          disabled={isLoading}
+          placeholder="Type a detailed message... (larger input area)"
+        />
+      </Allotment.Pane>
+    </Allotment>
+  );
+}
+
+export const LargeInputPane: Story = {
+  render: () => <LargeInputPaneComponent />,
+};
+
+/**
+ * Offline agent state
+ */
+export const OfflineAgent: Story = {
+  render: () => (
+    <Allotment vertical>
+      <Allotment.Pane>
+        <AgentPane
+          definition={{ ...mockDefinition, isOnline: false }}
+          session={mockSession}
+          messages={mockMessages}
+          isLoading={false}
+        />
+      </Allotment.Pane>
+
+      <Allotment.Pane minSize={80} maxSize={400} preferredSize={120}>
+        <InputPane onSend={(text) => console.log(text)} disabled />
+      </Allotment.Pane>
+    </Allotment>
+  ),
+};
