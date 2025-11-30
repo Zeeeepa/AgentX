@@ -20,7 +20,7 @@ import {
 } from "@anthropic-ai/claude-agent-sdk";
 import { Subject } from "rxjs";
 import { createLogger } from "@deepractice-ai/agentx-logger";
-import { buildOptions } from "./buildOptions";
+import { buildOptions, type DriverContext } from "./buildOptions";
 import { buildSDKUserMessage } from "./helpers";
 import { transformSDKMessages } from "./messageTransform";
 import { observableToAsyncIterable } from "./observableToAsyncIterable";
@@ -121,12 +121,12 @@ export function createClaudeDriver(
     logger.info("Initializing ClaudeDriver", { agentId });
 
     // Build options from config
-    const driverContext = {
+    const driverContext: DriverContext = {
       agentId,
       createdAt: context.createdAt,
       ...config,
     };
-    const options = buildOptions(driverContext as any, abortController);
+    const options = buildOptions(driverContext, abortController);
     const promptStream = observableToAsyncIterable(promptSubject);
 
     claudeQuery = query({

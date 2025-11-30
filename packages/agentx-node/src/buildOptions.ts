@@ -1,11 +1,10 @@
 /* eslint-disable no-undef */
 /**
- * Build Claude SDK Options from AgentContext
+ * Build Claude SDK Options from Driver Config
  *
- * Converts AgentX AgentContext configuration to Claude SDK Options format.
+ * Converts driver configuration to Claude SDK Options format.
  */
 
-import type { AgentContext } from "@deepractice-ai/agentx-types";
 import type {
   Options,
   CanUseTool,
@@ -15,12 +14,21 @@ import type {
 } from "@anthropic-ai/claude-agent-sdk";
 
 /**
- * Build Claude SDK options from AgentContext
+ * Driver context - merged from AgentContext + ClaudeDriverConfig
  */
-export function buildOptions(
-  context: AgentContext<Record<string, unknown>>,
-  abortController: AbortController
-): Options {
+export interface DriverContext extends Record<string, unknown> {
+  agentId: string;
+  createdAt: number;
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+  systemPrompt?: string;
+}
+
+/**
+ * Build Claude SDK options from driver context
+ */
+export function buildOptions(context: DriverContext, abortController: AbortController): Options {
   const options: Options = {
     abortController,
     includePartialMessages: (context.includePartialMessages as boolean) ?? true,
