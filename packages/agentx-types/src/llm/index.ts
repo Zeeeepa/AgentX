@@ -4,7 +4,7 @@
  * Defines the type system for stateless language model inference.
  */
 
-export type { LLMProvider } from "./LLMProvider";
+export type { LLM } from "./LLM";
 export type { LLMConfig } from "./LLMConfig";
 export type { LLMRequest } from "./LLMRequest";
 export type { LLMResponse } from "./LLMResponse";

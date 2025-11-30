@@ -19,6 +19,7 @@
 
 import type { UserMessage } from "~/message";
 import type { AgentState } from "~/AgentState";
+import type { Sandbox } from "~/runtime/sandbox";
 import type { AgentDefinition } from "./AgentDefinition";
 import type { AgentContext } from "./AgentContext";
 import type { AgentLifecycle } from "./AgentLifecycle";
@@ -181,6 +182,18 @@ export interface Agent {
    * Current conversation state
    */
   readonly state: AgentState;
+
+  /**
+   * Sandbox providing isolated resources for this Agent
+   *
+   * Driver can access resources via sandbox:
+   * - sandbox.os.fs - FileSystem operations
+   * - sandbox.os.process - Command execution
+   * - sandbox.os.env - Environment variables
+   * - sandbox.os.disk - Storage mounting
+   * - sandbox.llm - LLM provider (apiKey, baseUrl, etc.)
+   */
+  readonly sandbox: Sandbox;
 
   /**
    * Receive a message from user

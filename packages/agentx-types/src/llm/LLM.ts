@@ -1,10 +1,10 @@
 /**
- * LLM Provider abstraction
+ * LLM - Large Language Model definition
  *
- * Defines the capabilities and metadata of a language model provider.
+ * Defines the capabilities and metadata of a language model.
  * Provider-agnostic design allows supporting multiple LLM vendors.
  */
-export interface LLMProvider {
+export interface LLM {
   /**
    * Provider name (e.g., "anthropic", "openai", "custom")
    */

@@ -72,9 +72,9 @@ Responsibilities:
 
 ## Core Types
 
-### LLMProvider - Provider Abstraction
+### LLM - Large Language Model Definition
 
-Defines LLM provider capabilities and metadata:
+Defines LLM capabilities and metadata:
 
 - Provider identification (anthropic, openai, custom)
 - Model identifier
@@ -158,12 +158,12 @@ for await (const chunk of llm.stream(request)) {
 }
 ```
 
-### Scenario 3: Provider Abstraction
+### Scenario 3: Model Capabilities
 
 ```typescript
-import type { LLMProvider } from "@deepractice-ai/agentx-types";
+import type { LLM } from "@deepractice-ai/agentx-types";
 
-const provider: LLMProvider = {
+const llm: LLM = {
   provider: "anthropic",
   modelId: "claude-3-5-sonnet-20241022",
   supportsStreaming: true,
@@ -179,7 +179,7 @@ const provider: LLMProvider = {
 ```
 llm/
 ├── README.md              # This file
-├── LLMProvider.ts         # Provider abstraction
+├── LLM.ts                 # Large Language Model definition
 ├── LLMConfig.ts           # Inference configuration
 ├── LLMRequest.ts          # Inference request
 ├── LLMResponse.ts         # Inference response
@@ -205,7 +205,7 @@ llm/
 
 | AgentX Types | Vercel AI SDK                     |
 | ------------ | --------------------------------- |
-| LLMProvider  | LanguageModelV3                   |
+| LLM          | LanguageModelV3                   |
 | LLMRequest   | LanguageModelV3CallOptions        |
 | LLMResponse  | LanguageModelV3CallOptions result |
 | StopReason   | FinishReason                      |

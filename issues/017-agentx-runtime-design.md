@@ -20,7 +20,7 @@ LLM 代理商 (OpenRouter)
   便宜，但没有智能体功能
 ```
 
-**本质**：不是卖智能体产品，是卖 LLM Token。智能体功能免费送，只收 Token 钱。运维成本压到极致 = 价格可以比任何人低。
+**本质**：不是卖智能体产品，是卖 LLM Token。智能体功能免费送,只收 Token 钱。运维成本压到极致 = 价格可以比任何人低。
 
 ### 技术目标
 
@@ -32,112 +32,170 @@ LLM 代理商 (OpenRouter)
 - Container 按需启动、用完即销
 - 智能调度：自动选择最便宜的执行方式
 
-## 当前架构调整
+## 核心设计：两层架构
 
-### 已完成
+### 设计决策
 
-1. **删除 agentx-core 的 Session**
-   - Session 是可选的上下文管理器，不属于 Agent 核心
-   - Agent 是无状态的消息处理器
-   - Session 后续重新设计
+从 ClaudeConfig 分析 Agent 真正需要的资源，区分**业务组件**和**资源组件**：
 
-2. **重命名 agentx-core → agentx-agent**
-   - 更准确反映其职责：Agent 运行时
-   - 只包含 Agent 相关代码
+- **业务组件**：Agent 特有的逻辑（Driver, Presenter, Middleware）
+- **资源组件**：基础设施能力（LLM, 文件系统, 进程执行）
 
-3. **创建 agentx-runtime 包**
-   - 平台级运行时
-   - 管理共享资源和基础设施
-
-### 命名决策
+资源组件应该放到 Runtime 管理，形成两层架构：
 
 ```
-AgentXRuntime = 平台级运行时环境（新建）
-AgentContainer = Agent 实例容器（保持不变）
-
-Runtime = 运行时环境，有生命周期（start/stop）
-Container = 存储容器，装东西（add/remove）
+┌─────────────────────────────────────────────────────────────┐
+│  Sandbox 层（环境抽象）                                      │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │ NodeRuntime │  │  Workspace  │  │   Browser   │         │
+│  │             │  │             │  │   Runtime   │         │
+│  └──────┬──────┘  └──────┬──────┘  └─────────────┘         │
+│         │                │                                  │
+│         │    组合        │                                  │
+└─────────┼────────────────┼──────────────────────────────────┘
+          ↓                ↓
+┌─────────────────────────────────────────────────────────────┐
+│  Resource 层（原子资源）                                     │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌──────────┐ │
+│  │LLMProvider│  │FileSystem │  │   Disk    │  │   Env    │ │
+│  └───────────┘  └───────────┘  └───────────┘  └──────────┘ │
+│  ┌───────────┐                                              │
+│  │  Process  │                                              │
+│  └───────────┘                                              │
+└─────────────────────────────────────────────────────────────┘
+          ↓
+┌─────────────────────────────────────────────────────────────┐
+│  底层（OS / Cloud）                                          │
+│  本地: node:fs, child_process, process.env                  │
+│  云端: R2, Containers, KV, Workers Secrets                  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## 核心问题：Runtime 应该抽象什么？
+### Resource 层
 
-### 错误方向 1：业务组件拼凑
+原子的、可替换的资源。接口固定，实现可换。
+
+| 资源        | 职责       | 本地实现      | 云端实现        |
+| ----------- | ---------- | ------------- | --------------- |
+| LLMProvider | 大模型供应 | API Key       | Workers Secrets |
+| FileSystem  | 文件操作   | node:fs       | R2              |
+| Disk        | 存储挂载   | 本地目录      | R2 挂载         |
+| Env         | 环境变量   | process.env   | KV / Secrets    |
+| Process     | 命令执行   | child_process | Containers      |
+
+### Sandbox 层（TODO）
+
+组合 Resource，形成具体执行环境：
+
+- **NodeRuntime**：组合 FileSystem + Env + Process，提供 Node.js 执行环境，包括 cwd
+- **Workspace**：组合 FileSystem，提供业务级文件管理（temp, projects, output）
+
+## 已完成
+
+### 1. Resource 层类型定义
+
+位置：`packages/agentx-types/src/runtime/resource/`
+
+```
+runtime/
+├── index.ts
+└── resource/
+    ├── index.ts
+    ├── LLMProvider.ts   # 大模型供应（泛型，Supply 可自定义）
+    ├── FileSystem.ts    # 文件操作接口（固定，类似 node:fs）
+    ├── Disk.ts          # 存储挂载（mount/unmount）
+    ├── Env.ts           # 环境变量（get/getAll）
+    └── Process.ts       # 命令执行（exec）
+```
+
+### 2. 接口设计
+
+**LLMProvider** - 泛型，因为供应物不确定（可以是 apiKey、client、token）
 
 ```typescript
-// 只是把组件凑在一起，没有价值
-interface AgentXRuntime {
-  agents: AgentStore;
-  sessions: SessionStore;
-  engine: AgentEngine;
-  errors: ErrorManager;
+interface LLMProvider<TSupply = unknown> {
+  readonly name: string;
+  provide(): TSupply;
 }
 ```
 
-问题：这只是 Service Locator，不是真正的"运行时"。
-
-### 错误方向 2：Serverless 基础设施抽象
+**FileSystem** - 固定接口，fs API 几十年没变
 
 ```typescript
-// 抽象层级太低，我们不是做 serverless
-interface AgentXRuntime {
-  memory: MemoryProvider;
-  storage: StorageProvider;
-  network: NetworkProvider;
-  sandbox: SandboxProvider;
+interface FileSystem {
+  readFile(path: string): Promise<string>;
+  writeFile(path: string, content: string | Uint8Array): Promise<void>;
+  readdir(path: string): Promise<string[]>;
+  stat(path: string): Promise<FileStats>;
+  exists(path: string): Promise<boolean>;
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  rm(path: string, options?: { recursive?: boolean }): Promise<void>;
+  // ...
 }
 ```
 
-问题：这是在做 serverless 平台，偏离了 AI Agent 框架的定位。
+**Disk** - 挂载接口
 
-### 正确方向：待讨论
+```typescript
+interface Disk {
+  readonly name: string;
+  mount(): Promise<string>; // 返回挂载路径
+  unmount(): Promise<void>;
+}
+```
 
-应该从 AI Agent 的角度思考：
+**Env** - 环境变量
 
-- Agent 真正需要什么资源？
-- 这些资源如何在不同环境（本地、分布式、Edge）统一抽象？
-- 如何做到"写一次，到处运行"？
+```typescript
+interface Env {
+  get(key: string): Promise<string | undefined>;
+  getAll(): Promise<Record<string, string>>;
+}
+```
 
-## 参考：业界做法
+**Process** - 命令执行
 
-| 项目              | 定位         | 关键设计             |
-| ----------------- | ------------ | -------------------- |
-| Docker/containerd | 容器运行时   | 隔离、镜像、资源限制 |
-| JVM               | 语言运行时   | 字节码、GC、跨平台   |
-| Deno              | JS 运行时    | 权限模型、安全沙箱   |
-| AWS Lambda        | 函数运行时   | 冷启动、按需计费     |
-| LangGraph Cloud   | Agent 运行时 | 状态管理、检查点     |
+```typescript
+interface Process {
+  exec(command: string, options?: ExecOptions): Promise<ExecResult>;
+}
+```
 
-## 待解决问题
+### 3. 重命名 llm/LLMProvider → llm/LLM
 
-1. **Runtime 的核心抽象是什么？**
-   - 不是底层资源（Memory/Storage/Network）
-   - 不是业务组件拼凑
-   - 应该是 AI Agent 特有的某种抽象
+避免与 runtime/LLMProvider 冲突：
 
-2. **跨环境运行如何实现？**
-   - 本地开发
-   - Docker 自托管
-   - Kubernetes 集群
-   - Cloudflare Edge
+- `llm/LLM` - 大模型定义（能力描述：supportsStreaming, supportsTools...）
+- `runtime/LLMProvider` - 大模型供应服务（提供 apiKey, baseUrl...）
 
-3. **成本优化如何体现在架构中？**
-   - 分层执行（Workers vs Container）
-   - 智能调度
-   - 资源复用
+## 分层执行策略
+
+有了资源抽象后，Driver 可以上云：
+
+| 场景     | 运行环境  | 资源需求    |
+| -------- | --------- | ----------- |
+| 纯对话   | Workers   | LLMProvider |
+| 工具调用 | Container | 全部资源    |
+
+- **Workers**：轻量 Driver（直接调 API，不用 Claude SDK）
+- **Container**：完整 Driver（Claude SDK + 所有资源）
+
+Claude SDK 本身依赖 node:fs 和 child_process，不能直接跑在 Workers。
 
 ## 下一步
 
-- [ ] 研究 LangGraph、AutoGen 等框架的运行时设计
-- [ ] 从 Agent 执行过程分析真正需要的资源
-- [ ] 设计符合 AI Agent 特点的抽象层
-- [ ] 考虑开源社区的通用性 vs 商业场景的成本优化
+- [ ] 设计 Sandbox 层（NodeRuntime, Workspace）
+- [ ] Resource 层实现（LocalFileSystem, LocalDisk, LocalEnv, LocalProcess）
+- [ ] 集成到 ClaudeDriver
+- [ ] Workers 轻量 Driver 实现
 
 ## 相关文件
 
-- `packages/agentx-runtime/src/index.ts` - 当前 ADR
-- `packages/agentx-agent/` - Agent 运行时（原 agentx-core）
-- `packages/agentx/src/AgentX.ts` - 平台入口
+- `packages/agentx-types/src/runtime/` - Runtime 类型定义
+- `packages/agentx-runtime/` - Runtime 实现（TODO）
+- `packages/agentx-agent/` - Agent 运行时
+- `packages/agentx-claude/` - Claude Driver
 
 ## 日期
 
-2024-11-30
+2024-11-30（更新）

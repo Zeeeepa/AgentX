@@ -19,6 +19,7 @@
  * | event/    | 44    | 4-layer events (Stream→State→Message→Turn) |
  * | message/  | 13    | Message formats and content parts          |
  * | agentx/   | 17    | Platform API (Local/Remote modes)          |
+ * | runtime/  | 2     | Runtime resource components (LLM, FS, etc) |
  * | llm/      | 7     | LLM configuration and responses            |
  * | mcp/      | 7     | Model Context Protocol types               |
  * | error/    | 7     | Error taxonomy (category + code)           |
@@ -76,6 +77,9 @@ export * from "./mcp";
 
 // Session types
 export * from "./session";
+
+// Runtime resource types
+export * from "./runtime";
 
 // Type guards
 export * from "./guards";
