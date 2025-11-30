@@ -14,7 +14,6 @@ export type { AssistantMessage } from "./AssistantMessage";
 export type { SystemMessage } from "./SystemMessage";
 export type { ToolCallMessage } from "./ToolCallMessage";
 export type { ToolResultMessage } from "./ToolResultMessage";
-export type { ErrorMessage } from "./ErrorMessage";
 
 // Message metadata
 export type { MessageRole } from "./MessageRole";

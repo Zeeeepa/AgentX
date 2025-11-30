@@ -10,7 +10,7 @@ import type {
   Agent,
   AgentDefinition,
   AgentContainer,
-  ErrorMessageEvent,
+  ErrorEvent,
   DriverClass,
 } from "@deepractice-ai/agentx-types";
 import { AgentInstance, createAgentContext } from "@deepractice-ai/agentx-core";
@@ -51,7 +51,7 @@ export class LocalAgentManager implements IAgentManager {
     const agent = new AgentInstance(definition, agentContext, this.engine);
 
     // Subscribe to error events for platform-level handling
-    agent.on("error_message", (event: ErrorMessageEvent) => {
+    agent.on("error", (event: ErrorEvent) => {
       this.errorManager.handle(agent.agentId, event.data.error, event);
     });
 

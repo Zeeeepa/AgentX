@@ -13,8 +13,11 @@ import type { ContentPart, Message as TypesMessage } from "@deepractice-ai/agent
 
 /**
  * Message role types
+ *
+ * Note: "error" has been removed. Errors are now handled via independent
+ * ErrorEvent (see agentx-types/event/error) which is transportable via SSE.
  */
-export type MessageRole = "user" | "assistant" | "tool" | "error" | "system";
+export type MessageRole = "user" | "assistant" | "tool" | "system";
 
 /**
  * Message - A record in session history
@@ -99,10 +102,7 @@ export function fromTypesMessage(msg: TypesMessage, agentId: string): Message {
       role = "system";
       content = msg.content;
       break;
-    case "error":
-      role = "error";
-      content = msg.error.message;
-      break;
+    // Note: "error" case removed. Errors are now handled via ErrorEvent.
     default:
       role = "assistant";
       content = "";

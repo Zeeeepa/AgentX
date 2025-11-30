@@ -8,7 +8,6 @@
 
 export {
   SSEDriver,
-  type SSEDriverConfig,
   createRemoteAgent,
   type CreateRemoteAgentOptions,
 } from "@deepractice-ai/agentx/client";

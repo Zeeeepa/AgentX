@@ -1,15 +1,15 @@
 /**
- * SSETransport - Server-Sent Events transport implementation
+ * SSEServerTransport - Server-Sent Events transport implementation
  *
  * Handles SSE connections for streaming agent events to clients.
  */
 
-import type { Agent, Unsubscribe, StreamEventType } from "@deepractice-ai/agentx-types";
-import { isStreamEvent } from "@deepractice-ai/agentx-types";
+import type { Agent, Unsubscribe, StreamEventType, ErrorEvent } from "@deepractice-ai/agentx-types";
+import { isStreamEvent, isErrorEvent } from "@deepractice-ai/agentx-types";
 import type { TransportConnection, ConnectionState } from "./types";
 import { createLogger } from "@deepractice-ai/agentx-logger";
 
-const logger = createLogger("agentx/SSETransport");
+const logger = createLogger("agentx/SSEServerTransport");
 
 /**
  * SSE Connection implementation
@@ -47,10 +47,12 @@ export class SSEConnection implements TransportConnection {
         this._controller = controller;
         this._state = "open";
 
-        // Subscribe to agent events (only forward Stream events)
+        // Subscribe to agent events (forward Stream events + Error events)
         this._unsubscribe = agent.on((event) => {
           if (isStreamEvent(event)) {
             this.send(event);
+          } else if (isErrorEvent(event)) {
+            this.sendError(event);
           }
         });
 
@@ -84,6 +86,27 @@ export class SSEConnection implements TransportConnection {
 
     try {
       const eventType = event.type;
+      const data = JSON.stringify(event);
+      const message = `event: ${eventType}\ndata: ${data}\n\n`;
+      this._controller.enqueue(this._encoder.encode(message));
+    } catch {
+      // Connection may have closed
+      this.close();
+    }
+  }
+
+  /**
+   * Send an Error event to the client
+   *
+   * ErrorEvent is independent from Stream events but also transported via SSE.
+   */
+  sendError(event: ErrorEvent): void {
+    if (this._state !== "open" || !this._controller) {
+      return;
+    }
+
+    try {
+      const eventType = event.type; // "error"
       const data = JSON.stringify(event);
       const message = `event: ${eventType}\ndata: ${data}\n\n`;
       this._controller.enqueue(this._encoder.encode(message));

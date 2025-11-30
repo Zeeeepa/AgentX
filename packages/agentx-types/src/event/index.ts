@@ -59,8 +59,10 @@ export type {
   AssistantMessageEvent,
   ToolCallMessageEvent,
   ToolResultMessageEvent,
-  ErrorMessageEvent,
 } from "./message";
 
 // ===== Turn Layer =====
 export type { TurnEventType, TurnEvent, TurnRequestEvent, TurnResponseEvent } from "./turn";
+
+// ===== Error Layer (Independent, transportable via SSE) =====
+export type { ErrorEvent } from "./error";

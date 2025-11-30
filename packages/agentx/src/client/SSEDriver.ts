@@ -93,8 +93,13 @@ class PersistentSSEConnection {
       this.eventSource.addEventListener(eventType, handleEvent as any);
     }
 
+    // Listen for error events (independent from stream events, transportable via SSE)
+    this.eventSource.addEventListener("error", handleEvent as any);
+
     // Also listen for generic message events (fallback)
     this.eventSource.onmessage = handleEvent;
+
+    // Handle SSE connection errors (different from our ErrorEvent)
     this.eventSource.onerror = handleError;
   }
 

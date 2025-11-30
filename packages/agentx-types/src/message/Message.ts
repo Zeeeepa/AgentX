@@ -3,21 +3,17 @@ import type { AssistantMessage } from "./AssistantMessage";
 import type { SystemMessage } from "./SystemMessage";
 import type { ToolCallMessage } from "./ToolCallMessage";
 import type { ToolResultMessage } from "./ToolResultMessage";
-import type { ErrorMessage } from "./ErrorMessage";
 
 /**
  * Message Subtype
  *
  * Represents the specific type/category of the message.
  * Used together with role for serialization and type discrimination.
+ *
+ * Note: "error" has been removed. Errors are now handled via independent
+ * ErrorEvent (see ~/event/error) which is transportable via SSE.
  */
-export type MessageSubtype =
-  | "user"
-  | "assistant"
-  | "tool-call"
-  | "tool-result"
-  | "system"
-  | "error";
+export type MessageSubtype = "user" | "assistant" | "tool-call" | "tool-result" | "system";
 
 /**
  * Message
@@ -26,7 +22,10 @@ export type MessageSubtype =
  * Use `subtype` field for precise type discrimination.
  *
  * Role: Who sent it (user, assistant, tool, system)
- * Subtype: What type of message (user, assistant, tool-call, tool-result, system, error)
+ * Subtype: What type of message (user, assistant, tool-call, tool-result, system)
+ *
+ * Note: Error messages are no longer part of Message union.
+ * Errors are handled via independent ErrorEvent for SSE transport.
  *
  * @example
  * ```typescript
@@ -44,9 +43,6 @@ export type MessageSubtype =
  *     case "tool-result":
  *       console.log(msg.toolResult.output);
  *       break;
- *     case "error":
- *       console.error(msg.error.message);
- *       break;
  *   }
  * }
  * ```
@@ -56,5 +52,4 @@ export type Message =
   | AssistantMessage
   | SystemMessage
   | ToolCallMessage
-  | ToolResultMessage
-  | ErrorMessage;
+  | ToolResultMessage;

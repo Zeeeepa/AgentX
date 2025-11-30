@@ -47,10 +47,11 @@ import type {
   AssistantMessageEvent,
   ToolCallMessageEvent,
   ToolResultMessageEvent,
-  ErrorMessageEvent,
   // Turn Layer Events
   TurnRequestEvent,
   TurnResponseEvent,
+  // Error Layer Events
+  ErrorEvent,
   // State Layer Events
   ConversationQueuedStateEvent,
 } from "@deepractice-ai/agentx-types";
@@ -365,7 +366,9 @@ export class AgentInstance implements Agent {
   on(type: "assistant_message", handler: (event: AssistantMessageEvent) => void): Unsubscribe;
   on(type: "tool_call_message", handler: (event: ToolCallMessageEvent) => void): Unsubscribe;
   on(type: "tool_result_message", handler: (event: ToolResultMessageEvent) => void): Unsubscribe;
-  on(type: "error_message", handler: (event: ErrorMessageEvent) => void): Unsubscribe;
+
+  // Type-safe overloads for Error Layer Events
+  on(type: "error", handler: (event: ErrorEvent) => void): Unsubscribe;
 
   // Type-safe overloads for Turn Layer Events
   on(type: "turn_request", handler: (event: TurnRequestEvent) => void): Unsubscribe;

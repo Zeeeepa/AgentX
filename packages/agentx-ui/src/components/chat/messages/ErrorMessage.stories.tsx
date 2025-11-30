@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ErrorMessage } from "./ErrorMessage";
-import type { ErrorMessage as ErrorMessageType, AgentError } from "@deepractice-ai/agentx-types";
+import type { AgentError } from "@deepractice-ai/agentx-types";
 
 const meta = {
   title: "Chat/ErrorMessage",
@@ -14,28 +14,24 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// Helper to create error messages with the new structure
+// Helper to create AgentError objects
+// Note: Using type assertion because we know the codes are valid
 const createError = (
   category: AgentError["category"],
-  code: string,
+  code: AgentError["code"],
   message: string,
   severity: AgentError["severity"] = "error",
   recoverable = true,
   cause?: Error
-): ErrorMessageType => ({
-  id: `error_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-  role: "system",
-  subtype: "error",
-  error: {
+): AgentError =>
+  ({
     category,
     code,
     message,
     severity,
     recoverable,
     cause,
-  } as AgentError,
-  timestamp: Date.now(),
-});
+  }) as AgentError;
 
 /**
  * System errors - infrastructure, internal errors
@@ -62,7 +58,7 @@ export const SystemErrorWithDetails: Story = {
 
 export const FatalSystemError: Story = {
   args: {
-    error: createError("system", "FATAL_ERROR", "Failed to initialize agent", "fatal", false),
+    error: createError("system", "INTERNAL_ERROR", "Failed to initialize agent", "fatal", false),
   },
 };
 
@@ -145,7 +141,7 @@ export const Warning: Story = {
   args: {
     error: createError(
       "network",
-      "CONNECTION_UNSTABLE",
+      "CONNECTION_FAILED",
       "Connection unstable, retrying...",
       "warning",
       true

@@ -1,14 +1,17 @@
 // @ts-nocheck - Temporary workaround for TypeScript JSX type inference issues
 import type React from "react";
-import type { ErrorMessage as ErrorMessageType, AgentError } from "@deepractice-ai/agentx-types";
+import type { AgentError } from "@deepractice-ai/agentx-types";
 import { MessageAvatar } from "~/components/elements/MessageAvatar";
 import { AlertCircle, AlertTriangle, XCircle } from "lucide-react";
 
 export interface ErrorMessageProps {
   /**
-   * Error message data
+   * The AgentError to display
+   *
+   * Note: Now accepts AgentError directly (not ErrorMessage).
+   * ErrorEvent.data.error contains the AgentError.
    */
-  error: ErrorMessageType;
+  error: AgentError;
 
   /**
    * Whether to show detailed error information
@@ -18,7 +21,7 @@ export interface ErrorMessageProps {
 }
 
 /**
- * ErrorMessage - Display an error event
+ * ErrorMessage - Display an agent error
  *
  * Features:
  * - Error severity visualization (fatal/error/warning)
@@ -26,31 +29,28 @@ export interface ErrorMessageProps {
  * - Error code and message
  * - Optional details expansion
  *
+ * Note: This component now accepts AgentError directly (from ErrorEvent.data.error),
+ * not the old ErrorMessage type which has been removed.
+ *
  * @example
  * ```tsx
  * <ErrorMessage error={{
- *   id: 'err_123',
- *   role: 'error',
- *   error: {
- *     category: 'llm',
- *     code: 'RATE_LIMITED',
- *     message: 'Rate limit exceeded',
- *     severity: 'error',
- *     recoverable: true,
- *   },
- *   timestamp: Date.now()
+ *   category: 'llm',
+ *   code: 'RATE_LIMITED',
+ *   message: 'Rate limit exceeded',
+ *   severity: 'error',
+ *   recoverable: true,
  * }} />
  * ```
  */
 export function ErrorMessage({ error, showDetails = false }: ErrorMessageProps) {
-  // Extract error info from the nested error object
-  const agentError = error.error;
-  const severity = agentError?.severity || "error";
-  const category = agentError?.category || "system";
-  const code = agentError?.code;
-  const message = agentError?.message || "Unknown error";
-  const recoverable = agentError?.recoverable ?? true;
-  const cause = agentError?.cause;
+  // error is now AgentError directly, no nested .error property
+  const severity = error?.severity || "error";
+  const category = error?.category || "system";
+  const code = error?.code;
+  const message = error?.message || "Unknown error";
+  const recoverable = error?.recoverable ?? true;
+  const cause = error?.cause;
 
   // Severity styling
   const severityConfig: Record<

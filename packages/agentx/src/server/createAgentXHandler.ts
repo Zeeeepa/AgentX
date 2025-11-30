@@ -36,7 +36,7 @@ import type {
   ErrorResponse,
   ErrorCode,
 } from "./types";
-import { SSEConnectionManager } from "./SSETransport";
+import { SSEConnectionManager } from "./SSEServerTransport";
 import { createLogger } from "@deepractice-ai/agentx-logger";
 
 const logger = createLogger("agentx/AgentXHandler");

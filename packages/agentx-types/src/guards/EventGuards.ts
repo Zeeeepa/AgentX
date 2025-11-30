@@ -9,6 +9,7 @@ import type { StateEventType } from "~/event/state";
 import type { StreamEventType } from "~/event/stream";
 import type { MessageEventType } from "~/event/message";
 import type { TurnEventType } from "~/event/turn";
+import type { ErrorEvent } from "~/event/error";
 
 /**
  * State event type names (single source of truth)
@@ -40,10 +41,17 @@ export const MESSAGE_EVENT_TYPE_NAMES = [
   "assistant_message",
   "tool_call_message",
   "tool_result_message",
-  "error_message",
 ] as const;
 
 const MESSAGE_EVENT_TYPES = new Set<string>(MESSAGE_EVENT_TYPE_NAMES);
+
+/**
+ * Error event type names (single source of truth)
+ * Error is independent from 4-layer hierarchy, transportable via SSE
+ */
+export const ERROR_EVENT_TYPE_NAMES = ["error"] as const;
+
+const ERROR_EVENT_TYPES = new Set<string>(ERROR_EVENT_TYPE_NAMES);
 
 /**
  * Turn event type names (single source of truth)
@@ -98,4 +106,11 @@ export function isTurnEvent(event: AgentOutput): event is TurnEventType {
  */
 export function isStreamEvent(event: AgentOutput): event is StreamEventType {
   return "type" in event && STREAM_EVENT_TYPES.has(event.type);
+}
+
+/**
+ * Check if event is an ErrorEvent
+ */
+export function isErrorEvent(event: AgentOutput): event is ErrorEvent {
+  return "type" in event && ERROR_EVENT_TYPES.has(event.type);
 }

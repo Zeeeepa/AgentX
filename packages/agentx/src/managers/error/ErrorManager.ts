@@ -17,7 +17,7 @@ import type {
   ErrorManager as IErrorManager,
   ErrorHandler,
   AgentError,
-  ErrorMessageEvent,
+  ErrorEvent,
   Unsubscribe,
 } from "@deepractice-ai/agentx-types";
 import { createLogger } from "@deepractice-ai/agentx-logger";
@@ -37,7 +37,7 @@ export class ErrorManager implements IErrorManager {
    * 1. Default logging (always)
    * 2. Custom handlers (user-registered)
    */
-  handle(agentId: string, error: AgentError, event: ErrorMessageEvent): void {
+  handle(agentId: string, error: AgentError, event: ErrorEvent): void {
     // 1. Default logging (always happens)
     this.logError(agentId, error);
 

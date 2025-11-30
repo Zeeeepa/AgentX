@@ -34,7 +34,7 @@ import type {
   Agent,
   AgentState,
   Message,
-  ErrorMessage,
+  AgentError,
   UserMessage,
 } from "@deepractice-ai/agentx-types";
 
@@ -58,9 +58,9 @@ export interface UseAgentResult {
   status: AgentState;
 
   /**
-   * Error messages received
+   * Errors received (AgentError objects, not Messages)
    */
-  errors: ErrorMessage[];
+  errors: AgentError[];
 
   /**
    * Send a message to the agent
@@ -105,7 +105,7 @@ export interface UseAgentOptions {
   /**
    * Callback when an error occurs
    */
-  onError?: (error: ErrorMessage) => void;
+  onError?: (error: AgentError) => void;
 
   /**
    * Callback when status changes
@@ -127,7 +127,7 @@ export function useAgent(agent: Agent | null, options: UseAgentOptions = {}): Us
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [streaming, setStreaming] = useState("");
   const [status, setStatus] = useState<AgentState>(agent?.state ?? "idle");
-  const [errors, setErrors] = useState<ErrorMessage[]>([]);
+  const [errors, setErrors] = useState<AgentError[]>([]);
 
   // Track if component is mounted
   const mountedRef = useRef(true);
@@ -184,13 +184,13 @@ export function useAgent(agent: Agent | null, options: UseAgentOptions = {}): Us
         });
       },
 
-      // Error handling
+      // Error handling (ErrorEvent, not ErrorMessageEvent)
       onError: (event) => {
         if (!mountedRef.current) return;
-        const errorMsg = event.data;
-        setErrors((prev) => [...prev, errorMsg]);
+        const error = event.data.error;
+        setErrors((prev) => [...prev, error]);
         setStreaming(""); // Clear streaming on error
-        onError?.(errorMsg);
+        onError?.(error);
       },
     });
 

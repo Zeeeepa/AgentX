@@ -11,7 +11,6 @@ export {
   isSystemMessage,
   isToolCallMessage,
   isToolResultMessage,
-  isErrorMessage,
 } from "./MessageGuards";
 
 // ContentPart guards
@@ -25,7 +24,13 @@ export {
 } from "./ContentPartGuards";
 
 // Event guards
-export { isStateEvent, isMessageEvent, isTurnEvent, isStreamEvent } from "./EventGuards";
+export {
+  isStateEvent,
+  isMessageEvent,
+  isTurnEvent,
+  isStreamEvent,
+  isErrorEvent,
+} from "./EventGuards";
 
 // Event type name constants (single source of truth)
 export {
@@ -33,4 +38,5 @@ export {
   MESSAGE_EVENT_TYPE_NAMES,
   TURN_EVENT_TYPE_NAMES,
   STREAM_EVENT_TYPE_NAMES,
+  ERROR_EVENT_TYPE_NAMES,
 } from "./EventGuards";

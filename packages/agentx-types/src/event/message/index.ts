@@ -26,18 +26,17 @@ export type { AssistantMessageEvent } from "./AssistantMessageEvent";
 export type { ToolCallMessageEvent } from "./ToolCallMessageEvent";
 export type { ToolResultMessageEvent } from "./ToolResultMessageEvent";
 
-// Error messages
-export type { ErrorMessageEvent } from "./ErrorMessageEvent";
 // Re-export error types for convenience
-export type { ErrorMessage } from "~/message";
 export type { AgentError, ErrorSeverity } from "~/error";
 
 /**
  * Union of all Message events
+ *
+ * Note: ErrorMessageEvent has been removed. Errors are now handled via
+ * independent ErrorEvent (see ~/event/error) which is transportable via SSE.
  */
 export type MessageEventType =
   | import("./UserMessageEvent").UserMessageEvent
   | import("./AssistantMessageEvent").AssistantMessageEvent
   | import("./ToolCallMessageEvent").ToolCallMessageEvent
-  | import("./ToolResultMessageEvent").ToolResultMessageEvent
-  | import("./ErrorMessageEvent").ErrorMessageEvent;
+  | import("./ToolResultMessageEvent").ToolResultMessageEvent;

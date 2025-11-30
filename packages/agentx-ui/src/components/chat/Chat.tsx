@@ -75,8 +75,8 @@ export function Chat({ agent, initialMessages = [], onMessageSend, className = "
       {/* Error messages (above input) */}
       {errors.length > 0 && (
         <div className="px-2 sm:px-4 md:px-4 pb-2 max-w-4xl mx-auto w-full space-y-2">
-          {errors.map((error) => (
-            <ErrorMessage key={error.id} error={error} showDetails={true} />
+          {errors.map((error, index) => (
+            <ErrorMessage key={`error-${index}`} error={error} showDetails={true} />
           ))}
         </div>
       )}

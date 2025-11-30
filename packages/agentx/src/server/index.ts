@@ -54,7 +54,7 @@ export type {
 export { createAgentXHandler, type AgentXHandlerWithUtils } from "./createAgentXHandler";
 
 // SSE Transport
-export { SSEConnection, SSEConnectionManager } from "./SSETransport";
+export { SSEConnection, SSEConnectionManager } from "./SSEServerTransport";
 
 // Framework Adapters (re-exported for convenience)
 export {

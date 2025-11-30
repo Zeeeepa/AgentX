@@ -6,11 +6,18 @@
  * - State: State machine transitions
  * - Message: Assembled messages
  * - Turn: Turn analytics
+ * - Error: Independent error events (transportable via SSE)
  */
 
 import type { StreamEventType, StateEventType, MessageEventType, TurnEventType } from "~/event";
+import type { ErrorEvent } from "~/event/error";
 
 /**
  * All possible output types from Agent
  */
-export type AgentOutput = StreamEventType | StateEventType | MessageEventType | TurnEventType;
+export type AgentOutput =
+  | StreamEventType
+  | StateEventType
+  | MessageEventType
+  | TurnEventType
+  | ErrorEvent;

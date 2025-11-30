@@ -47,8 +47,10 @@ import type {
   AssistantMessageEvent,
   ToolCallMessageEvent,
   ToolResultMessageEvent,
-  ErrorMessageEvent,
 } from "~/event/message";
+
+// Error Layer Events (independent, transportable via SSE)
+import type { ErrorEvent } from "~/event/error";
 
 // Turn Layer Events
 import type { TurnRequestEvent, TurnResponseEvent } from "~/event/turn";
@@ -97,7 +99,9 @@ export interface EventHandlerMap {
   assistant_message?: (event: AssistantMessageEvent) => void;
   tool_call_message?: (event: ToolCallMessageEvent) => void;
   tool_result_message?: (event: ToolResultMessageEvent) => void;
-  error_message?: (event: ErrorMessageEvent) => void;
+
+  // Error Layer Events (independent, transportable via SSE)
+  error?: (event: ErrorEvent) => void;
 
   // Turn Layer Events
   turn_request?: (event: TurnRequestEvent) => void;
@@ -135,7 +139,9 @@ export interface ReactHandlerMap {
   onAssistantMessage?: (event: AssistantMessageEvent) => void;
   onToolCallMessage?: (event: ToolCallMessageEvent) => void;
   onToolResultMessage?: (event: ToolResultMessageEvent) => void;
-  onError?: (event: ErrorMessageEvent) => void;
+
+  // Error Layer Events (independent, transportable via SSE)
+  onError?: (event: ErrorEvent) => void;
 
   // Turn Layer Events
   onTurnRequest?: (event: TurnRequestEvent) => void;
@@ -235,7 +241,9 @@ export interface Agent {
   on(type: "assistant_message", handler: (event: AssistantMessageEvent) => void): Unsubscribe;
   on(type: "tool_call_message", handler: (event: ToolCallMessageEvent) => void): Unsubscribe;
   on(type: "tool_result_message", handler: (event: ToolResultMessageEvent) => void): Unsubscribe;
-  on(type: "error_message", handler: (event: ErrorMessageEvent) => void): Unsubscribe;
+
+  // ===== Type-safe overloads for Error Layer Events =====
+  on(type: "error", handler: (event: ErrorEvent) => void): Unsubscribe;
 
   // ===== Type-safe overloads for Turn Layer Events =====
   on(type: "turn_request", handler: (event: TurnRequestEvent) => void): Unsubscribe;

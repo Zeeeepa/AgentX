@@ -25,7 +25,7 @@
  */
 
 import type { AgentError } from "~/error";
-import type { ErrorMessageEvent } from "~/event/message/ErrorMessageEvent";
+import type { ErrorEvent } from "~/event/error";
 import type { Unsubscribe } from "~/agent/AgentEventHandler";
 
 /**
@@ -37,9 +37,9 @@ export interface ErrorHandler {
    *
    * @param agentId - The agent that produced the error
    * @param error - The classified error
-   * @param event - The full error message event
+   * @param event - The full error event
    */
-  handle(agentId: string, error: AgentError, event: ErrorMessageEvent): void;
+  handle(agentId: string, error: AgentError, event: ErrorEvent): void;
 }
 
 /**

@@ -1,11 +1,11 @@
 /**
  * AgentErrorClassifier
  *
- * Handles error classification and AgentError/ErrorMessageEvent creation.
+ * Handles error classification and AgentError/ErrorEvent creation.
  * Classifies unknown errors into structured AgentError categories.
  */
 
-import type { AgentError, ErrorMessageEvent } from "@deepractice-ai/agentx-types";
+import type { AgentError, ErrorEvent } from "@deepractice-ai/agentx-types";
 
 /**
  * AgentErrorClassifier - Error classification and event creation
@@ -79,20 +79,18 @@ export class AgentErrorClassifier {
   }
 
   /**
-   * Create an ErrorMessageEvent from an AgentError
+   * Create an ErrorEvent from an AgentError
+   *
+   * ErrorEvent is independent from Message layer and transportable via SSE.
    */
-  createEvent(error: AgentError): ErrorMessageEvent {
+  createEvent(error: AgentError): ErrorEvent {
     return {
-      type: "error_message",
+      type: "error",
       uuid: `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       agentId: this.agentId,
       timestamp: Date.now(),
       data: {
-        id: `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-        role: "system",
-        subtype: "error",
         error,
-        timestamp: Date.now(),
       },
     };
   }
