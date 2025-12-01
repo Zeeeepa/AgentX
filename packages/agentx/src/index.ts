@@ -54,8 +54,6 @@ export type {
   ErrorHandler,
   // Session module
   SessionManager,
-  LocalSessionManager,
-  RemoteSessionManager,
   Session,
   // Platform module
   PlatformManager,

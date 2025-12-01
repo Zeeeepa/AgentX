@@ -77,8 +77,6 @@ export type { ErrorManager, ErrorHandler } from "./error";
 // Session module (Manager + Endpoints)
 export type {
   SessionManager,
-  LocalSessionManager,
-  RemoteSessionManager,
   ListSessionsResponse,
   CreateSessionEndpoint,
   GetSessionEndpoint,

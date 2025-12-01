@@ -29,9 +29,11 @@
     "@deepractice-ai/agentx": "workspace:*",
     "@deepractice-ai/agentx-logger": "workspace:*",
     "@deepractice-ai/agentx-types": "workspace:*",
+    "better-sqlite3": "^11.7.0",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.2",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2"

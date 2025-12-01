@@ -18,7 +18,7 @@ import type { AgentX, ProviderKey, LoggerFactory, Runtime } from "@deepractice-a
 import { LoggerFactoryKey } from "@deepractice-ai/agentx-types";
 import { AgentEngine } from "@deepractice-ai/agentx-engine";
 import { createLogger, setLoggerFactory } from "@deepractice-ai/agentx-logger";
-import { AgentManager, LocalSessionManager, ErrorManager } from "./managers";
+import { AgentManager, SessionManagerImpl, ErrorManager } from "./managers";
 
 const logger = createLogger("agentx/AgentX");
 
@@ -60,13 +60,22 @@ class ProviderRegistry {
 export function createAgentX(runtime: Runtime): AgentX {
   logger.info("Creating AgentX instance", { runtime: runtime.name });
 
+  // Check repository
+  if (!runtime.repository) {
+    throw new Error("Runtime must have a repository for persistence");
+  }
+
   // Create shared infrastructure
   const engine = new AgentEngine();
 
   // Create managers
   const errorManager = new ErrorManager();
-  const sessionManager = new LocalSessionManager();
   const agentManager = new AgentManager(runtime, engine, errorManager);
+
+  // Create session manager with repository and agent factory
+  const sessionManager = new SessionManagerImpl(runtime.repository, (definition, config) =>
+    agentManager.create(definition, config)
+  );
 
   // Create provider registry
   const registry = new ProviderRegistry();

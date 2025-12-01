@@ -4,6 +4,7 @@
  * Runtime = Complete environment encapsulation
  * - Container: Agent lifecycle management
  * - Sandbox: Resource isolation (OS + LLM)
+ * - Storage: Persistence (optional)
  * - RuntimeDriver: Driver with Sandbox
  * - Config: Configuration schema
  *
@@ -21,6 +22,9 @@ export * from "./container";
 
 // Sandbox
 export * from "./sandbox";
+
+// Repository
+export * from "./repository";
 
 // Config
 export * from "./config";

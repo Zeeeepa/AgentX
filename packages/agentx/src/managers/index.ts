@@ -5,7 +5,7 @@
  *
  * Directory structure:
  * - agent/     - AgentManager (uses Runtime)
- * - session/   - LocalSessionManager, RemoteSessionManager
+ * - session/   - SessionManagerImpl
  * - error/     - ErrorManager
  * - remote/    - PlatformManager, HttpClient
  */
@@ -13,8 +13,8 @@
 // Agent manager (uses Runtime)
 export { AgentManager } from "./agent";
 
-// Session managers
-export { LocalSessionManager, RemoteSessionManager } from "./session";
+// Session manager
+export { SessionManagerImpl } from "./session";
 
 // Error manager (Local only)
 export { ErrorManager } from "./error";

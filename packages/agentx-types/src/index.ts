@@ -71,7 +71,7 @@ export * from "./mcp";
 // Session types
 export * from "./session";
 
-// Runtime resource types
+// Runtime resource types (includes storage)
 export * from "./runtime";
 
 // Type guards

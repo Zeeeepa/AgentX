@@ -28,7 +28,6 @@ export { useContainer, type UseContainerOptions } from "~/hooks/useContainer";
 
 // Types
 export type {
-  SessionStatus,
   SessionItem,
   AgentDefinitionItem,
   ContainerState,

@@ -34,3 +34,6 @@ export { runtime, NodeRuntime } from "./NodeRuntime";
 // ==================== Driver (for advanced use) ====================
 export { createClaudeDriver } from "./ClaudeDriver";
 export type { ClaudeDriverConfig } from "./ClaudeDriver";
+
+// ==================== Repository ====================
+export { SQLiteRepository } from "./repository";

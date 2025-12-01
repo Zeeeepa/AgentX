@@ -63,26 +63,26 @@ export const CustomPlaceholder: Story = {
 };
 
 /**
- * Without image button
+ * Without toolbar
  */
-export const NoImageButton: Story = {
+export const NoToolbar: Story = {
   args: {
     onSend: (text) => console.log("Sent:", text),
-    showImageButton: false,
+    showToolbar: false,
     disabled: false,
   },
 };
 
 /**
- * With image attach handler
+ * With file attach handler
  */
-export const WithImageAttach: Story = {
+export const WithFileAttach: Story = {
   args: {
     onSend: (text) => console.log("Sent:", text),
-    onImageAttach: (files) =>
+    onFileAttach: (files: File[]) =>
       console.log(
-        "Images attached:",
-        files.map((f) => f.name)
+        "Files attached:",
+        files.map((f: File) => f.name)
       ),
     disabled: false,
   },

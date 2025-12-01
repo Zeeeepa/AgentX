@@ -15,12 +15,17 @@ import type {
   RuntimeDriver,
   AgentContext,
   AgentDefinition,
+  Repository,
   OS,
   LLMProvider,
 } from "@deepractice-ai/agentx-types";
 import type { Agent } from "@deepractice-ai/agentx-types";
 import { createLogger } from "@deepractice-ai/agentx-logger";
 import { createClaudeDriver } from "./ClaudeDriver";
+import { SQLiteRepository } from "./repository";
+import { homedir } from "node:os";
+import { mkdirSync, existsSync } from "node:fs";
+import { join } from "node:path";
 
 const logger = createLogger("node/NodeRuntime");
 
@@ -96,19 +101,45 @@ class NoopSandbox implements Sandbox {
 // ============================================================================
 
 /**
+ * Default data directory for AgentX
+ */
+const DEFAULT_DATA_DIR = join(homedir(), ".agentx", "data");
+
+/**
+ * Ensure directory exists
+ */
+function ensureDir(dir: string): void {
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+}
+
+/**
  * NodeRuntime - Runtime for Node.js with Claude driver
  *
  * RuntimeConfig is collected from environment:
  * - ANTHROPIC_API_KEY
  * - ANTHROPIC_BASE_URL
  * - CLAUDE_MODEL (optional, defaults to claude-sonnet-4-20250514)
+ *
+ * Data is stored in ~/.agentx/data/ by default.
  */
 class NodeRuntime implements Runtime {
   readonly name = "node";
   readonly container: Container;
+  readonly repository: Repository;
 
-  constructor() {
+  constructor(dataDir: string = DEFAULT_DATA_DIR) {
     this.container = new MemoryContainer();
+
+    // Ensure data directory exists
+    ensureDir(dataDir);
+
+    // Create SQLite repository
+    const dbPath = join(dataDir, "agentx.db");
+    this.repository = new SQLiteRepository(dbPath);
+
+    logger.info("NodeRuntime initialized", { dataDir, dbPath });
   }
 
   createSandbox(name: string): Sandbox {

@@ -38,10 +38,9 @@ const mockDefinition: AgentDefinitionItem = {
 const mockSession: SessionItem = {
   sessionId: "session_1",
   agentId: "Claude",
-  createdAt: Date.now() - 3600000,
   title: "Code Refactoring Discussion",
-  status: "active",
-  lastActivityAt: Date.now() - 1800000,
+  createdAt: Date.now() - 3600000,
+  updatedAt: Date.now() - 1800000,
 };
 
 /**

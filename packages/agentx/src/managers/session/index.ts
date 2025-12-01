@@ -1,8 +1,7 @@
 /**
  * Session Manager module
  *
- * Provides session management implementations for Local and Remote modes.
+ * Provides unified session management with Repository-based persistence.
  */
 
-export { LocalSessionManager } from "./LocalSessionManager";
-export { RemoteSessionManager } from "./RemoteSessionManager";
+export { SessionManagerImpl } from "./SessionManagerImpl";

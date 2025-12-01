@@ -1,17 +1,39 @@
 /**
- * SessionManager - Base session management interface
+ * SessionManager - Unified session management interface
  *
- * Common operations shared by Local and Remote session managers.
+ * Manages session lifecycle. Storage is handled by the underlying
+ * Storage implementation (local or remote).
+ *
+ * @example
+ * ```typescript
+ * // Create session for an agent
+ * const session = await agentx.sessions.create(agentId);
+ *
+ * // Resume agent from session
+ * const agent = await session.resume();
+ *
+ * // List sessions
+ * const sessions = await agentx.sessions.listByAgent(agentId);
+ *
+ * // Cleanup
+ * await agentx.sessions.destroy(sessionId);
+ * ```
  */
 
 import type { Session } from "~/session/Session";
 
 /**
- * Base session management interface
- *
- * Defines operations common to both Local and Remote modes.
+ * Session management interface
  */
 export interface SessionManager {
+  /**
+   * Create a new session for an agent
+   *
+   * @param agentId - The agent ID to create session for
+   * @returns Created session
+   */
+  create(agentId: string): Promise<Session>;
+
   /**
    * Get an existing session by ID
    *
@@ -21,10 +43,25 @@ export interface SessionManager {
   get(sessionId: string): Promise<Session | undefined>;
 
   /**
+   * Check if session exists
+   *
+   * @param sessionId - The session ID
+   * @returns true if exists
+   */
+  has(sessionId: string): Promise<boolean>;
+
+  /**
+   * List all sessions
+   *
+   * @returns Array of all sessions
+   */
+  list(): Promise<Session[]>;
+
+  /**
    * List all sessions for an agent
    *
    * @param agentId - The agent ID
-   * @returns Array of sessions
+   * @returns Array of sessions for the agent
    */
   listByAgent(agentId: string): Promise<Session[]>;
 
@@ -32,7 +69,18 @@ export interface SessionManager {
    * Destroy a session
    *
    * @param sessionId - The session ID
-   * @returns Promise that resolves when destroyed
    */
   destroy(sessionId: string): Promise<void>;
+
+  /**
+   * Destroy all sessions for an agent
+   *
+   * @param agentId - The agent ID
+   */
+  destroyByAgent(agentId: string): Promise<void>;
+
+  /**
+   * Destroy all sessions
+   */
+  destroyAll(): Promise<void>;
 }

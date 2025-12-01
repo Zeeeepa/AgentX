@@ -17,6 +17,7 @@
 
 import type { Container } from "./container";
 import type { Sandbox } from "./sandbox";
+import type { Repository } from "./repository";
 import type { RuntimeDriver } from "./RuntimeDriver";
 import type { AgentContext } from "~/agent/AgentContext";
 import type { AgentDefinition } from "~/agent/AgentDefinition";
@@ -37,6 +38,9 @@ export interface Runtime {
 
   /** Container for managing Agent lifecycle */
   readonly container: Container;
+
+  /** Repository for persistence (optional) */
+  readonly repository?: Repository;
 
   /** Create a Sandbox for resource isolation */
   createSandbox(name: string): Sandbox;

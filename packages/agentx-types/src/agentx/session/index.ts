@@ -4,14 +4,10 @@
  * - SessionManager: TypeScript API (agentx.sessions.*)
  * - SessionEndpoint: HTTP API contracts
  *
- * Has Local/Remote variants:
- * - LocalSessionManager: sync create()
- * - RemoteSessionManager: async create() + sync()
+ * Storage abstraction handles local vs remote differences.
  */
 
 export type { SessionManager } from "./SessionManager";
-export type { LocalSessionManager } from "./LocalSessionManager";
-export type { RemoteSessionManager } from "./RemoteSessionManager";
 
 // Endpoint types
 export type {

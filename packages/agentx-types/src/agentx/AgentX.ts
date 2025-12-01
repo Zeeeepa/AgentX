@@ -28,7 +28,7 @@
 
 import type { AgentManager } from "./agent";
 import type { ErrorManager } from "./error";
-import type { LocalSessionManager, RemoteSessionManager } from "./session";
+import type { SessionManager } from "./session";
 import type { PlatformManager } from "./platform";
 import type { ProviderKey } from "./ProviderKey";
 
@@ -92,9 +92,9 @@ export interface AgentXLocal extends AgentXBase {
   readonly mode: "local";
 
   /**
-   * Session management (local variant)
+   * Session management
    */
-  readonly sessions: LocalSessionManager;
+  readonly sessions: SessionManager;
 
   /**
    * Platform-level error management (Local only)
@@ -117,9 +117,9 @@ export interface AgentXRemote extends AgentXBase {
   readonly mode: "remote";
 
   /**
-   * Session management (remote variant)
+   * Session management
    */
-  readonly sessions: RemoteSessionManager;
+  readonly sessions: SessionManager;
 
   /**
    * Platform information (remote only)

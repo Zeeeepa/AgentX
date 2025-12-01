@@ -25,7 +25,6 @@ import type { Agent } from "@deepractice-ai/agentx-types";
 import type {
   AgentDefinitionItem,
   SessionItem,
-  SessionStatus,
   UseContainerResult,
 } from "~/components/container/types";
 
@@ -134,10 +133,9 @@ export function useContainer(options: UseContainerOptions = {}): UseContainerRes
         const newSession: SessionItem = {
           sessionId: `session_${generateId()}`,
           agentId: currentDefinition.name,
+          title: title ?? null,
           createdAt: now,
-          title: title ?? `New conversation`,
-          status: "active",
-          lastActivityAt: now,
+          updatedAt: now,
         };
 
         setSessions((prev) => [newSession, ...prev]);
@@ -158,12 +156,10 @@ export function useContainer(options: UseContainerOptions = {}): UseContainerRes
     setCurrentSession((prev) => (prev?.sessionId === sessionId ? null : prev));
   }, []);
 
-  // Update session status
-  const updateSessionStatus = useCallback((sessionId: string, status: SessionStatus) => {
+  // Update session title
+  const setSessionTitle = useCallback(async (sessionId: string, title: string): Promise<void> => {
     setSessions((prev) =>
-      prev.map((s) =>
-        s.sessionId === sessionId ? { ...s, status, lastActivityAt: Date.now() } : s
-      )
+      prev.map((s) => (s.sessionId === sessionId ? { ...s, title, updatedAt: Date.now() } : s))
     );
   }, []);
 
@@ -203,7 +199,7 @@ export function useContainer(options: UseContainerOptions = {}): UseContainerRes
     selectSession,
     createSession,
     deleteSession,
-    updateSessionStatus,
+    setSessionTitle,
     addDefinition,
     removeDefinition,
   };

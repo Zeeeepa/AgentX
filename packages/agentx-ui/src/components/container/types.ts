@@ -4,39 +4,49 @@
  * UI-specific types extending core agentx-types for display purposes.
  */
 
-import type { AgentDefinition, Session, Agent } from "@deepractice-ai/agentx-types";
+import type { AgentDefinition, Agent } from "@deepractice-ai/agentx-types";
 
 /**
- * Session status for UI display
+ * Session item for UI display (pure data, no methods)
+ *
+ * Core fields come from Session interface.
+ * Additional fields (preview, unreadCount) are computed/derived by UI.
  */
-export type SessionStatus = "active" | "pending" | "completed" | "archived";
-
-/**
- * Extended Session with UI metadata
- */
-export interface SessionItem extends Session {
+export interface SessionItem {
   /**
-   * Display title for the session
+   * Unique session identifier
    */
-  title: string;
+  sessionId: string;
 
   /**
-   * Session status
+   * Associated agent ID
    */
-  status: SessionStatus;
+  agentId: string;
 
   /**
-   * Last activity timestamp
+   * Display title (can be AI-generated summary)
    */
-  lastActivityAt: number;
+  title: string | null;
 
   /**
-   * Preview text (last message snippet)
+   * Session creation timestamp (Unix ms)
+   */
+  createdAt: number;
+
+  /**
+   * Last update timestamp (Unix ms)
+   */
+  updatedAt: number;
+
+  // ===== UI computed fields (not from Session) =====
+
+  /**
+   * Preview text (last message snippet) - computed from messages
    */
   preview?: string;
 
   /**
-   * Unread message count
+   * Unread message count - computed by UI
    */
   unreadCount?: number;
 }
@@ -131,9 +141,9 @@ export interface ContainerActions {
   deleteSession: (sessionId: string) => Promise<void>;
 
   /**
-   * Update session status
+   * Update session title
    */
-  updateSessionStatus: (sessionId: string, status: SessionStatus) => void;
+  setSessionTitle: (sessionId: string, title: string) => Promise<void>;
 
   /**
    * Add a new agent definition
