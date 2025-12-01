@@ -89,7 +89,7 @@ function formatRelativeTime(timestamp: number): string {
 export function SessionPane({
   sessions,
   current,
-  agentName,
+  agentName: _agentName,
   onSelect,
   onCreate,
   onDelete,
@@ -116,20 +116,31 @@ export function SessionPane({
     <div className={`flex flex-col h-full ${className}`}>
       {/* Header */}
       <div className="p-3 border-b border-border">
-        {agentName && <h2 className="text-sm font-semibold text-foreground mb-2">{agentName}</h2>}
-
-        {/* Search input */}
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search sessions..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-sm bg-muted/50 border border-border rounded-md
-                       placeholder:text-muted-foreground
-                       focus:outline-none focus:ring-1 focus:ring-primary"
-          />
+        {/* Search input + New button */}
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search sessions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 text-sm bg-muted/50 border border-border rounded-md
+                         placeholder:text-muted-foreground
+                         focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+          {onCreate && (
+            <button
+              onClick={onCreate}
+              className="flex items-center justify-center w-8 h-8 rounded-md
+                         text-primary-foreground bg-primary hover:bg-primary/90
+                         transition-colors flex-shrink-0"
+              title="New Topic"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -143,8 +154,12 @@ export function SessionPane({
               key={session.sessionId}
               className={`
                 group relative w-full flex items-start gap-3 px-3 py-2.5 text-left
-                transition-colors cursor-pointer
-                ${isActive ? "bg-accent text-accent-foreground" : "hover:bg-muted/50"}
+                transition-colors cursor-pointer border-l-[3px]
+                ${
+                  isActive
+                    ? "bg-blue-100 dark:bg-blue-900/30 border-l-blue-500"
+                    : "hover:bg-muted/50 border-l-transparent"
+                }
               `}
               onClick={() => onSelect(session)}
             >
@@ -206,21 +221,6 @@ export function SessionPane({
           </div>
         )}
       </div>
-
-      {/* Create button */}
-      {onCreate && (
-        <div className="p-3 border-t border-border">
-          <button
-            onClick={onCreate}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2
-                       text-sm font-medium text-primary-foreground bg-primary
-                       rounded-md hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            New Topic
-          </button>
-        </div>
-      )}
     </div>
   );
 }

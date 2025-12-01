@@ -23,7 +23,7 @@
  * ```
  */
 
-import { Plus } from "lucide-react";
+import { Settings } from "lucide-react";
 import type { AgentDefinitionItem } from "./types";
 
 export interface DefinitionPaneProps {
@@ -43,9 +43,9 @@ export interface DefinitionPaneProps {
   onSelect: (definition: AgentDefinitionItem) => void;
 
   /**
-   * Callback when add button is clicked
+   * Callback when settings button is clicked
    */
-  onAdd?: () => void;
+  onSettings?: () => void;
 
   /**
    * Custom className
@@ -88,7 +88,7 @@ export function DefinitionPane({
   definitions,
   current,
   onSelect,
-  onAdd,
+  onSettings,
   className = "",
 }: DefinitionPaneProps) {
   return (
@@ -135,17 +135,17 @@ export function DefinitionPane({
         })}
       </div>
 
-      {/* Add button */}
-      {onAdd && (
+      {/* Settings button */}
+      {onSettings && (
         <div className="flex flex-col items-center pt-2 border-t border-border">
           <button
-            onClick={onAdd}
+            onClick={onSettings}
             className="w-10 h-10 rounded-xl flex items-center justify-center
                        text-muted-foreground hover:text-foreground
                        hover:bg-accent transition-colors"
-            title="Add agent"
+            title="Settings"
           >
-            <Plus className="w-5 h-5" />
+            <Settings className="w-5 h-5" />
           </button>
         </div>
       )}

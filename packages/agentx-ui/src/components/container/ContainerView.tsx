@@ -229,7 +229,6 @@ export function ContainerView({
           definitions={definitions}
           current={currentDefinition}
           onSelect={onSelectDefinition}
-          onAdd={onAddDefinition}
         />
       </div>
 

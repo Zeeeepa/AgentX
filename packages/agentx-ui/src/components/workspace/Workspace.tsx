@@ -28,11 +28,11 @@
  * ```
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 
-import type { AgentX, Agent } from "@deepractice-ai/agentx-types";
+import type { AgentX, Agent, Message } from "@deepractice-ai/agentx-types";
 import { useSession, type SessionItem } from "~/hooks/useSession";
 import { useAgent } from "~/hooks/useAgent";
 import { DefinitionPane } from "~/components/container/DefinitionPane";
@@ -115,22 +115,36 @@ export function Workspace({
 
   // ===== Agent Instance Management =====
   const [agent, setAgent] = useState<Agent | null>(null);
+  const [historyMessages, setHistoryMessages] = useState<Message[]>([]);
+  const skipResumeRef = useRef(false);
 
-  // Resume agent when session is selected
-  // Docker-style: session.resume() creates agent from image
+  // Resume agent when session is selected (for existing sessions)
+  // New sessions are handled by handleCreateSession with run() instead
   useEffect(() => {
     if (!currentSession) {
       setAgent(null);
+      setHistoryMessages([]);
       return;
     }
 
-    // Resume agent from session
+    // Skip if handleCreateSession already set the agent
+    if (skipResumeRef.current) {
+      skipResumeRef.current = false;
+      return;
+    }
+
+    // Resume agent from session and load history
     const resumeAgentFromSession = async () => {
       try {
         // Get the actual Session object and call resume()
         if ("sessions" in agentx && agentx.sessions) {
           const session = await agentx.sessions.get(currentSession.sessionId);
           if (session) {
+            // Load history messages first
+            const history = await session.getMessages();
+            setHistoryMessages(history);
+
+            // Then resume agent (which auto-collects new messages)
             const newAgent = await session.resume();
             setAgent(newAgent);
           }
@@ -152,13 +166,18 @@ export function Workspace({
 
   // ===== Agent State (maps to agentx.agents) =====
   const {
-    messages,
+    messages: liveMessages,
     streaming,
     errors,
     send,
+    status,
+    interrupt,
     isLoading: agentLoading,
-    clearMessages,
   } = useAgent(agent);
+
+  // Combine history messages with live messages
+  // History is loaded once on session change, live messages accumulate during conversation
+  const messages = [...historyMessages, ...liveMessages];
 
   // ===== Handlers =====
 
@@ -168,17 +187,15 @@ export function Workspace({
       onDefinitionChange?.(definition);
       // Clear current session when definition changes
       selectSession(null);
-      clearMessages();
     },
-    [selectSession, clearMessages, onDefinitionChange]
+    [selectSession, onDefinitionChange]
   );
 
   const handleSelectSession = useCallback(
     (session: SessionItem) => {
       selectSession(session);
-      clearMessages();
     },
-    [selectSession, clearMessages]
+    [selectSession]
   );
 
   const handleCreateSession = useCallback(async () => {
@@ -191,7 +208,24 @@ export function Workspace({
       return;
     }
 
-    await createSession(metaImage.imageId, `New Chat ${sessions.length + 1}`);
+    // Create session first
+    const newSession = await createSession(metaImage.imageId, `New Chat ${sessions.length + 1}`);
+    if (!newSession) return;
+
+    // For new session, use run() instead of resume()
+    // run() creates a fresh agent from the image
+    const newAgent = await agentx.images.run(metaImage.imageId);
+
+    // Get session object and collect messages
+    const session = await agentx.sessions.get(newSession.sessionId);
+    if (session) {
+      session.collect(newAgent);
+    }
+
+    // Set agent directly and skip the resume useEffect
+    skipResumeRef.current = true;
+    setHistoryMessages([]); // New session has no history
+    setAgent(newAgent);
   }, [agentx, currentDefinition, createSession, sessions.length]);
 
   const handleDeleteSession = useCallback(
@@ -229,9 +263,9 @@ export function Workspace({
               definitions={definitions}
               current={currentDefinition}
               onSelect={handleSelectDefinition}
-              onAdd={() => {
-                // TODO: Add definition dialog
-                console.log("Add definition");
+              onSettings={() => {
+                // TODO: Settings dialog
+                console.log("Open settings");
               }}
             />
           </div>
@@ -263,7 +297,9 @@ export function Workspace({
                   messages={messages}
                   streaming={streaming}
                   errors={errors}
+                  status={status}
                   isLoading={isLoading}
+                  onAbort={interrupt}
                   onCreateSession={handleCreateSession}
                 />
               </Allotment.Pane>

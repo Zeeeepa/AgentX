@@ -17,7 +17,9 @@ import type {
   ImageRecord,
   Agent,
   Container,
+  Message,
 } from "@deepractice-ai/agentx-types";
+import type { MessageRecord, MessageRole } from "@deepractice-ai/agentx-types";
 import { createLogger } from "@deepractice-ai/agentx-logger";
 
 const logger = createLogger("agentx/SessionManager");
@@ -80,7 +82,55 @@ class SessionImpl implements Session {
     });
 
     // Delegate to container
-    return this.container.resume(this);
+    const agent = await this.container.resume(this);
+
+    // Auto-collect messages from agent
+    this.collect(agent);
+
+    return agent;
+  }
+
+  collect(agent: Agent): void {
+    logger.debug("Collecting messages from agent", {
+      sessionId: this.sessionId,
+      agentId: agent.agentId,
+    });
+
+    const sessionId = this.sessionId;
+    const repository = this.repository;
+
+    // Subscribe to all message events and persist them
+    const saveMessage = (data: Message, role: MessageRole) => {
+      const record: MessageRecord = {
+        messageId: data.id,
+        sessionId,
+        role,
+        content: data as unknown as Record<string, unknown>,
+        createdAt: new Date(data.timestamp ?? Date.now()),
+      };
+
+      repository.saveMessage(record).catch((error) => {
+        logger.error("Failed to persist message", {
+          sessionId,
+          messageId: record.messageId,
+          error,
+        });
+      });
+    };
+
+    agent.on("user_message", (event) => saveMessage(event.data, "user"));
+    agent.on("assistant_message", (event) => saveMessage(event.data, "assistant"));
+    agent.on("tool_call_message", (event) => saveMessage(event.data, "tool"));
+    agent.on("tool_result_message", (event) => saveMessage(event.data, "tool"));
+  }
+
+  async getMessages(): Promise<Message[]> {
+    logger.debug("Getting messages for session", { sessionId: this.sessionId });
+
+    const records = await this.repository.findMessagesBySessionId(this.sessionId);
+
+    // Convert MessageRecord to Message (content stores the full message)
+    return records.map((record) => record.content as unknown as Message);
   }
 
   async fork(): Promise<Session> {

@@ -143,13 +143,15 @@ export function createClaudeDriver(
       agentId,
       createdAt: context.createdAt,
       ...config,
+      // Pass resume session ID if provided (for conversation continuity)
+      resume: options?.resumeSessionId,
     };
-    const options = buildOptions(driverContext, abortController);
+    const sdkOptions = buildOptions(driverContext, abortController);
     const promptStream = observableToAsyncIterable(promptSubject);
 
     claudeQuery = query({
       prompt: promptStream,
-      options,
+      options: sdkOptions,
     });
 
     isInitialized = true;

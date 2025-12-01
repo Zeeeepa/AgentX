@@ -68,14 +68,7 @@ const mockDefinitions: AgentDefinitionItem[] = [
 function DefaultComponent() {
   const [current, setCurrent] = useState<AgentDefinitionItem | null>(mockDefinitions[0]);
 
-  return (
-    <DefinitionPane
-      definitions={mockDefinitions}
-      current={current}
-      onSelect={setCurrent}
-      onAdd={() => console.log("Add agent")}
-    />
-  );
+  return <DefinitionPane definitions={mockDefinitions} current={current} onSelect={setCurrent} />;
 }
 
 export const Default: Story = {
@@ -89,12 +82,7 @@ function SingleAgentComponent() {
   const [current, setCurrent] = useState<AgentDefinitionItem | null>(mockDefinitions[0]);
 
   return (
-    <DefinitionPane
-      definitions={[mockDefinitions[0]]}
-      current={current}
-      onSelect={setCurrent}
-      onAdd={() => console.log("Add agent")}
-    />
+    <DefinitionPane definitions={[mockDefinitions[0]]} current={current} onSelect={setCurrent} />
   );
 }
 
@@ -106,14 +94,7 @@ export const SingleAgent: Story = {
  * No agents (empty state)
  */
 export const Empty: Story = {
-  render: () => (
-    <DefinitionPane
-      definitions={[]}
-      current={null}
-      onSelect={() => {}}
-      onAdd={() => console.log("Add agent")}
-    />
-  ),
+  render: () => <DefinitionPane definitions={[]} current={null} onSelect={() => {}} />,
 };
 
 /**
@@ -142,14 +123,7 @@ function WithEmojiIconsComponent() {
 
   const [current, setCurrent] = useState<AgentDefinitionItem | null>(emojiDefinitions[0]);
 
-  return (
-    <DefinitionPane
-      definitions={emojiDefinitions}
-      current={current}
-      onSelect={setCurrent}
-      onAdd={() => console.log("Add agent")}
-    />
-  );
+  return <DefinitionPane definitions={emojiDefinitions} current={current} onSelect={setCurrent} />;
 }
 
 export const WithEmojiIcons: Story = {

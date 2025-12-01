@@ -221,6 +221,17 @@ export class AgentInstance implements Agent {
       messageId: userMessage.id,
     });
 
+    // Emit user_message event for presenters and handlers
+    const userMessageEvent: UserMessageEvent = {
+      uuid: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      type: "user_message",
+      agentId: this.agentId,
+      timestamp: Date.now(),
+      data: userMessage,
+    };
+    this.presentOutput(userMessageEvent);
+    this.notifyHandlers(userMessageEvent);
+
     // Run through middleware chain
     await this.executeMiddlewareChain(userMessage);
   }

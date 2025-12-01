@@ -141,6 +141,14 @@ export function useAgent(agent: Agent | null, options: UseAgentOptions = {}): Us
     status === "awaiting_tool_result" ||
     status === "conversation_active";
 
+  // Reset state when agent changes
+  useEffect(() => {
+    setMessages([]);
+    setStreaming("");
+    setErrors([]);
+    setStatus(agent?.state ?? "idle");
+  }, [agent]);
+
   // Subscribe to agent events
   useEffect(() => {
     if (!agent) return;

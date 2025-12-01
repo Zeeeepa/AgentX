@@ -72,8 +72,8 @@ export function MessagePane({
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Message list */}
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <MessageList messages={messages} streamingText={streaming} />
+      <div className="flex-1 min-h-0">
+        <MessageList messages={messages} streamingText={streaming} className="h-full" />
       </div>
 
       {/* Status indicator */}

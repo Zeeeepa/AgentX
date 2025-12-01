@@ -35,6 +35,7 @@
  */
 
 import type { Agent } from "~/agent/Agent";
+import type { Message } from "~/message/Message";
 
 /**
  * Session represents a user-facing conversation context
@@ -96,4 +97,21 @@ export interface Session {
    * @param title - New title (can be AI-generated summary)
    */
   setTitle(title: string): Promise<void>;
+
+  /**
+   * Collect messages from an agent to this session
+   *
+   * Registers internal presenter to capture all message events
+   * (user, assistant, tool_call, tool_result) and persist them.
+   *
+   * @param agent - The agent to collect messages from
+   */
+  collect(agent: Agent): void;
+
+  /**
+   * Get all messages for this session
+   *
+   * @returns Array of messages in chronological order
+   */
+  getMessages(): Promise<Message[]>;
 }

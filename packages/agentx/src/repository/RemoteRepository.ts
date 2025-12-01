@@ -149,10 +149,17 @@ export class RemoteRepository implements Repository {
     }
   }
 
-  // ==================== Message (deprecated) ====================
+  // ==================== Message ====================
 
-  async saveMessage(record: MessageRecord): Promise<void> {
-    await this.client.put(`messages/${record.messageId}`, { json: record });
+  /**
+   * Save message - noop in browser
+   *
+   * Messages are persisted by server-side SessionCollector.
+   * Browser-side calls this but it does nothing to avoid duplicate saves.
+   */
+  async saveMessage(_record: MessageRecord): Promise<void> {
+    // Noop - server handles persistence via SessionCollector
+    logger.debug("saveMessage called (noop in browser)");
   }
 
   async findMessageById(messageId: string): Promise<MessageRecord | null> {
