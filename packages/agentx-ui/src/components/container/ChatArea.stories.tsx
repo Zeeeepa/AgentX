@@ -102,6 +102,13 @@ function BasicCompositionComponent() {
     setTimeout(() => setIsLoading(false), 2000);
   };
 
+  const handleFileAttach = (files: File[]) => {
+    console.log("Files attached:", files);
+    files.forEach((file) => {
+      console.log(`- ${file.name} (${file.type}, ${file.size} bytes)`);
+    });
+  };
+
   return (
     <Allotment vertical>
       <Allotment.Pane>
@@ -113,8 +120,8 @@ function BasicCompositionComponent() {
         />
       </Allotment.Pane>
 
-      <Allotment.Pane minSize={80} maxSize={400} preferredSize={120}>
-        <InputPane onSend={handleSend} disabled={isLoading} />
+      <Allotment.Pane minSize={120} preferredSize={300}>
+        <InputPane onSend={handleSend} onFileAttach={handleFileAttach} disabled={isLoading} />
       </Allotment.Pane>
     </Allotment>
   );
@@ -146,6 +153,10 @@ function WithStreamingComponent() {
     setStreaming("Processing your request...");
   };
 
+  const handleFileAttach = (files: File[]) => {
+    console.log("Files attached:", files);
+  };
+
   return (
     <Allotment vertical>
       <Allotment.Pane>
@@ -158,8 +169,8 @@ function WithStreamingComponent() {
         />
       </Allotment.Pane>
 
-      <Allotment.Pane minSize={80} maxSize={400} preferredSize={120}>
-        <InputPane onSend={handleSend} disabled={isLoading} />
+      <Allotment.Pane minSize={120} preferredSize={300}>
+        <InputPane onSend={handleSend} onFileAttach={handleFileAttach} disabled={isLoading} />
       </Allotment.Pane>
     </Allotment>
   );
@@ -189,38 +200,8 @@ function EmptyConversationComponent() {
     setIsLoading(true);
   };
 
-  return (
-    <Allotment vertical>
-      <Allotment.Pane>
-        <AgentPane
-          definition={mockDefinition}
-          session={mockSession}
-          messages={messages}
-          isLoading={isLoading}
-        />
-      </Allotment.Pane>
-
-      <Allotment.Pane minSize={80} maxSize={400} preferredSize={120}>
-        <InputPane onSend={handleSend} disabled={isLoading} />
-      </Allotment.Pane>
-    </Allotment>
-  );
-}
-
-export const EmptyConversation: Story = {
-  render: () => <EmptyConversationComponent />,
-};
-
-/**
- * Custom input pane size
- */
-function LargeInputPaneComponent() {
-  const [messages] = useState(mockMessages);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSend = (text: string) => {
-    console.log("Send:", text);
-    setIsLoading(true);
+  const handleFileAttach = (files: File[]) => {
+    console.log("Files attached:", files);
   };
 
   return (
@@ -234,9 +215,48 @@ function LargeInputPaneComponent() {
         />
       </Allotment.Pane>
 
-      <Allotment.Pane minSize={120} maxSize={400} preferredSize={200}>
+      <Allotment.Pane minSize={120} preferredSize={300}>
+        <InputPane onSend={handleSend} onFileAttach={handleFileAttach} disabled={isLoading} />
+      </Allotment.Pane>
+    </Allotment>
+  );
+}
+
+export const EmptyConversation: Story = {
+  render: () => <EmptyConversationComponent />,
+};
+
+/**
+ * Large input pane for detailed messages
+ */
+function LargeInputPaneComponent() {
+  const [messages] = useState(mockMessages);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSend = (text: string) => {
+    console.log("Send:", text);
+    setIsLoading(true);
+  };
+
+  const handleFileAttach = (files: File[]) => {
+    console.log("Files attached:", files);
+  };
+
+  return (
+    <Allotment vertical>
+      <Allotment.Pane>
+        <AgentPane
+          definition={mockDefinition}
+          session={mockSession}
+          messages={messages}
+          isLoading={isLoading}
+        />
+      </Allotment.Pane>
+
+      <Allotment.Pane minSize={200} preferredSize={500}>
         <InputPane
           onSend={handleSend}
+          onFileAttach={handleFileAttach}
           disabled={isLoading}
           placeholder="Type a detailed message... (larger input area)"
         />
@@ -264,8 +284,12 @@ export const OfflineAgent: Story = {
         />
       </Allotment.Pane>
 
-      <Allotment.Pane minSize={80} maxSize={400} preferredSize={120}>
-        <InputPane onSend={(text) => console.log(text)} disabled />
+      <Allotment.Pane minSize={120} preferredSize={300}>
+        <InputPane
+          onSend={(text) => console.log(text)}
+          onFileAttach={(files) => console.log(files)}
+          disabled
+        />
       </Allotment.Pane>
     </Allotment>
   ),

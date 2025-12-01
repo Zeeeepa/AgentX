@@ -20,6 +20,9 @@ export type { MessagePaneProps } from "./MessagePane";
 export { InputPane } from "./InputPane";
 export type { InputPaneProps } from "./InputPane";
 
+export { InputToolBar } from "./InputToolBar";
+export type { InputToolBarProps } from "./InputToolBar";
+
 // Hook (re-exported from hooks/)
 export { useContainer, type UseContainerOptions } from "~/hooks/useContainer";
 
