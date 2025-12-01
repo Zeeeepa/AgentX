@@ -94,8 +94,8 @@ export * from "./runtime";
 // Agent contracts
 export * from "./agent";
 
-// Logger types
-export * from "./logger";
+// Common internal infrastructure (logger, etc.)
+export * from "./common";
 
 // Error types
 export * from "./error";

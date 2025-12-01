@@ -57,8 +57,8 @@
   },
   "dependencies": {
     "@deepractice-ai/agentx-agent": "workspace:*",
+    "@deepractice-ai/agentx-common": "workspace:*",
     "@deepractice-ai/agentx-engine": "workspace:*",
-    "@deepractice-ai/agentx-logger": "workspace:*",
     "@deepractice-ai/agentx-types": "workspace:*",
     "ky": "^1.14.0"
   },

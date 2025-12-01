@@ -15,7 +15,7 @@
  * ```
  */
 
-import type { LoggerFactory } from "../logger";
+import type { LoggerFactory } from "../common/logger";
 
 /**
  * ProviderKey interface

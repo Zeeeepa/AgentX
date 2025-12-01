@@ -16,7 +16,7 @@
 
 import type { AgentX, ProviderKey, LoggerFactory, Runtime } from "@deepractice-ai/agentx-types";
 import { LoggerFactoryKey } from "@deepractice-ai/agentx-types";
-import { createLogger, setLoggerFactory } from "@deepractice-ai/agentx-logger";
+import { createLogger, setLoggerFactory } from "@deepractice-ai/agentx-common";
 import {
   AgentManager,
   SessionManagerImpl,

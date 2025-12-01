@@ -16,8 +16,10 @@
  *   }
  * };
  *
- * // Inject into AgentX
- * agentx.provide(LoggerFactoryKey, pinoFactory);
+ * // Inject via Runtime
+ * const runtime = createNodeRuntime({
+ *   loggerFactory: pinoFactory
+ * });
  * ```
  */
 

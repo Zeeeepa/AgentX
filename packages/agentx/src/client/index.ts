@@ -43,3 +43,7 @@ export { createSSERuntime, SSERuntime, type SSERuntimeConfig } from "./SSERuntim
 
 // SSE Driver (internal, used by SSERuntime)
 export { createSSEDriver, type SSEDriverConfig } from "./SSEDriver";
+
+// Logger
+export { BrowserLogger, type BrowserLoggerOptions } from "./logger";
+export { BrowserLoggerFactory, type BrowserLoggerFactoryOptions } from "./logger";

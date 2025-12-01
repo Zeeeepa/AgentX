@@ -6,7 +6,7 @@
 
 import type { StreamEventType, InterruptedStreamEvent } from "@deepractice-ai/agentx-types";
 import type { SDKMessage, SDKPartialAssistantMessage } from "@anthropic-ai/claude-agent-sdk";
-import { createLogger } from "@deepractice-ai/agentx-logger";
+import { createLogger } from "@deepractice-ai/agentx-common";
 import {
   messageStart,
   messageStop,

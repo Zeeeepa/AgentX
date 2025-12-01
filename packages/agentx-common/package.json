@@ -1,18 +1,17 @@
 {
-  "name": "@deepractice-ai/agentx-logger",
+  "name": "@deepractice-ai/agentx-common",
   "version": "0.1.0",
-  "description": "SLF4J-style logging facade for AgentX with decorator support",
+  "description": "Internal common infrastructure for AgentX platform",
   "keywords": [
+    "agentx",
+    "common",
     "logger",
-    "logging",
-    "slf4j",
-    "facade",
-    "decorator"
+    "internal"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/deepractice/Agent",
-    "directory": "packages/agentx-logger"
+    "directory": "packages/agentx-common"
   },
   "license": "MIT",
   "type": "module",
@@ -34,8 +33,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist",
-    "test:manual": "tsx tests/manual"
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@deepractice-ai/agentx-types": "workspace:*"
@@ -43,7 +41,6 @@
   "devDependencies": {
     "@types/node": "^22.19.1",
     "tsup": "^8.5.0",
-    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
 }

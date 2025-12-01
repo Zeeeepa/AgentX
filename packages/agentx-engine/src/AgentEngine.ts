@@ -39,7 +39,7 @@ import {
 } from "./AgentProcessor";
 import { MemoryStore } from "~/mealy";
 import type { AgentOutput, StreamEventType } from "@deepractice-ai/agentx-types";
-import { createLogger } from "@deepractice-ai/agentx-logger";
+import { createLogger } from "@deepractice-ai/agentx-common";
 
 const logger = createLogger("engine/AgentEngine");
 

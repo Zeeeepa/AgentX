@@ -19,7 +19,7 @@ import {
   type Query,
 } from "@anthropic-ai/claude-agent-sdk";
 import { Subject } from "rxjs";
-import { createLogger } from "@deepractice-ai/agentx-logger";
+import { createLogger } from "@deepractice-ai/agentx-common";
 import { buildOptions, type DriverContext } from "./buildOptions";
 import { buildSDKUserMessage } from "./helpers";
 import { transformSDKMessages } from "./messageTransform";

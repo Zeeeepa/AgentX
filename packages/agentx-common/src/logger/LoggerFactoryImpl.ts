@@ -1,12 +1,18 @@
 /**
- * LoggerFactory - Central factory for creating logger instances
+ * LoggerFactoryImpl - Central factory for creating logger instances
+ *
+ * Implements lazy initialization pattern:
+ * - createLogger() can be called at module level (before config)
+ * - Real logger is created on first use
+ * - External LoggerFactory can be injected via Runtime
  */
 
-import type { Logger, LoggerFactory as LoggerFactoryInterface } from "@deepractice-ai/agentx-types";
-import { LogLevel } from "@deepractice-ai/agentx-types";
+import type { Logger, LoggerFactory, LogContext, LogLevel } from "@deepractice-ai/agentx-types";
+import { LogLevel as LogLevelEnum } from "@deepractice-ai/agentx-types";
 import { ConsoleLogger, type ConsoleLoggerOptions } from "./ConsoleLogger";
 
-let externalFactory: LoggerFactoryInterface | null = null;
+// External factory injected via Runtime
+let externalFactory: LoggerFactory | null = null;
 
 export interface LoggerFactoryConfig {
   defaultImplementation?: (name: string) => Logger;
@@ -14,13 +20,18 @@ export interface LoggerFactoryConfig {
   consoleOptions?: Omit<ConsoleLoggerOptions, "level">;
 }
 
-export class LoggerFactory {
+/**
+ * Internal LoggerFactory implementation
+ *
+ * Uses lazy proxy pattern to allow module-level createLogger() calls.
+ */
+export class LoggerFactoryImpl {
   private static loggers: Map<string, Logger> = new Map();
   private static config: LoggerFactoryConfig = {
-    defaultLevel: LogLevel.INFO,
+    defaultLevel: LogLevelEnum.INFO,
   };
 
-  static getLogger(nameOrClass: string | Function): Logger {
+  static getLogger(nameOrClass: string | (new (...args: unknown[]) => unknown)): Logger {
     const name = typeof nameOrClass === "string" ? nameOrClass : nameOrClass.name;
 
     if (this.loggers.has(name)) {
@@ -38,7 +49,7 @@ export class LoggerFactory {
 
   static reset(): void {
     this.loggers.clear();
-    this.config = { defaultLevel: LogLevel.INFO };
+    this.config = { defaultLevel: LogLevelEnum.INFO };
     externalFactory = null;
   }
 
@@ -54,11 +65,12 @@ export class LoggerFactory {
 
     return {
       name,
-      level: this.config.defaultLevel || LogLevel.INFO,
-      debug: (message: string, context?: any) => getRealLogger().debug(message, context),
-      info: (message: string, context?: any) => getRealLogger().info(message, context),
-      warn: (message: string, context?: any) => getRealLogger().warn(message, context),
-      error: (message: string | Error, context?: any) => getRealLogger().error(message, context),
+      level: this.config.defaultLevel || LogLevelEnum.INFO,
+      debug: (message: string, context?: LogContext) => getRealLogger().debug(message, context),
+      info: (message: string, context?: LogContext) => getRealLogger().info(message, context),
+      warn: (message: string, context?: LogContext) => getRealLogger().warn(message, context),
+      error: (message: string | Error, context?: LogContext) =>
+        getRealLogger().error(message, context),
       isDebugEnabled: () => getRealLogger().isDebugEnabled(),
       isInfoEnabled: () => getRealLogger().isInfoEnabled(),
       isWarnEnabled: () => getRealLogger().isWarnEnabled(),
@@ -83,17 +95,23 @@ export class LoggerFactory {
 }
 
 /**
- * Set external LoggerFactory (called by agentx.provide)
+ * Set external LoggerFactory (called by Runtime initialization)
  */
-export function setLoggerFactory(factory: LoggerFactoryInterface): void {
+export function setLoggerFactory(factory: LoggerFactory): void {
   externalFactory = factory;
-  LoggerFactory.reset();
+  LoggerFactoryImpl.reset();
   externalFactory = factory;
 }
 
 /**
  * Create a logger instance
+ *
+ * Safe to call at module level before Runtime is configured.
+ * Uses lazy initialization - actual logger is created on first use.
+ *
+ * @param name - Logger name (hierarchical, e.g., "engine/AgentEngine")
+ * @returns Logger instance (lazy proxy)
  */
 export function createLogger(name: string): Logger {
-  return LoggerFactory.getLogger(name);
+  return LoggerFactoryImpl.getLogger(name);
 }

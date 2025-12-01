@@ -21,12 +21,14 @@ import type {
   Agent,
   AgentImage,
   Session,
+  LoggerFactory,
 } from "@deepractice-ai/agentx-types";
 import { AgentInstance } from "@deepractice-ai/agentx-agent";
 import { AgentEngine } from "@deepractice-ai/agentx-engine";
-import { createLogger } from "@deepractice-ai/agentx-logger";
+import { createLogger, setLoggerFactory } from "@deepractice-ai/agentx-common";
 import { createClaudeDriver, type ClaudeDriverOptions } from "./ClaudeDriver";
 import { SQLiteRepository } from "./repository";
+import { FileLoggerFactory } from "./logger";
 import { homedir } from "node:os";
 import { mkdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -289,11 +291,25 @@ class NodeRuntime implements Runtime {
   readonly name = "node";
   readonly container: Container;
   readonly repository: Repository;
+  readonly loggerFactory: LoggerFactory;
   private readonly engine: AgentEngine;
 
   constructor(dataDir: string = DEFAULT_DATA_DIR) {
     // Ensure data directory exists
     ensureDir(dataDir);
+
+    // Create log directory
+    const logDir = join(dataDir, "..", "logs");
+    ensureDir(logDir);
+
+    // Create and configure FileLoggerFactory
+    this.loggerFactory = new FileLoggerFactory({
+      logDir,
+      consoleOutput: true,
+    });
+
+    // Set as global logger factory
+    setLoggerFactory(this.loggerFactory);
 
     // Create SQLite repository
     const dbPath = join(dataDir, "agentx.db");
@@ -305,7 +321,7 @@ class NodeRuntime implements Runtime {
     // Create container with runtime, engine, and repository
     this.container = new NodeContainer("node-container", this, this.engine, this.repository);
 
-    logger.info("NodeRuntime initialized", { dataDir, dbPath });
+    logger.info("NodeRuntime initialized", { dataDir, dbPath, logDir });
   }
 
   createSandbox(name: string): Sandbox {

@@ -37,3 +37,7 @@ export type { ClaudeDriverConfig } from "./ClaudeDriver";
 
 // ==================== Repository ====================
 export { SQLiteRepository } from "./repository";
+
+// ==================== Logger ====================
+export { FileLogger, type FileLoggerOptions } from "./logger";
+export { FileLoggerFactory, type FileLoggerFactoryOptions } from "./logger";

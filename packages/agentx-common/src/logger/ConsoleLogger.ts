@@ -1,9 +1,12 @@
 /**
  * ConsoleLogger - Default logger implementation
+ *
+ * Simple console-based logger with color support.
+ * Used as fallback when no custom LoggerFactory is provided.
  */
 
-import type { Logger, LogContext } from "@deepractice-ai/agentx-types";
-import { LogLevel } from "@deepractice-ai/agentx-types";
+import type { Logger, LogContext, LogLevel } from "@deepractice-ai/agentx-types";
+import { LogLevel as LogLevelEnum } from "@deepractice-ai/agentx-types";
 
 export interface ConsoleLoggerOptions {
   level?: LogLevel;
@@ -27,7 +30,7 @@ export class ConsoleLogger implements Logger {
 
   constructor(name: string, options: ConsoleLoggerOptions = {}) {
     this.name = name;
-    this.level = options.level ?? LogLevel.INFO;
+    this.level = options.level ?? LogLevelEnum.INFO;
     this.colors = options.colors ?? this.isNodeEnvironment();
     this.timestamps = options.timestamps ?? true;
   }
@@ -61,19 +64,19 @@ export class ConsoleLogger implements Logger {
   }
 
   isDebugEnabled(): boolean {
-    return this.level <= LogLevel.DEBUG;
+    return this.level <= LogLevelEnum.DEBUG;
   }
 
   isInfoEnabled(): boolean {
-    return this.level <= LogLevel.INFO;
+    return this.level <= LogLevelEnum.INFO;
   }
 
   isWarnEnabled(): boolean {
-    return this.level <= LogLevel.WARN;
+    return this.level <= LogLevelEnum.WARN;
   }
 
   isErrorEnabled(): boolean {
-    return this.level <= LogLevel.ERROR;
+    return this.level <= LogLevelEnum.ERROR;
   }
 
   private log(level: string, message: string, context?: LogContext): void {
@@ -103,7 +106,7 @@ export class ConsoleLogger implements Logger {
     }
   }
 
-  private getConsoleMethod(level: string): (...args: any[]) => void {
+  private getConsoleMethod(level: string): (...args: unknown[]) => void {
     switch (level) {
       case "DEBUG":
         return console.debug.bind(console);

@@ -6,7 +6,7 @@
  */
 
 import type { AgentInterceptor, AgentOutput, Unsubscribe } from "@deepractice-ai/agentx-types";
-import { createLogger } from "@deepractice-ai/agentx-logger";
+import { createLogger } from "@deepractice-ai/agentx-common";
 
 const logger = createLogger("core/InterceptorChain");
 

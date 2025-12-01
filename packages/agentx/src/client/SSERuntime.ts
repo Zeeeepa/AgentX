@@ -42,11 +42,14 @@ import type {
   Repository,
   AgentImage,
   Session,
+  LoggerFactory,
 } from "@deepractice-ai/agentx-types";
 import { AgentInstance } from "@deepractice-ai/agentx-agent";
 import { AgentEngine } from "@deepractice-ai/agentx-engine";
+import { setLoggerFactory } from "@deepractice-ai/agentx-common";
 import { createSSEDriver } from "./SSEDriver";
 import { RemoteRepository } from "../repository";
+import { BrowserLoggerFactory } from "./logger";
 
 /**
  * Server response for run/resume endpoints
@@ -260,6 +263,7 @@ class SSERuntime implements Runtime {
   readonly name = "sse";
   readonly container: Container;
   readonly repository: Repository;
+  readonly loggerFactory: LoggerFactory;
 
   private readonly serverUrl: string;
   private readonly headers: Record<string, string>;
@@ -267,6 +271,15 @@ class SSERuntime implements Runtime {
   constructor(config: SSERuntimeConfig) {
     this.serverUrl = config.serverUrl.replace(/\/+$/, ""); // Remove trailing slash
     this.headers = config.headers ?? {};
+
+    // Create and configure BrowserLoggerFactory
+    this.loggerFactory = new BrowserLoggerFactory({
+      collapsed: true,
+    });
+
+    // Set as global logger factory
+    setLoggerFactory(this.loggerFactory);
+
     // Use RemoteContainer - it calls server to resolve agentId
     this.container = new RemoteContainer(this.serverUrl, this.headers);
     this.repository = new RemoteRepository({ serverUrl: this.serverUrl });

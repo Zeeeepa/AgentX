@@ -59,7 +59,7 @@ import type {
 import type { UserMessage, AgentState } from "@deepractice-ai/agentx-types";
 import { isStateEvent } from "@deepractice-ai/agentx-types";
 import type { AgentEngine } from "@deepractice-ai/agentx-engine";
-import { createLogger } from "@deepractice-ai/agentx-logger";
+import { createLogger } from "@deepractice-ai/agentx-common";
 import { AgentStateMachine } from "./AgentStateMachine";
 import { AgentEventBus } from "./AgentEventBus";
 import { AgentErrorClassifier } from "./AgentErrorClassifier";

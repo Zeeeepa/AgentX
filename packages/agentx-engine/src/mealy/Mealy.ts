@@ -34,7 +34,7 @@
 import type { Processor } from "./Processor";
 import type { Store } from "./Store";
 import type { Sink, SinkDefinition } from "./Sink";
-import { createLogger } from "@deepractice-ai/agentx-logger";
+import { createLogger } from "@deepractice-ai/agentx-common";
 
 const logger = createLogger("engine/Mealy");
 

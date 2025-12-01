@@ -21,6 +21,7 @@ import type { Repository } from "./repository";
 import type { RuntimeDriver } from "./RuntimeDriver";
 import type { AgentContext } from "~/agent/AgentContext";
 import type { AgentDefinition } from "~/agent/AgentDefinition";
+import type { LoggerFactory } from "~/common/logger";
 
 /**
  * Runtime - Complete environment encapsulation
@@ -41,6 +42,9 @@ export interface Runtime {
 
   /** Repository for persistence (optional) */
   readonly repository?: Repository;
+
+  /** LoggerFactory for creating loggers (optional, uses ConsoleLogger if not provided) */
+  readonly loggerFactory?: LoggerFactory;
 
   /** Create a Sandbox for resource isolation */
   createSandbox(name: string): Sandbox;

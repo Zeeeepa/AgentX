@@ -17,7 +17,7 @@ import type {
   ImageRecord,
   DefinitionRecord,
 } from "@deepractice-ai/agentx-types";
-import { createLogger } from "@deepractice-ai/agentx-logger";
+import { createLogger } from "@deepractice-ai/agentx-common";
 
 const logger = createLogger("agentx/DefinitionManager");
 
