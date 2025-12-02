@@ -16,7 +16,7 @@ export function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/workspace", { replace: true });
+      navigate("/studio", { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -28,7 +28,7 @@ export function LoginPage() {
     const result = await login(usernameOrEmail, password);
 
     if (result.success) {
-      navigate("/workspace", { replace: true });
+      navigate("/studio", { replace: true });
     } else {
       setError(result.error || "Login failed");
       setIsLoading(false);

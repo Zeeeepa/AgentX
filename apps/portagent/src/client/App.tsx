@@ -35,16 +35,16 @@ export function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route
-          path="/workspace"
+          path="/studio"
           element={
             <ProtectedRoute>
               <ChatPage />
             </ProtectedRoute>
           }
         />
-        {/* Redirect root to workspace for now */}
-        <Route path="/" element={<Navigate to="/workspace" replace />} />
-        <Route path="*" element={<Navigate to="/workspace" replace />} />
+        {/* Redirect root to studio */}
+        <Route path="/" element={<Navigate to="/studio" replace />} />
+        <Route path="*" element={<Navigate to="/studio" replace />} />
       </Routes>
     </AuthProvider>
   );

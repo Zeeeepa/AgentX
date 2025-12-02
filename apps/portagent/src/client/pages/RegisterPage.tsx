@@ -19,7 +19,7 @@ export function RegisterPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/workspace", { replace: true });
+      navigate("/studio", { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -53,7 +53,7 @@ export function RegisterPage() {
     const result = await register(username, email, password, displayName || undefined);
 
     if (result.success) {
-      navigate("/workspace", { replace: true });
+      navigate("/studio", { replace: true });
     } else {
       setError(result.error || "Registration failed");
       setIsLoading(false);
