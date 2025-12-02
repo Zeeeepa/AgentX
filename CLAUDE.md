@@ -14,15 +14,16 @@ This is a **pnpm monorepo** with Turborepo build orchestration:
 
 ```
 /AgentX
+├── apps/
+│   └── portagent/        # AgentX Portal - Web UI with auth (Hono + Vite + React)
 └── packages/
     ├── agentx-types/     # Type definitions (140+ files, zero dependencies)
-    ├── agentx-adk/       # Agent Development Kit (defineConfig, defineDriver, defineAgent)
-    ├── agentx-logger/    # SLF4J-style logging facade
+    ├── agentx-common/    # Internal shared utilities (logger facade)
     ├── agentx-engine/    # Mealy Machine event processor
     ├── agentx-agent/     # Agent runtime
     ├── agentx/           # Platform API (local/remote, server/client)
-    ├── agentx-claude/    # Claude SDK driver integration
-    └── agentx-ui/        # React UI components (Storybook)
+    ├── agentx-node/      # Node.js runtime (Claude driver, SQLite, FileLogger)
+    └── agentx-ui/        # React UI components (Storybook, Tailwind v4)
 ```
 
 ## Common Commands
@@ -220,11 +221,9 @@ const filterInterceptor = async (event, next) => {
 **Package Dependency Hierarchy**:
 
 ```
-agentx-types (140+ type definitions, ADK type declarations)
+agentx-types (140+ type definitions, logger type declarations)
     ↓
-agentx-adk (Agent Development Kit - defineConfig, defineDriver, defineAgent)
-    ↓
-agentx-logger (SLF4J-style facade)
+agentx-common (Internal: logger facade with lazy initialization)
     ↓
 agentx-engine (Mealy Machine processors)
     ↓
@@ -232,23 +231,22 @@ agentx-agent (Agent runtime)
     ↓
 agentx (Platform API: local/remote, server/client)
     ↓
-agentx-claude (Claude SDK driver, Node.js only)
+agentx-node (Node.js runtime: Claude driver, SQLite, FileLogger)
     ↓
 agentx-ui (React components)
 ```
 
 **Layer Responsibilities:**
 
-| Layer        | Package         | Responsibility                                              |
-| ------------ | --------------- | ----------------------------------------------------------- |
-| **Types**    | `agentx-types`  | Pure type definitions, ADK type declarations                |
-| **ADK**      | `agentx-adk`    | Development tools (defineConfig, defineDriver, defineAgent) |
-| **Logger**   | `agentx-logger` | Logging facade with lazy initialization                     |
-| **Engine**   | `agentx-engine` | Pure event processing (Mealy Machines)                      |
-| **Agent**    | `agentx-agent`  | Agent runtime, EventBus, lifecycle management               |
-| **Platform** | `agentx`        | Unified API, SSE server/client                              |
-| **Driver**   | `agentx-claude` | Claude SDK integration                                      |
-| **UI**       | `agentx-ui`     | React components, Storybook                                 |
+| Layer        | Package         | Responsibility                                      |
+| ------------ | --------------- | --------------------------------------------------- |
+| **Types**    | `agentx-types`  | Pure type definitions, logger type declarations     |
+| **Common**   | `agentx-common` | Internal shared utilities (logger facade)           |
+| **Engine**   | `agentx-engine` | Pure event processing (Mealy Machines)              |
+| **Agent**    | `agentx-agent`  | Agent runtime, EventBus, lifecycle management       |
+| **Platform** | `agentx`        | Unified API, SSE server/client, browser runtime     |
+| **Node**     | `agentx-node`   | Node.js runtime (Claude driver, SQLite, FileLogger) |
+| **UI**       | `agentx-ui`     | React components, Storybook, Tailwind v4            |
 
 **Directory Structure** (all packages follow this):
 
@@ -509,6 +507,37 @@ pnpm dev --filter=@deepractice-ai/agentx-ui
 - `/components/chat/messages/` - Message containers (UserMessage, AssistantMessage, etc.)
 - `/components/chat/messages/parts/` - Content parts (TextContent, ImageContent, ToolCallContent, etc.)
 
+### Working with Portagent
+
+Portagent is the AgentX Portal - a complete web application with authentication.
+
+```bash
+# Development (server + client concurrently)
+cd apps/portagent
+pnpm dev
+
+# Server only (Hono on port 5200)
+pnpm dev:server
+
+# Client only (Vite on port 5173)
+pnpm dev:client
+```
+
+**Environment Setup**: Create `.env.local` in `apps/portagent/`:
+
+```env
+PORTAGENT_PASSWORD=your-password    # Login password
+LLM_PROVIDER_KEY=sk-ant-xxxxx       # Claude API key
+```
+
+**Tech Stack**:
+
+- **Server**: Hono + JWT authentication
+- **Client**: React + Vite + Tailwind v4 (CSS-first config)
+- **UI**: Uses `@deepractice-ai/agentx-ui` Workspace component
+
+**Tailwind v4 Note**: Uses `@theme` directive in CSS instead of `tailwind.config.js`. Design tokens defined in `src/client/styles/globals.css`.
+
 ## Testing Strategy
 
 - **Unit Testing**: Test pure functions (Mealy processors, utilities)
@@ -553,7 +582,7 @@ pnpm dev --filter=@deepractice-ai/agentx-ui
 
 ### Logging Standards
 
-**⚠️ CRITICAL: Always use `agentx-logger` facade, NEVER direct `console.*` calls.**
+**⚠️ CRITICAL: Always use `agentx-common` logger facade, NEVER direct `console.*` calls.**
 
 AgentX uses a SLF4J-style logging facade for unified logging.
 
@@ -561,7 +590,7 @@ AgentX uses a SLF4J-style logging facade for unified logging.
 
 ```typescript
 // ✅ Correct - Use createLogger()
-import { createLogger } from "@deepractice-ai/agentx-logger";
+import { createLogger } from "@deepractice-ai/agentx-common";
 
 const logger = createLogger("engine/AgentEngine");
 
@@ -1046,67 +1075,23 @@ pnpm dev --filter=@deepractice-ai/agentx-web
 import type { Agent, StreamEventType } from "@deepractice-ai/agentx-types";
 ```
 
-### agentx-adk
+### agentx-common
 
-**Purpose**: Agent Development Kit - Development-time tools for Driver and Agent developers
-
-**Key Functions:**
-
-- `defineConfig(schema)` - Define reusable config schema with validation
-- `defineDriver(input)` - Create type-safe Driver with config schema
-- `defineAgent(input)` - Create Agent definition with type inference
-
-**Three-Layer Pattern:**
-
-```typescript
-// 1. Define config schema
-const myConfig = defineConfig({
-  apiKey: { type: "string", required: true, scope: "instance" },
-  model: { type: "string", required: false, scope: "definition", default: "gpt-4" },
-});
-
-// 2. Define driver with schema
-export const MyDriver = defineDriver({
-  name: "MyDriver",
-  config: myConfig,
-  create: (context) => ({
-    /* driver implementation */
-  }),
-});
-
-// 3. Define agent using driver
-export const MyAgent = defineAgent({
-  name: "MyAgent",
-  driver: MyDriver, // Type-safe! Config inferred from MyDriver.schema
-});
-```
-
-**Import Pattern:**
-
-```typescript
-import { defineConfig, defineDriver, defineAgent } from "@deepractice-ai/agentx-adk";
-```
-
-**Who Uses This:**
-
-- Driver developers (creating new drivers like ClaudeDriver, OpenAIDriver)
-- Application developers (defining custom agents with specific configs)
-
-### agentx-logger
-
-**Purpose**: SLF4J-style logging facade
+**Purpose**: Internal shared utilities (logger facade)
 
 **Key Features:**
 
-- Lazy initialization (safe at module level)
-- Hierarchical naming (`"engine/AgentEngine"`)
-- Multiple implementations (Console, WebSocket, custom)
+- SLF4J-style logging facade with lazy initialization
+- Hierarchical logger naming (`"engine/AgentEngine"`)
+- Runtime-injected logger implementations via `setLoggerFactory()`
 
 **Import Pattern:**
 
 ```typescript
-import { createLogger } from "@deepractice-ai/agentx-logger";
+import { createLogger, setLoggerFactory } from "@deepractice-ai/agentx-common";
 ```
+
+**Note**: Logger types are declared in `agentx-types`, implementation is in `agentx-common`.
 
 ### agentx-engine
 
@@ -1160,39 +1145,73 @@ import { createRemoteAgent } from "@deepractice-ai/agentx/client";
 
 **Note**: `defineAgent()` has been moved to `agentx-adk` package.
 
-### agentx-claude
+### agentx-node
 
-**Purpose**: Claude SDK driver integration (Node.js only)
+**Purpose**: Node.js runtime - Claude driver, SQLite persistence, FileLogger
 
 **Key Exports:**
 
-- `ClaudeDriver` - ADK-based driver (recommended)
-- `ClaudeSDKDriver` - Legacy class-based driver (backward compatibility)
-- `claudeConfig` - Config schema for Claude driver
+- `runtime` - Pre-configured NodeRuntime instance
+- `NodeRuntime` - Node.js runtime class (Container, SQLite Repository, FileLogger)
+- `ClaudeDriver` - Claude SDK driver
 
 **Import Pattern:**
 
 ```typescript
-import { ClaudeDriver } from "@deepractice-ai/agentx-claude";
+import { runtime } from "@deepractice-ai/agentx-node";
 
-// Legacy (backward compatibility)
-import { ClaudeSDKDriver } from "@deepractice-ai/agentx-claude";
+// Or access components directly
+import { NodeRuntime, ClaudeDriver } from "@deepractice-ai/agentx-node";
 ```
+
+**Data Storage**: `~/.agentx/` directory
+
+- `~/.agentx/data/agentx.db` - SQLite database
+- `~/.agentx/logs/agentx.log` - Log files (with rotation)
 
 ### agentx-ui
 
-**Purpose**: React component library
+**Purpose**: React component library with Tailwind v4
 
 **Key Components:**
 
-- Chat: `<Chat>`, `<ChatInput>`, `<ChatMessageList>`
+- Workspace: `<Workspace>` - Complete chat interface with session management
 - Messages: `<UserMessage>`, `<AssistantMessage>`, `<ToolCallMessage>`
 - Parts: `<TextContent>`, `<ImageContent>`, `<ToolCallContent>`
 
 **Import Pattern:**
 
 ```typescript
-import { Chat, UserMessage } from "@deepractice-ai/agentx-ui";
+import { Workspace, UserMessage } from "@deepractice-ai/agentx-ui";
+import "@deepractice-ai/agentx-ui/globals.css"; // Required for styles
+```
+
+**Tailwind v4**: Uses CSS-first configuration with `@theme` directive. Design tokens in `src/styles/globals.css`.
+
+## Apps
+
+### portagent
+
+**Purpose**: AgentX Portal - Production-ready web application with authentication
+
+**Tech Stack:**
+
+- **Server**: Hono + JWT authentication (port 5200)
+- **Client**: React + Vite + Tailwind v4 (port 5173 in dev)
+- **UI**: Uses `@deepractice-ai/agentx-ui` Workspace component
+
+**Key Files:**
+
+- `src/server/index.ts` - Hono server with AgentX API
+- `src/server/auth.ts` - JWT authentication
+- `src/client/pages/ChatPage.tsx` - Main chat interface
+- `src/client/styles/globals.css` - Tailwind v4 design tokens
+
+**Environment Variables:**
+
+```env
+PORTAGENT_PASSWORD    # Login password (or auto-generated)
+LLM_PROVIDER_KEY      # Claude API key
 ```
 
 ## Summary
@@ -1210,15 +1229,17 @@ import { Chat, UserMessage } from "@deepractice-ai/agentx-ui";
 **Package Dependency Flow:**
 
 ```
-types → adk → logger → engine → agent → agentx → claude → ui
+types → common → engine → agent → agentx → node → ui
+                                      ↘
+                                    portagent (app)
 ```
 
 **Critical Design Decisions:**
 
-- ✅ **ADK Pattern**: Development tools (adk) separate from runtime (agentx)
 - ✅ **Server forwards Stream events only** (NOT assembled messages)
 - ✅ **Browser has full AgentEngine** (complete reassembly)
 - ✅ **State is implementation detail** (Mealy philosophy)
 - ✅ **Errors flow through event system** (not just exceptions)
-- ✅ **Logger facade with lazy initialization**
-- ✅ **defineConfig → defineDriver → defineAgent** (three-layer pattern)
+- ✅ **Logger facade with lazy initialization** (agentx-common)
+- ✅ **Runtime abstraction** (NodeRuntime, SSERuntime)
+- ✅ **Tailwind v4 CSS-first** (design tokens via @theme)
