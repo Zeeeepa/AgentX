@@ -18,7 +18,7 @@ import type {
   ErrorMessageEvent,
   StateChange,
   Unsubscribe,
-} from "@deepractice-ai/agentx-types";
+} from "@agentxjs/types";
 
 /**
  * Test world interface

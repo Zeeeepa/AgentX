@@ -13,7 +13,7 @@
     <a href="https://github.com/Deepractice/AgentX"><img src="https://img.shields.io/github/stars/Deepractice/AgentX?style=social" alt="Stars"/></a>
     <img src="https://komarev.com/ghpvc/?username=Agent&label=views&color=0e75b6&style=flat&abbreviated=true" alt="Views"/>
     <a href="LICENSE"><img src="https://img.shields.io/github/license/Deepractice/AgentX?color=blue" alt="License"/></a>
-    <a href="https://www.npmjs.com/package/@deepractice-ai/agentx"><img src="https://img.shields.io/npm/v/@deepractice-ai/agentx?color=cb3837&logo=npm" alt="npm"/></a>
+    <a href="https://www.npmjs.com/package/agentxjs"><img src="https://img.shields.io/npm/v/agentxjs?color=cb3837&logo=npm" alt="npm"/></a>
   </p>
 
   <p>
@@ -29,8 +29,8 @@
 AgentX is an **AI Agent runtime framework** that brings Docker-style lifecycle management to AI Agents.
 
 ```typescript
-import { defineAgent, createAgentX } from "@deepractice-ai/agentx";
-import { runtime } from "@deepractice-ai/agentx-runtime";
+import { defineAgent, createAgentX } from "agentxjs";
+import { runtime } from "@agentxjs/node-runtime";
 
 // 1. Define your agent (like Dockerfile)
 const TranslatorAgent = defineAgent({
@@ -158,13 +158,13 @@ Same business code runs on Server and Browser:
 
 ```bash
 # Core framework
-npm install @deepractice-ai/agentx
+npm install agentxjs
 
 # Node.js runtime (Server)
-npm install @deepractice-ai/agentx-runtime
+npm install @agentxjs/node-runtime
 
 # React UI components (optional)
-npm install @deepractice-ai/agentx-ui
+npm install @agentxjs/ui
 ```
 
 ---
@@ -174,8 +174,8 @@ npm install @deepractice-ai/agentx-ui
 ### Basic Usage (Node.js)
 
 ```typescript
-import { defineAgent, createAgentX } from "@deepractice-ai/agentx";
-import { runtime } from "@deepractice-ai/agentx-runtime";
+import { defineAgent, createAgentX } from "agentxjs";
+import { runtime } from "@agentxjs/node-runtime";
 
 const agentx = createAgentX(runtime);
 
@@ -251,8 +251,8 @@ const sessions = await agentx.sessions.list({ userId: "user-1" });
 
 ```typescript
 // Browser client connects to AgentX server
-import { createAgentX } from "@deepractice-ai/agentx";
-import { sseRuntime } from "@deepractice-ai/agentx/browser";
+import { createAgentX } from "agentxjs";
+import { sseRuntime } from "agentxjs/browser";
 
 const agentx = createAgentX(
   sseRuntime({
@@ -274,16 +274,16 @@ agent.react({
 
 ## Packages
 
-| Package                          | Description                                       |
-| -------------------------------- | ------------------------------------------------- |
-| `@deepractice-ai/agentx-types`   | Type definitions (140+ files, zero dependencies)  |
-| `@deepractice-ai/agentx-adk`     | Agent Development Kit (defineAgent, defineDriver) |
-| `@deepractice-ai/agentx-logger`  | SLF4J-style logging facade                        |
-| `@deepractice-ai/agentx-engine`  | Mealy Machine event processor                     |
-| `@deepractice-ai/agentx-agent`   | Agent runtime core                                |
-| `@deepractice-ai/agentx`         | Platform API (unified entry point)                |
-| `@deepractice-ai/agentx-runtime` | Node.js runtime (Claude driver, SQLite)           |
-| `@deepractice-ai/agentx-ui`      | React UI components                               |
+| Package                  | Description                                       |
+| ------------------------ | ------------------------------------------------- |
+| `@agentxjs/types`        | Type definitions (140+ files, zero dependencies)  |
+| `@agentxjs/adk`          | Agent Development Kit (defineAgent, defineDriver) |
+| `@agentxjs/common`       | SLF4J-style logging facade                        |
+| `@agentxjs/engine`       | Mealy Machine event processor                     |
+| `@agentxjs/agent`        | Agent runtime core                                |
+| `agentxjs`               | Platform API (unified entry point)                |
+| `@agentxjs/node-runtime` | Node.js runtime (Claude driver, SQLite)           |
+| `@agentxjs/ui`           | React UI components                               |
 
 ---
 

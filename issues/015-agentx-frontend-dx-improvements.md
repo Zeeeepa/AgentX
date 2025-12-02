@@ -7,7 +7,7 @@
 
 ## Overview
 
-This issue documents frontend developer experience (DX) improvements needed for the new `@deepractice-ai/agentx` API. While the architecture is well-designed, the current API is optimized for "library developers" rather than "application developers".
+This issue documents frontend developer experience (DX) improvements needed for the new `agentxjs` API. While the architecture is well-designed, the current API is optimized for "library developers" rather than "application developers".
 
 The goal is to make frontend integration as simple as:
 
@@ -239,9 +239,9 @@ This is ~50-100 lines of boilerplate per project.
 **Expected:**
 
 ```typescript
-// @deepractice-ai/agentx-react
+// @agentxjs/ui
 
-import { useAgentX, useAgent } from "@deepractice-ai/agentx-react";
+import { useAgentX, useAgent } from "@agentxjs/ui";
 
 function ChatPage() {
   // Hook manages all state and subscriptions
@@ -267,7 +267,7 @@ function ChatPage() {
 ```
 
 **Solution:**
-Create new package `@deepractice-ai/agentx-react`:
+Create new package `@agentxjs/ui`:
 
 ```typescript
 // packages/agentx-react/src/index.ts
@@ -499,7 +499,7 @@ interface Session {
 ### Phase 2: Developer Experience (P1)
 
 4. Add batch subscription `on(handlers)`
-5. Create `@deepractice-ai/agentx-react` package
+5. Create `@agentxjs/ui` package
 
 ### Phase 3: Convenience (P2)
 

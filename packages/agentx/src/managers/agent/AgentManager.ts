@@ -7,8 +7,8 @@
  * All operations delegate to Container.
  */
 
-import type { AgentManager as IAgentManager, Agent, Runtime } from "@deepractice-ai/agentx-types";
-import { createLogger } from "@deepractice-ai/agentx-common";
+import type { AgentManager as IAgentManager, Agent, Runtime } from "@agentxjs/types";
+import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("agentx/AgentManager");
 

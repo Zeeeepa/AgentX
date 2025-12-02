@@ -5,10 +5,10 @@
  */
 
 import { useState, useEffect } from "react";
-import type { AgentX } from "@deepractice-ai/agentx-types";
-import { createAgentX, sseRuntime } from "@deepractice-ai/agentx";
-import { Workspace, type AgentDefinitionItem } from "@deepractice-ai/agentx-ui";
-import "@deepractice-ai/agentx-ui/globals.css";
+import type { AgentX } from "@agentxjs/types";
+import { createAgentX, sseRuntime } from "agentxjs";
+import { Workspace, type AgentDefinitionItem } from "@agentxjs/ui";
+import "@agentxjs/ui/globals.css";
 
 import { useAuth, getAuthToken } from "../hooks/useAuth";
 

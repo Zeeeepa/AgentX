@@ -92,8 +92,8 @@
  *
  * @example
  * ```typescript
- * import { defineAgent, createAgentX } from "@deepractice-ai/agentx";
- * import { runtime } from "@deepractice-ai/agentx/runtime/node";
+ * import { defineAgent, createAgentX } from "agentxjs";
+ * import { runtime } from "agentxjs/runtime/node";
  *
  * // 1. Define template
  * const TranslatorDef = defineAgent({
@@ -130,7 +130,7 @@ export { createAgentX } from "./AgentX";
 export { sseRuntime, createSSERuntime } from "./runtime/sse";
 export type { SSERuntimeConfig, ConnectionState } from "./runtime/sse";
 
-// ===== Re-export Types from @deepractice-ai/agentx-types =====
+// ===== Re-export Types from @agentxjs/types =====
 
 export type {
   // AgentX platform
@@ -187,4 +187,4 @@ export type {
   // Error types
   AgentError,
   ErrorSeverity,
-} from "@deepractice-ai/agentx-types";
+} from "@agentxjs/types";

@@ -26,7 +26,7 @@ Agent/
 │       │   ├── web/            # Frontend static files
 │       │   ├── server/         # Server bundle
 │       │   └── cli/            # CLI binary
-│       └── package.json        # @deepractice-ai/agent
+│       └── package.json        # @agentxjs/agent
 │
 └── packages/
     ├── agent-types/            # Shared TypeScript type definitions
@@ -139,7 +139,7 @@ src/
 - `AgentMessage` - Agent responses (formerly AssistantMessage)
 - `SessionEvent`, `MessageEvent`, `AgentEvent` - EventBus events
 
-**Consumers**: `@deepractice-ai/agent-sdk`, `@deepractice-ai/agent` (frontend + backend)
+**Consumers**: `@agentxjs/sdk`, `@agentxjs/agent` (frontend + backend)
 
 ### packages/agent-sdk (Shared Library)
 
@@ -233,7 +233,7 @@ File system / Project
 
 ### Production Environment (Docker/NPM)
 
-**NPM Package**: `@deepractice-ai/agent` (published to npm)
+**NPM Package**: `@agentxjs/agent` (published to npm)
 **Docker Image**: `deepracticexs/agent:latest`
 
 **Build Process**:
@@ -241,8 +241,8 @@ File system / Project
 1. Build frontend → `apps/agent/dist/web/`
 2. Build server → `apps/agent/dist/server/`
 3. Build CLI → `apps/agent/dist/cli/bin.js`
-4. Publish to npm as `@deepractice-ai/agent`
-5. Docker image installs from npm: `npm install -g @deepractice-ai/agent`
+4. Publish to npm as `@agentxjs/agent`
+5. Docker image installs from npm: `npm install -g @agentxjs/agent`
 
 **Runtime**:
 
@@ -254,8 +254,8 @@ File system / Project
 **Usage**:
 
 - Docker: `docker run -p 5200:5200 deepracticexs/agent`
-- NPM: `npx @deepractice-ai/agent http`
-- Global: `npm install -g @deepractice-ai/agent && agentx http`
+- NPM: `npx @agentxjs/agent http`
+- Global: `npm install -g @agentxjs/agent && agentx http`
 
 ## Technology Stack
 
@@ -419,7 +419,7 @@ Sessions are stored in SQLite database at `~/.claude/agent/sessions.db`:
 
 ### 2025-11-07: Type System Refactor & Multi-modal Support
 
-- **Created `@deepractice-ai/agent-types`** - Centralized type definitions package
+- **Created `@agentxjs/types`** - Centralized type definitions package
 - **Renamed `AssistantMessage` → `AgentMessage`** - Throughout entire codebase
 - **Added multi-modal support** - ContentBlock[] for text + images
 - **Event type changes** - `message.assistant` → `message.agent`

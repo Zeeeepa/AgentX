@@ -7,8 +7,8 @@
  *
  * @example
  * ```typescript
- * import { defineAgent, createAgentX } from "@deepractice-ai/agentx";
- * import { runtime } from "@deepractice-ai/agentx-runtime";
+ * import { defineAgent, createAgentX } from "agentxjs";
+ * import { runtime } from "agentxjs-runtime";
  *
  * const MyAgent = defineAgent({
  *   name: "Translator",
@@ -20,7 +20,7 @@
  * ```
  */
 
-import type { AgentDefinition, DefineAgentInput } from "@deepractice-ai/agentx-types";
+import type { AgentDefinition, DefineAgentInput } from "@agentxjs/types";
 
 /**
  * defineAgent - Create an agent definition

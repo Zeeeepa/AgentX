@@ -15,8 +15,8 @@ import type {
   ImageRecord,
   SessionRecord,
   MessageRecord,
-} from "@deepractice-ai/agentx-types";
-import { createLogger } from "@deepractice-ai/agentx-common";
+} from "@agentxjs/types";
+import { createLogger } from "@agentxjs/common";
 import { createHttpClient, type KyInstance } from "~/managers/remote/HttpClient";
 
 const logger = createLogger("agentx/RemoteRepository");

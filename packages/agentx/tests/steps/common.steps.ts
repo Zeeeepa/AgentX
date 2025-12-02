@@ -7,7 +7,7 @@
 import { Given, When, Then } from "@deepracticex/vitest-cucumber";
 import { expect } from "vitest";
 import { createAgentX } from "../../src";
-import type { AgentXLocal, AgentXRemote } from "@deepractice-ai/agentx-types";
+import type { AgentXLocal, AgentXRemote } from "@agentxjs/types";
 import type { TestWorld } from "../support/world";
 import { createMockDriver } from "../support/MockDriver";
 

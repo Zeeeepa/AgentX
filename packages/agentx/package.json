@@ -1,5 +1,5 @@
 {
-  "name": "@deepractice-ai/agentx",
+  "name": "agentxjs",
   "version": "0.1.0",
   "description": "Define, Run, Scale AI Agents - The Open Source Agent Platform",
   "type": "module",
@@ -56,10 +56,10 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
-    "@deepractice-ai/agentx-agent": "workspace:*",
-    "@deepractice-ai/agentx-common": "workspace:*",
-    "@deepractice-ai/agentx-engine": "workspace:*",
-    "@deepractice-ai/agentx-types": "workspace:*",
+    "@agentxjs/agent": "workspace:*",
+    "@agentxjs/common": "workspace:*",
+    "@agentxjs/engine": "workspace:*",
+    "@agentxjs/types": "workspace:*",
     "ky": "^1.14.0",
     "rxjs": "^7.8.2"
   },

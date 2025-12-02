@@ -1,0 +1,83 @@
+{
+  "name": "@agentxjs/ui",
+  "version": "0.1.0",
+  "description": "AgentX UI Components - React component library for building AI agent interfaces",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./globals.css": "./dist/globals.css"
+  },
+  "sideEffects": [
+    "*.css",
+    "*.scss"
+  ],
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "dev:server": "tsx --watch dev-tools/server/dev-server.ts",
+    "dev:full": "concurrently \"pnpm dev:server\" \"storybook dev -p 6007\"",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "dependencies": {
+    "agentxjs": "workspace:*",
+    "@agentxjs/types": "workspace:*",
+    "allotment": "^1.20.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.25",
+    "lucide-react": "^0.460.0",
+    "mitt": "^3.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "tailwind-merge": "^2.5.5",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@agentxjs/node-runtime": "workspace:*",
+    "@storybook/addon-a11y": "^8.4.7",
+    "@storybook/addon-essentials": "^8.4.7",
+    "@storybook/addon-interactions": "^8.4.7",
+    "@storybook/addon-links": "^8.4.7",
+    "@storybook/react": "^8.4.7",
+    "@storybook/react-vite": "^8.4.7",
+    "@tailwindcss/postcss": "^4.1.17",
+    "@tailwindcss/typography": "^0.5.19",
+    "@types/node": "^24.9.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/ws": "^8.5.13",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.0",
+    "dotenv": "^16.6.1",
+    "postcss": "^8.4.49",
+    "storybook": "^8.4.7",
+    "tailwindcss": "^4.1.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3",
+    "vite": "^6.0.5",
+    "vite-plugin-dts": "^4.3.0",
+    "ws": "^8.18.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  }
+}

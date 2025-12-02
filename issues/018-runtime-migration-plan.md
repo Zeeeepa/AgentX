@@ -70,8 +70,8 @@ runtime/
 
 ```typescript
 // Server (Node.js)
-import { createAgentX, defineAgent } from "@deepractice-ai/agentx";
-import { runtime } from "@deepractice-ai/agentx-runtime";
+import { createAgentX, defineAgent } from "agentxjs";
+import { runtime } from "@agentxjs/node-runtime";
 
 const MyAgent = defineAgent({
   name: "Assistant",
@@ -82,8 +82,8 @@ const agentx = createAgentX(runtime);
 const agent = agentx.agents.create(MyAgent);
 
 // Browser
-import { createAgentX, defineAgent } from "@deepractice-ai/agentx";
-import { createSSERuntime } from "@deepractice-ai/agentx/client";
+import { createAgentX, defineAgent } from "agentxjs";
+import { createSSERuntime } from "agentxjs/client";
 
 const MyAgent = defineAgent({
   name: "Assistant",
@@ -365,8 +365,8 @@ create: (context) => {
 
 **Decision**: Split into two packages:
 
-- `@deepractice-ai/agentx-runtime-node` - Node.js implementation
-- `@deepractice-ai/agentx-runtime-browser` - Browser implementation
+- `@agentxjs/node-runtime-node` - Node.js implementation
+- `@agentxjs/node-runtime-browser` - Browser implementation
 
 **Architecture**:
 

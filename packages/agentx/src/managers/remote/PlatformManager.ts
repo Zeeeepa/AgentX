@@ -6,7 +6,7 @@ import type {
   PlatformManager as IPlatformManager,
   PlatformInfo,
   HealthStatus,
-} from "@deepractice-ai/agentx-types";
+} from "@agentxjs/types";
 import type { KyInstance } from "./HttpClient";
 
 /**

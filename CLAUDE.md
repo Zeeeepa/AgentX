@@ -38,7 +38,7 @@ pnpm install
 pnpm dev
 
 # Start specific package in dev mode
-pnpm dev --filter=@deepractice-ai/agentx-ui
+pnpm dev --filter=@agentxjs/ui
 ```
 
 ### Building
@@ -48,7 +48,7 @@ pnpm dev --filter=@deepractice-ai/agentx-ui
 pnpm build
 
 # Build specific package
-pnpm build --filter=@deepractice-ai/agentx-agent
+pnpm build --filter=@agentxjs/agent
 ```
 
 ### Code Quality
@@ -463,13 +463,13 @@ This separation ensures clean server-browser boundaries.
 
 **Important**: This is a Turborepo monorepo. Dependencies between packages are resolved by Turbo's task pipeline.
 
-1. **Always build dependencies first**: If you modify `agentx-agent`, run `pnpm build --filter=@deepractice-ai/agentx-agent` before working with packages that depend on it.
+1. **Always build dependencies first**: If you modify `agentx-agent`, run `pnpm build --filter=@agentxjs/agent` before working with packages that depend on it.
 
 2. **Use workspace references**: Packages use `"workspace:*"` protocol. Never use file paths.
 
 3. **Path aliases**:
    - `~` - Internal package imports (e.g., `~/agent`, `~/session`)
-   - `@deepractice-ai/*` - Cross-package imports
+   - `@agentxjs/*` - Cross-package imports
 
 ### Working with agentx-web
 
@@ -477,13 +477,13 @@ The web app has both server and client:
 
 ```bash
 # Development (runs both concurrently)
-pnpm dev --filter=@deepractice-ai/agentx-web
+pnpm dev --filter=@agentxjs/portagent
 
 # Server only
-pnpm dev:server --filter=@deepractice-ai/agentx-web
+pnpm dev:server --filter=@agentxjs/portagent
 
 # Client only
-pnpm dev:client --filter=@deepractice-ai/agentx-web
+pnpm dev:client --filter=@agentxjs/portagent
 ```
 
 **Environment Setup**: Copy `.env.example` to `.env.local` and configure:
@@ -499,7 +499,7 @@ UI components are built with Storybook:
 
 ```bash
 # Start Storybook
-pnpm dev --filter=@deepractice-ai/agentx-ui
+pnpm dev --filter=@agentxjs/ui
 ```
 
 **Message Components Structure**:
@@ -534,7 +534,7 @@ LLM_PROVIDER_KEY=sk-ant-xxxxx       # Claude API key
 
 - **Server**: Hono + JWT authentication
 - **Client**: React + Vite + Tailwind v4 (CSS-first config)
-- **UI**: Uses `@deepractice-ai/agentx-ui` Workspace component
+- **UI**: Uses `@agentxjs/ui` Workspace component
 
 **Tailwind v4 Note**: Uses `@theme` directive in CSS instead of `tailwind.config.js`. Design tokens defined in `src/client/styles/globals.css`.
 
@@ -590,7 +590,7 @@ AgentX uses a SLF4J-style logging facade for unified logging.
 
 ```typescript
 // ✅ Correct - Use createLogger()
-import { createLogger } from "@deepractice-ai/agentx-common";
+import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("engine/AgentEngine");
 
@@ -701,7 +701,7 @@ docker run -d \
 # Create changeset file directly (interactive CLI not available)
 # Create file in .changeset/ directory with format:
 # ---
-# "@deepractice-ai/package-name": patch|minor|major
+# "@agentxjs/package-name": patch|minor|major
 # ---
 # Description of changes
 ```
@@ -865,9 +865,9 @@ interface AgentPresenter {
 ### Creating an Agent
 
 ```typescript
-import { createAgentX } from "@deepractice-ai/agentx";
-import { defineAgent } from "@deepractice-ai/agentx-adk";
-import { ClaudeDriver } from "@deepractice-ai/agentx-claude";
+import { createAgentX } from "agentxjs";
+import { defineAgent } from "@agentxjs/adk";
+import { ClaudeDriver } from "@agentxjs/node-runtime";
 
 // Create AgentX platform
 const agentx = createAgentX();
@@ -892,7 +892,7 @@ await agent.destroy();
 ### Custom Driver (ADK)
 
 ```typescript
-import { defineConfig, defineDriver } from "@deepractice-ai/agentx-adk";
+import { defineConfig, defineDriver } from "@agentxjs/adk";
 
 // 1. Define config schema
 const myDriverConfig = defineConfig({
@@ -982,7 +982,7 @@ const agent = agentx.agents.create(
 ### Remote Agent (Browser)
 
 ```typescript
-import { createRemoteAgent } from "@deepractice-ai/agentx";
+import { createRemoteAgent } from "agentxjs";
 
 // Create remote agent (connects to server)
 const agent = createRemoteAgent("http://localhost:5200/agentx", agentId);
@@ -1018,7 +1018,7 @@ pnpm build
 pnpm typecheck
 
 # Check specific package
-pnpm typecheck --filter=@deepractice-ai/agentx-agent
+pnpm typecheck --filter=@agentxjs/agent
 ```
 
 ### Dependency Issues
@@ -1030,7 +1030,7 @@ Check `turbo.json` task dependencies. Some tasks depend on `^build` (dependencie
 In `agentx-web`, ensure both server and client are running:
 
 ```bash
-pnpm dev --filter=@deepractice-ai/agentx-web
+pnpm dev --filter=@agentxjs/portagent
 ```
 
 ### SSE Connection Issues
@@ -1072,7 +1072,7 @@ pnpm dev --filter=@deepractice-ai/agentx-web
 **Import Pattern:**
 
 ```typescript
-import type { Agent, StreamEventType } from "@deepractice-ai/agentx-types";
+import type { Agent, StreamEventType } from "@agentxjs/types";
 ```
 
 ### agentx-common
@@ -1088,7 +1088,7 @@ import type { Agent, StreamEventType } from "@deepractice-ai/agentx-types";
 **Import Pattern:**
 
 ```typescript
-import { createLogger, setLoggerFactory } from "@deepractice-ai/agentx-common";
+import { createLogger, setLoggerFactory } from "@agentxjs/common";
 ```
 
 **Note**: Logger types are declared in `agentx-types`, implementation is in `agentx-common`.
@@ -1106,7 +1106,7 @@ import { createLogger, setLoggerFactory } from "@deepractice-ai/agentx-common";
 **Import Pattern:**
 
 ```typescript
-import { AgentEngine } from "@deepractice-ai/agentx-engine";
+import { AgentEngine } from "@agentxjs/engine";
 ```
 
 ### agentx-agent
@@ -1123,7 +1123,7 @@ import { AgentEngine } from "@deepractice-ai/agentx-engine";
 **Import Pattern:**
 
 ```typescript
-import { AgentInstance } from "@deepractice-ai/agentx-agent";
+import { AgentInstance } from "@agentxjs/agent";
 ```
 
 ### agentx
@@ -1139,8 +1139,8 @@ import { AgentInstance } from "@deepractice-ai/agentx-agent";
 **Import Pattern:**
 
 ```typescript
-import { createAgentX } from "@deepractice-ai/agentx";
-import { createRemoteAgent } from "@deepractice-ai/agentx/client";
+import { createAgentX } from "agentxjs";
+import { createRemoteAgent } from "agentxjs/client";
 ```
 
 **Note**: `defineAgent()` has been moved to `agentx-adk` package.
@@ -1158,10 +1158,10 @@ import { createRemoteAgent } from "@deepractice-ai/agentx/client";
 **Import Pattern:**
 
 ```typescript
-import { runtime } from "@deepractice-ai/agentx-runtime";
+import { runtime } from "@agentxjs/node-runtime";
 
 // Or access components directly
-import { NodeRuntime, ClaudeDriver } from "@deepractice-ai/agentx-runtime";
+import { NodeRuntime, ClaudeDriver } from "@agentxjs/node-runtime";
 ```
 
 **Data Storage**: `~/.agentx/` directory
@@ -1182,8 +1182,8 @@ import { NodeRuntime, ClaudeDriver } from "@deepractice-ai/agentx-runtime";
 **Import Pattern:**
 
 ```typescript
-import { Workspace, UserMessage } from "@deepractice-ai/agentx-ui";
-import "@deepractice-ai/agentx-ui/globals.css"; // Required for styles
+import { Workspace, UserMessage } from "@agentxjs/ui";
+import "@agentxjs/ui/globals.css"; // Required for styles
 ```
 
 **Tailwind v4**: Uses CSS-first configuration with `@theme` directive. Design tokens in `src/styles/globals.css`.
@@ -1198,7 +1198,7 @@ import "@deepractice-ai/agentx-ui/globals.css"; // Required for styles
 
 - **Server**: Hono + JWT authentication (port 5200)
 - **Client**: React + Vite + Tailwind v4 (port 5173 in dev)
-- **UI**: Uses `@deepractice-ai/agentx-ui` Workspace component
+- **UI**: Uses `@agentxjs/ui` Workspace component
 
 **Key Files:**
 

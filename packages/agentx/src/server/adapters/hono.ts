@@ -7,9 +7,9 @@
  * @example
  * ```typescript
  * import { Hono } from "hono";
- * import { agentx } from "@deepractice-ai/agentx";
- * import { createAgentXHandler } from "@deepractice-ai/agentx/server";
- * import { toHonoHandler, createHonoRoutes } from "@deepractice-ai/agentx/server/adapters/hono";
+ * import { agentx } from "agentxjs";
+ * import { createAgentXHandler } from "agentxjs/server";
+ * import { toHonoHandler, createHonoRoutes } from "agentxjs/server/adapters/hono";
  *
  * const app = new Hono();
  * const handler = createAgentXHandler(agentx);
@@ -85,7 +85,7 @@ interface HonoLike {
  * @example
  * ```typescript
  * import { Hono } from "hono";
- * import { createHonoRoutes } from "@deepractice-ai/agentx/server/adapters/hono";
+ * import { createHonoRoutes } from "agentxjs/server/adapters/hono";
  *
  * const app = new Hono();
  * app.route("/agentx", createHonoRoutes(handler, Hono));

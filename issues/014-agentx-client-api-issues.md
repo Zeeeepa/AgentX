@@ -43,7 +43,7 @@ The fundamental solution is that the **Client should use the same `agentx` stack
 ### New Client API
 
 ```typescript
-import { createRemoteAgent } from "@deepractice-ai/agentx/client";
+import { createRemoteAgent } from "agentxjs/client";
 
 // Simple: Create remote agent
 const agent = createRemoteAgent({

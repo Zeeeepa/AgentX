@@ -7,10 +7,10 @@
 /* eslint-disable no-undef */
 // ReadableStream and ReadableStreamDefaultController are Web APIs available in Node.js 18+
 
-import type { Agent, Unsubscribe, StreamEventType, ErrorEvent } from "@deepractice-ai/agentx-types";
-import { isStreamEvent, isErrorEvent } from "@deepractice-ai/agentx-types";
+import type { Agent, Unsubscribe, StreamEventType, ErrorEvent } from "@agentxjs/types";
+import { isStreamEvent, isErrorEvent } from "@agentxjs/types";
 import type { TransportConnection, ConnectionState } from "./types";
-import { createLogger } from "@deepractice-ai/agentx-common";
+import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("agentx/SSEServerTransport");
 

@@ -8,9 +8,9 @@
  *
  * @example
  * ```typescript
- * import { createAgentX } from "@deepractice-ai/agentx";
- * import { createSSERuntime } from "@deepractice-ai/agentx/client";
- * import { defineAgent } from "@deepractice-ai/agentx";
+ * import { createAgentX } from "agentxjs";
+ * import { createSSERuntime } from "agentxjs/client";
+ * import { defineAgent } from "agentxjs";
  *
  * const MyAgent = defineAgent({
  *   name: "Assistant",
@@ -43,10 +43,10 @@ import type {
   AgentImage,
   Session,
   LoggerFactory,
-} from "@deepractice-ai/agentx-types";
-import { AgentInstance } from "@deepractice-ai/agentx-agent";
-import { AgentEngine } from "@deepractice-ai/agentx-engine";
-import { setLoggerFactory } from "@deepractice-ai/agentx-common";
+} from "@agentxjs/types";
+import { AgentInstance } from "@agentxjs/agent";
+import { AgentEngine } from "@agentxjs/engine";
+import { setLoggerFactory } from "@agentxjs/common";
 import { createSSEDriver } from "./SSEDriver";
 import { RemoteRepository } from "./repository";
 import { BrowserLoggerFactory } from "./logger";
@@ -351,8 +351,8 @@ class SSERuntime implements Runtime {
  *
  * @example
  * ```typescript
- * import { createAgentX } from "@deepractice-ai/agentx";
- * import { sseRuntime } from "@deepractice-ai/agentx/runtime/sse";
+ * import { createAgentX } from "agentxjs";
+ * import { sseRuntime } from "agentxjs/runtime/sse";
  *
  * createAgentX(sseRuntime({
  *   serverUrl: "http://localhost:5200/agentx",

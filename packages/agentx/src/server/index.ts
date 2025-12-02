@@ -6,8 +6,8 @@
  *
  * @example
  * ```typescript
- * import { agentx } from "@deepractice-ai/agentx";
- * import { createAgentXHandler } from "@deepractice-ai/agentx/server";
+ * import { agentx } from "agentxjs";
+ * import { createAgentXHandler } from "agentxjs/server";
  *
  * // Create handler
  * const handler = createAgentXHandler(agentx);

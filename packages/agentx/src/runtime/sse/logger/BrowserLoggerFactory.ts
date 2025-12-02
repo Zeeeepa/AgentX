@@ -5,7 +5,7 @@
  * Used by SSERuntime to provide browser-optimized logging.
  */
 
-import type { Logger, LoggerFactory, LogLevel } from "@deepractice-ai/agentx-types";
+import type { Logger, LoggerFactory, LogLevel } from "@agentxjs/types";
 import { BrowserLogger, type BrowserLoggerOptions } from "./BrowserLogger";
 
 export interface BrowserLoggerFactoryOptions {

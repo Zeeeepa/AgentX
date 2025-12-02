@@ -411,7 +411,7 @@ See `services/agent-service/src/utils/logger.js`:
 ```javascript
 export const logger = createLogger({
   level: process.env.LOG_LEVEL || "info",
-  name: "@deepractice-ai/agent-service",
+  name: "@agentxjs/agent-service",
   console: true,
   file: {
     dirname: logDir, // services/agent-service/logs

@@ -9,7 +9,7 @@
 
 import { Given, When, Then, DataTable } from "@deepracticex/vitest-cucumber";
 import { expect } from "vitest";
-import type { AgentXRemote } from "@deepractice-ai/agentx-types";
+import type { AgentXRemote } from "@agentxjs/types";
 import type { TestWorld } from "../support/world";
 
 // ===== Get Info =====

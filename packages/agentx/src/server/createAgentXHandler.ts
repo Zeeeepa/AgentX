@@ -6,8 +6,8 @@
  *
  * @example
  * ```typescript
- * import { agentx } from "@deepractice-ai/agentx";
- * import { createAgentXHandler } from "@deepractice-ai/agentx/server";
+ * import { agentx } from "agentxjs";
+ * import { createAgentXHandler } from "agentxjs/server";
  *
  * const handler = createAgentXHandler(agentx);
  *
@@ -27,7 +27,7 @@ import type {
   ImageRecord,
   SessionRecord,
   MessageRecord,
-} from "@deepractice-ai/agentx-types";
+} from "@agentxjs/types";
 import type {
   AgentXHandler,
   AgentXHandlerOptions,
@@ -45,7 +45,7 @@ import type {
   ErrorCode,
 } from "./types";
 import { SSEConnectionManager } from "./SSEServerTransport";
-import { createLogger } from "@deepractice-ai/agentx-common";
+import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("agentx/AgentXHandler");
 
@@ -525,7 +525,7 @@ export function createAgentXHandler(
   // Repository Handlers (Images, Sessions, Messages)
   // ============================================================================
 
-  function getRepository(): import("@deepractice-ai/agentx-types").Repository {
+  function getRepository(): import("@agentxjs/types").Repository {
     if (!repository) {
       throw new Error(
         "Repository not configured. Pass 'repository' option to createAgentXHandler."

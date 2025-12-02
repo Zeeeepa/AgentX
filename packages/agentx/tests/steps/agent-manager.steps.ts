@@ -8,7 +8,7 @@
 
 import { Given, When, Then, DataTable } from "@deepracticex/vitest-cucumber";
 import { expect } from "vitest";
-import type { AgentXLocal, AgentDefinition } from "@deepractice-ai/agentx-types";
+import type { AgentXLocal, AgentDefinition } from "@agentxjs/types";
 import type { TestWorld } from "../support/world";
 import { createMockDriver } from "../support/MockDriver";
 

@@ -7,8 +7,8 @@
  *
  * @example
  * ```typescript
- * import { createSSERuntime } from "@deepractice-ai/agentx/client";
- * import { createAgentX, defineAgent } from "@deepractice-ai/agentx";
+ * import { createSSERuntime } from "agentxjs/client";
+ * import { createAgentX, defineAgent } from "agentxjs";
  *
  * const runtime = createSSERuntime({
  *   serverUrl: "http://localhost:5200/agentx",
@@ -25,8 +25,8 @@
  * ```
  */
 
-import type { UserMessage, StreamEventType, AgentDriver } from "@deepractice-ai/agentx-types";
-import { STREAM_EVENT_TYPE_NAMES } from "@deepractice-ai/agentx-types";
+import type { UserMessage, StreamEventType, AgentDriver } from "@agentxjs/types";
+import { STREAM_EVENT_TYPE_NAMES } from "@agentxjs/types";
 
 /**
  * Persistent SSE connection manager

@@ -36,7 +36,7 @@ pnpm typecheck
 pnpm dev
 
 # Start specific package
-pnpm dev --filter=@deepractice-ai/agentx-ui
+pnpm dev --filter=@agentxjs/ui
 ```
 
 ### Building
@@ -46,7 +46,7 @@ pnpm dev --filter=@deepractice-ai/agentx-ui
 pnpm build
 
 # Build specific package
-pnpm build --filter=@deepractice-ai/agentx-agent
+pnpm build --filter=@agentxjs/agent
 ```
 
 ### Testing
@@ -56,7 +56,7 @@ pnpm build --filter=@deepractice-ai/agentx-agent
 pnpm test
 
 # Run tests for specific package
-pnpm test --filter=@deepractice-ai/agentx-engine
+pnpm test --filter=@agentxjs/engine
 ```
 
 ### Code Quality
@@ -106,7 +106,7 @@ pnpm format
 Always use the logger facade:
 
 ```typescript
-import { createLogger } from "@deepractice-ai/agentx-common";
+import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("engine/AgentEngine");
 logger.debug("Processing event", { agentId, eventType });
@@ -170,8 +170,8 @@ Before creating a PR, add a changeset file:
 
 ```markdown
 ---
-"@deepractice-ai/agentx-engine": minor
-"@deepractice-ai/agentx-agent": patch
+"@agentxjs/engine": minor
+"@agentxjs/agent": patch
 ---
 
 Add turn tracking processor to engine

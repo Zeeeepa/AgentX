@@ -18,9 +18,9 @@ import type {
   Agent,
   Container,
   Message,
-} from "@deepractice-ai/agentx-types";
-import type { MessageRecord, MessageRole } from "@deepractice-ai/agentx-types";
-import { createLogger } from "@deepractice-ai/agentx-common";
+} from "@agentxjs/types";
+import type { MessageRecord, MessageRole } from "@agentxjs/types";
+import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("agentx/SessionManager");
 

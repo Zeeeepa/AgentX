@@ -322,7 +322,7 @@ import type {
   ConversationEndStateEvent,
   ExchangeResponseEvent,
   ErrorMessage as ErrorMessageType,
-} from "@deepractice-ai/agentx-framework/browser";
+} from "agentxjs/browser";
 ```
 
 ---

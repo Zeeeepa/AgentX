@@ -9,7 +9,7 @@ AgentX framework provides a unified `configure()` API for global configuration, 
 ### Development Mode (Default ConsoleLogger)
 
 ```typescript
-import { configure, LogLevel } from "@deepractice-ai/agentx-framework";
+import { configure, LogLevel } from "agentxjs-framework";
 
 // In your application entry point (index.ts, main.ts, etc.)
 configure({
@@ -29,7 +29,7 @@ const agent = MyAgent.create({ ... });
 ### Production Mode (Custom Logger)
 
 ```typescript
-import { configure, LogLevel } from "@deepractice-ai/agentx-framework";
+import { configure, LogLevel } from "agentxjs-framework";
 import pino from "pino";
 
 // Custom logger adapter
@@ -86,7 +86,7 @@ configure({
 ### Test Mode (Silent Logger)
 
 ```typescript
-import { configure, LogLevel, NoOpLogger } from "@deepractice-ai/agentx-framework";
+import { configure, LogLevel, NoOpLogger } from "agentxjs-framework";
 
 configure({
   logger: {
@@ -102,7 +102,7 @@ configure({
 
 ```typescript
 // server/index.ts
-import { configure, LogLevel } from "@deepractice-ai/agentx-framework";
+import { configure, LogLevel } from "agentxjs-framework";
 import pino from "pino";
 
 configure({
@@ -117,7 +117,7 @@ configure({
 
 ```typescript
 // app/main.ts
-import { configure, LogLevel } from "@deepractice-ai/agentx-framework";
+import { configure, LogLevel } from "agentxjs-framework";
 
 // Custom browser logger that sends logs to server
 class BrowserLogger implements LoggerProvider {
@@ -152,7 +152,7 @@ configure({
 
 ```typescript
 // config/logger.ts
-import { configure, LogLevel } from "@deepractice-ai/agentx-framework";
+import { configure, LogLevel } from "agentxjs-framework";
 import { PinoLoggerAdapter } from "./adapters/PinoLogger";
 import { SentryLogger } from "./adapters/SentryLogger";
 
@@ -210,7 +210,7 @@ enum LogLevel {
 
 ```typescript
 // index.ts - Application entry point
-import { configure, LogLevel } from "@deepractice-ai/agentx-framework";
+import { configure, LogLevel } from "agentxjs-framework";
 import { MyAgent } from "./agents/MyAgent";
 
 // 1. Configure framework first
@@ -247,7 +247,7 @@ main().catch(console.error);
 If you need more control, you can use LoggerFactory directly:
 
 ```typescript
-import { LoggerFactory, LogLevel } from "@deepractice-ai/agentx-framework";
+import { LoggerFactory, LogLevel } from "agentxjs-framework";
 
 // Same as configure({ logger: { ... } })
 LoggerFactory.configure({

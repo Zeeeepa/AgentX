@@ -13,7 +13,7 @@
     <a href="https://github.com/Deepractice/AgentX"><img src="https://img.shields.io/github/stars/Deepractice/AgentX?style=social" alt="Stars"/></a>
     <img src="https://komarev.com/ghpvc/?username=Agent&label=views&color=0e75b6&style=flat&abbreviated=true" alt="Views"/>
     <a href="LICENSE"><img src="https://img.shields.io/github/license/Deepractice/AgentX?color=blue" alt="License"/></a>
-    <a href="https://www.npmjs.com/package/@deepractice-ai/agentx"><img src="https://img.shields.io/npm/v/@deepractice-ai/agentx?color=cb3837&logo=npm" alt="npm"/></a>
+    <a href="https://www.npmjs.com/package/agentxjs"><img src="https://img.shields.io/npm/v/agentxjs?color=cb3837&logo=npm" alt="npm"/></a>
   </p>
 
   <p>
@@ -29,8 +29,8 @@
 AgentX 是一个 **AI Agent 运行时框架**，将 Docker 风格的生命周期管理带入 AI Agent 领域。
 
 ```typescript
-import { defineAgent, createAgentX } from "@deepractice-ai/agentx";
-import { runtime } from "@deepractice-ai/agentx-runtime";
+import { defineAgent, createAgentX } from "agentxjs";
+import { runtime } from "@agentxjs/node-runtime";
 
 // 1. 定义你的 Agent（类似 Dockerfile）
 const TranslatorAgent = defineAgent({
@@ -158,13 +158,13 @@ Driver.receive()
 
 ```bash
 # 核心框架
-npm install @deepractice-ai/agentx
+npm install agentxjs
 
 # Node.js 运行时（Server）
-npm install @deepractice-ai/agentx-runtime
+npm install @agentxjs/node-runtime
 
 # React UI 组件（可选）
-npm install @deepractice-ai/agentx-ui
+npm install @agentxjs/ui
 ```
 
 ---
@@ -174,8 +174,8 @@ npm install @deepractice-ai/agentx-ui
 ### 基础用法（Node.js）
 
 ```typescript
-import { defineAgent, createAgentX } from "@deepractice-ai/agentx";
-import { runtime } from "@deepractice-ai/agentx-runtime";
+import { defineAgent, createAgentX } from "agentxjs";
+import { runtime } from "@agentxjs/node-runtime";
 
 const agentx = createAgentX(runtime);
 
@@ -251,8 +251,8 @@ const sessions = await agentx.sessions.list({ userId: "user-1" });
 
 ```typescript
 // 浏览器客户端连接到 AgentX 服务器
-import { createAgentX } from "@deepractice-ai/agentx";
-import { sseRuntime } from "@deepractice-ai/agentx/browser";
+import { createAgentX } from "agentxjs";
+import { sseRuntime } from "agentxjs/browser";
 
 const agentx = createAgentX(
   sseRuntime({
@@ -274,16 +274,16 @@ agent.react({
 
 ## 包列表
 
-| 包                               | 说明                                          |
-| -------------------------------- | --------------------------------------------- |
-| `@deepractice-ai/agentx-types`   | 类型定义（140+ 文件，零依赖）                 |
-| `@deepractice-ai/agentx-adk`     | Agent 开发工具包（defineAgent, defineDriver） |
-| `@deepractice-ai/agentx-logger`  | SLF4J 风格日志门面                            |
-| `@deepractice-ai/agentx-engine`  | Mealy Machine 事件处理器                      |
-| `@deepractice-ai/agentx-agent`   | Agent 运行时核心                              |
-| `@deepractice-ai/agentx`         | 平台 API（统一入口）                          |
-| `@deepractice-ai/agentx-runtime` | Node.js 运行时（Claude 驱动, SQLite）         |
-| `@deepractice-ai/agentx-ui`      | React UI 组件                                 |
+| 包                       | 说明                                          |
+| ------------------------ | --------------------------------------------- |
+| `@agentxjs/types`        | 类型定义（140+ 文件，零依赖）                 |
+| `@agentxjs/adk`          | Agent 开发工具包（defineAgent, defineDriver） |
+| `@agentxjs/common`       | SLF4J 风格日志门面                            |
+| `@agentxjs/engine`       | Mealy Machine 事件处理器                      |
+| `@agentxjs/agent`        | Agent 运行时核心                              |
+| `agentxjs`               | 平台 API（统一入口）                          |
+| `@agentxjs/node-runtime` | Node.js 运行时（Claude 驱动, SQLite）         |
+| `@agentxjs/ui`           | React UI 组件                                 |
 
 ---
 

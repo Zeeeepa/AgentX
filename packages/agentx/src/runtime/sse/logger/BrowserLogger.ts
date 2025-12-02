@@ -5,8 +5,8 @@
  * Provides colorful, grouped logs with timestamps.
  */
 
-import type { Logger, LogContext, LogLevel } from "@deepractice-ai/agentx-types";
-import { LogLevel as LogLevelEnum } from "@deepractice-ai/agentx-types";
+import type { Logger, LogContext, LogLevel } from "@agentxjs/types";
+import { LogLevel as LogLevelEnum } from "@agentxjs/types";
 
 export interface BrowserLoggerOptions {
   level?: LogLevel;

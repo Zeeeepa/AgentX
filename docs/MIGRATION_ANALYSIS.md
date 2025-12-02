@@ -95,10 +95,10 @@ Agent (IS a session)
 **Philosophy**: agentx-core is a thin wrapper around Claude SDK. For complex features, build separate packages.
 
 ```
-@deepractice-ai/agentx-core        # Simple Agent wrapper (current)
-@deepractice-ai/agentx-sessions    # Multi-session management
-@deepractice-ai/agentx-persistence # SQLite/other persisters
-@deepractice-ai/agentx-websocket   # WebSocket bridge
+agentxjs-core        # Simple Agent wrapper (current)
+agentxjs-sessions    # Multi-session management
+agentxjs-persistence # SQLite/other persisters
+agentxjs-websocket   # WebSocket bridge
 ```
 
 **Benefits:**
@@ -160,7 +160,7 @@ Current status - mostly done! Just add:
 Create new package for managing multiple agents/sessions:
 
 ```typescript
-import { createSessionManager } from "@deepractice-ai/agentx-sessions";
+import { createSessionManager } from "agentxjs-sessions";
 
 const manager = createSessionManager(config);
 const session1 = await manager.createSession();
@@ -172,7 +172,7 @@ const session2 = await manager.createSession();
 For users who need persistence:
 
 ```typescript
-import { SQLitePersister } from "@deepractice-ai/agentx-persistence";
+import { SQLitePersister } from "agentxjs-persistence";
 
 const agent = createAgent({
   ...config,
@@ -185,7 +185,7 @@ const agent = createAgent({
 For browser/server communication:
 
 ```typescript
-import { createWebSocketBridge } from "@deepractice-ai/agentx-websocket";
+import { createWebSocketBridge } from "agentxjs-websocket";
 ```
 
 ## Conclusion

@@ -6,8 +6,8 @@
  *
  * @example
  * ```typescript
- * import { createAgentX } from "@deepractice-ai/agentx";
- * import { sseRuntime } from "@deepractice-ai/agentx/runtime/sse";
+ * import { createAgentX } from "agentxjs";
+ * import { sseRuntime } from "agentxjs/runtime/sse";
  *
  * // Create runtime for browser
  * createAgentX(sseRuntime({

@@ -6,15 +6,15 @@
  * @example
  * ```typescript
  * // Express
- * import { toExpressHandler } from "@deepractice-ai/agentx/server/adapters/express";
+ * import { toExpressHandler } from "agentxjs/server/adapters/express";
  * app.use("/agentx", toExpressHandler(handler));
  *
  * // Hono
- * import { toHonoHandler } from "@deepractice-ai/agentx/server/adapters/hono";
+ * import { toHonoHandler } from "agentxjs/server/adapters/hono";
  * app.all("/agentx/*", toHonoHandler(handler));
  *
  * // Next.js
- * import { createNextHandler } from "@deepractice-ai/agentx/server/adapters/next";
+ * import { createNextHandler } from "agentxjs/server/adapters/next";
  * export const { GET, POST, DELETE } = createNextHandler(handler);
  * ```
  *

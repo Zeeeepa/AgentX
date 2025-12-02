@@ -7,9 +7,9 @@
  * - Minimal stream events for testing
  */
 
-import type { AgentDriver, AgentContext, DriverClass } from "@deepractice-ai/agentx-types";
-import type { UserMessage } from "@deepractice-ai/agentx-types";
-import type { StreamEventType } from "@deepractice-ai/agentx-types";
+import type { AgentDriver, AgentContext, DriverClass } from "@agentxjs/types";
+import type { UserMessage } from "@agentxjs/types";
+import type { StreamEventType } from "@agentxjs/types";
 
 export interface MockDriverConfig {
   /**

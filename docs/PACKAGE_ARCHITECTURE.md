@@ -101,7 +101,7 @@ By splitting packages, we make architectural violations **impossible** rather th
 **Example**:
 
 ```typescript
-import type { Message, UserMessage, LLMConfig } from "@deepractice-ai/agentx-types";
+import type { Message, UserMessage, LLMConfig } from "@agentxjs/types";
 
 const config: LLMConfig = {
   provider: "anthropic",
@@ -138,7 +138,7 @@ const config: LLMConfig = {
 **Example**:
 
 ```typescript
-import type { AgentStateEvents, EventPayload } from "@deepractice-ai/agentx-events";
+import type { AgentStateEvents, EventPayload } from "@agentxjs/events";
 
 // Type-safe event handling
 type ThinkingPayload = EventPayload<"agent:thinking">;
@@ -170,7 +170,7 @@ type ThinkingPayload = EventPayload<"agent:thinking">;
 **Example**:
 
 ```typescript
-import type { Agent, GenerateOptions } from "@deepractice-ai/agentx-api";
+import type { Agent, GenerateOptions } from "@agentxjs/api";
 
 // Interface for all Agent implementations
 interface Agent {
@@ -217,9 +217,9 @@ interface Agent {
 
 ```json
 {
-  "@deepractice-ai/agentx-types": "workspace:*",
-  "@deepractice-ai/agentx-events": "workspace:*",
-  "@deepractice-ai/agentx-api": "workspace:*",
+  "@agentxjs/types": "workspace:*",
+  "@agentxjs/events": "workspace:*",
+  "@agentxjs/api": "workspace:*",
   "@anthropic-ai/sdk": "^0.32.1",
   "rxjs": "^7.8.1",
   "eventemitter3": "^5.0.1",
@@ -233,8 +233,8 @@ interface Agent {
 **Example**:
 
 ```typescript
-import { AgentCore } from "@deepractice-ai/agentx-core";
-import type { Agent } from "@deepractice-ai/agentx-api";
+import { AgentCore } from "agentxjs-core";
+import type { Agent } from "@agentxjs/api";
 
 // AgentCore implements the Agent interface
 class AgentCore implements Agent {
@@ -270,7 +270,7 @@ class AgentCore implements Agent {
 
 ```json
 {
-  "@deepractice-ai/agentx-core": "workspace:*",
+  "agentxjs-core": "workspace:*",
   "ws": "^8.0.0",
   "better-sqlite3": "^12.4.1"
 }
@@ -282,7 +282,7 @@ class AgentCore implements Agent {
 
 ```typescript
 // Users only install agent-sdk
-import { createAgent, createWebSocketServer } from "@deepractice-ai/agent-sdk";
+import { createAgent, createWebSocketServer } from "@agentxjs/sdk";
 
 const agent = createAgent({
   workspace: "./data",
@@ -309,7 +309,7 @@ const wsServer = createWebSocketServer({ port: 5200 });
 
 ```json
 {
-  "@deepractice-ai/agentx-core": "workspace:*"
+  "agentxjs-core": "workspace:*"
   // No Node.js dependencies
 }
 ```
@@ -317,7 +317,7 @@ const wsServer = createWebSocketServer({ port: 5200 });
 **Example**:
 
 ```typescript
-import { createBrowserAgent } from "@deepractice-ai/agent-sdk-lite";
+import { createBrowserAgent } from "@agentxjs/sdk-lite";
 
 const agent = createBrowserAgent({
   apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY,
@@ -400,7 +400,7 @@ class AgentCore {
 
 ```typescript
 // agent-sdk/src/facade/agent.ts
-import { AgentCore } from "@deepractice-ai/agentx-core";
+import { AgentCore } from "agentxjs-core";
 import { WebSocketServer } from "ws"; // Node.js specific
 import Database from "better-sqlite3"; // Node.js specific
 
@@ -484,7 +484,7 @@ module.exports = {
     "no-restricted-imports": [
       "error",
       {
-        patterns: ["@deepractice-ai/agentx-core", "@deepractice-ai/agent-sdk", "@anthropic-ai/*"],
+        patterns: ["agentxjs-core", "@agentxjs/sdk", "@anthropic-ai/*"],
       },
     ],
   },
@@ -496,7 +496,7 @@ module.exports = {
 ```json
 // packages/agentx-types/package.json
 {
-  "name": "@deepractice-ai/agentx-types",
+  "name": "@agentxjs/types",
   "version": "1.0.0",
   "agentx": {
     "layer": "standard",
@@ -580,7 +580,7 @@ export interface Agent extends AgentCore {} // Abstraction broken!
 
 // ✅ Good (separate packages)
 // agentx-api/src/Agent.ts
-import { AgentCore } from "@deepractice-ai/agentx-core";
+import { AgentCore } from "agentxjs-core";
 // ❌ Error: agentx-core not in dependencies!
 ```
 
@@ -613,7 +613,7 @@ Frontend projects that only need types:
 ```json
 {
   "devDependencies": {
-    "@deepractice-ai/agentx-types": "^1.0.0" // ~50KB
+    "@agentxjs/types": "^1.0.0" // ~50KB
     // No need for agentx-core (~300KB) or agent-sdk (~500KB)
   }
 }
@@ -638,7 +638,7 @@ Separate packages allow independent versioning.
 **A**: Yes, if you provide platform implementations yourself
 
 ```typescript
-import { AgentCore } from "@deepractice-ai/agentx-core";
+import { AgentCore } from "agentxjs-core";
 
 // You must inject platform-specific dependencies
 const agent = new AgentCore(myCustomAdapter, myCustomPersister, myCustomLogger);
@@ -649,7 +649,7 @@ const agent = new AgentCore(myCustomAdapter, myCustomPersister, myCustomLogger);
 **A**: Use `agent-sdk-lite` (future)
 
 ```typescript
-import { createBrowserAgent } from "@deepractice-ai/agent-sdk-lite";
+import { createBrowserAgent } from "@agentxjs/sdk-lite";
 // No Node.js dependencies, smaller bundle
 ```
 
@@ -659,17 +659,17 @@ import { createBrowserAgent } from "@deepractice-ai/agent-sdk-lite";
 
 ```
 Need types only (TypeScript project)?
-  → @deepractice-ai/agentx-types
+  → @agentxjs/types
 
 Building custom implementation?
-  → @deepractice-ai/agentx-api (interface)
-  → @deepractice-ai/agentx-core (reference)
+  → @agentxjs/api (interface)
+  → agentxjs-core (reference)
 
 Using Agent in Node.js?
-  → @deepractice-ai/agent-sdk
+  → @agentxjs/sdk
 
 Using Agent in Browser?
-  → @deepractice-ai/agent-sdk-lite (future)
+  → @agentxjs/sdk-lite (future)
 ```
 
 ---

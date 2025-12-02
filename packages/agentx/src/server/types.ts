@@ -5,7 +5,7 @@
  * These are application-level types, not core domain types.
  */
 
-import type { UserMessage, StreamEventType, Repository } from "@deepractice-ai/agentx-types";
+import type { UserMessage, StreamEventType, Repository } from "@agentxjs/types";
 
 // ============================================================================
 // Transport Types

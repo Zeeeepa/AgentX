@@ -47,7 +47,7 @@ PORT in env/.env.local        = 5300  ← wins
 
 Service entry point loads files into `process.env`
 
-### Phase 2: Config management (@deepractice-ai/agent-config)
+### Phase 2: Config management (@agentxjs/config)
 
 - **EnvLoader**: Reads from `process.env`, maps to schema
 - **Validation**: Validates types with Zod

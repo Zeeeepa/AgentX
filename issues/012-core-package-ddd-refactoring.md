@@ -281,7 +281,7 @@ packages/agentx-core/src/
 ## Usage Example
 
 ```typescript
-import { startAgent, resumeAgent, destroyAgent } from "@deepractice-ai/agentx-core";
+import { startAgent, resumeAgent, destroyAgent } from "agentxjs";
 
 // Define an agent
 const claudeAgent: AgentDefinition = {

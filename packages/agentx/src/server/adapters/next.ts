@@ -7,9 +7,9 @@
  * @example
  * ```typescript
  * // app/api/agentx/[...path]/route.ts
- * import { agentx } from "@deepractice-ai/agentx";
- * import { createAgentXHandler } from "@deepractice-ai/agentx/server";
- * import { createNextHandler } from "@deepractice-ai/agentx/server/adapters/next";
+ * import { agentx } from "agentxjs";
+ * import { createAgentXHandler } from "agentxjs/server";
+ * import { createNextHandler } from "agentxjs/server/adapters/next";
  *
  * const handler = createAgentXHandler(agentx, {
  *   basePath: "/api/agentx",
@@ -61,7 +61,7 @@ export interface NextRouteHandlers {
  * @example
  * ```typescript
  * // app/api/agentx/[...path]/route.ts
- * import { createNextHandler } from "@deepractice-ai/agentx/server/adapters/next";
+ * import { createNextHandler } from "agentxjs/server/adapters/next";
  *
  * const handler = createAgentXHandler(agentx, {
  *   basePath: "/api/agentx",
@@ -98,7 +98,7 @@ export function createNextHandler(handler: AgentXHandler): NextRouteHandlers {
  * @example
  * ```typescript
  * // app/api/agentx/[...path]/route.ts
- * import { toNextHandler } from "@deepractice-ai/agentx/server/adapters/next";
+ * import { toNextHandler } from "agentxjs/server/adapters/next";
  *
  * const handler = toNextHandler(createAgentXHandler(agentx));
  *
@@ -120,7 +120,7 @@ export function toNextHandler(handler: AgentXHandler): NextRouteHandler {
  * @example
  * ```typescript
  * // app/api/agentx/[...path]/route.ts
- * import { createNextEdgeHandler } from "@deepractice-ai/agentx/server/adapters/next";
+ * import { createNextEdgeHandler } from "agentxjs/server/adapters/next";
  *
  * export const runtime = "edge";
  * export const { GET, POST, DELETE } = createNextEdgeHandler(handler);
@@ -137,7 +137,7 @@ export function createNextEdgeHandler(handler: AgentXHandler): NextRouteHandlers
  * @example
  * ```typescript
  * // app/api/agentx/[...path]/route.ts
- * import { createAgentXRoutes } from "@deepractice-ai/agentx/server/adapters/next";
+ * import { createAgentXRoutes } from "agentxjs/server/adapters/next";
  *
  * const { GET, POST, DELETE } = createAgentXRoutes(agentx, {
  *   basePath: "/api/agentx",

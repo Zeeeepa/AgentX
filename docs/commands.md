@@ -84,13 +84,13 @@ Run commands in specific packages using the `--filter` flag:
 
 ```bash
 # Build only the agent application
-pnpm --filter @deepractice-ai/agent build
+pnpm --filter @agentxjs/agent build
 
 # Start agent in dev mode
-pnpm --filter @deepractice-ai/agent dev
+pnpm --filter @agentxjs/agent dev
 
 # Build only the SDK library
-pnpm --filter @deepractice-ai/agent-sdk build
+pnpm --filter @agentxjs/sdk build
 ```
 
 ### apps/agent (Full-Stack Application)
@@ -270,12 +270,12 @@ NODE_ENV=development            # Environment mode
 
 ## Troubleshooting
 
-### "Cannot find module '@deepractice-ai/agent-sdk'"
+### "Cannot find module '@agentxjs/sdk'"
 
 The SDK library hasn't been built yet. Run:
 
 ```bash
-pnpm --filter @deepractice-ai/agent-sdk build
+pnpm --filter @agentxjs/sdk build
 # or
 pnpm build
 ```
@@ -304,7 +304,7 @@ The SDK library needs to be rebuilt after changes:
 
 ```bash
 # Rebuild manually
-pnpm --filter @deepractice-ai/agent-sdk build
+pnpm --filter @agentxjs/sdk build
 
 # Or rebuild everything
 pnpm build

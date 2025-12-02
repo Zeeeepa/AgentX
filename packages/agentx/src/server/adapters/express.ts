@@ -6,9 +6,9 @@
  * @example
  * ```typescript
  * import express from "express";
- * import { agentx } from "@deepractice-ai/agentx";
- * import { createAgentXHandler } from "@deepractice-ai/agentx/server";
- * import { toExpressHandler } from "@deepractice-ai/agentx/server/adapters/express";
+ * import { agentx } from "agentxjs";
+ * import { createAgentXHandler } from "agentxjs/server";
+ * import { toExpressHandler } from "agentxjs/server/adapters/express";
  *
  * const app = express();
  * const handler = createAgentXHandler(agentx);

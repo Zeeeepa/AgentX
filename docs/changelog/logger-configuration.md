@@ -6,7 +6,7 @@ Added unified `configure()` API to AgentX framework for global configuration, st
 
 ## Changes
 
-### New Package: `@deepractice-ai/agentx-logger`
+### New Package: `@agentxjs/common`
 
 - **SLF4J-style** logging facade for AgentX ecosystem
 - Three usage patterns:
@@ -49,10 +49,10 @@ All `agentx-core` components now have structured logging:
 
 ### Framework Configuration API
 
-New `configure()` function in `@deepractice-ai/agentx-framework`:
+New `configure()` function in `agentxjs`:
 
 ```typescript
-import { configure, LogLevel } from "@deepractice-ai/agentx-framework";
+import { configure, LogLevel } from "agentxjs";
 
 configure({
   logger: {
@@ -93,7 +93,7 @@ configure({
 ### Development Mode
 
 ```typescript
-import { configure, LogLevel } from "@deepractice-ai/agentx-framework";
+import { configure, LogLevel } from "agentxjs";
 
 configure({
   logger: {
@@ -106,7 +106,7 @@ configure({
 ### Production with Pino
 
 ```typescript
-import { configure, LogLevel } from "@deepractice-ai/agentx-framework";
+import { configure, LogLevel } from "agentxjs";
 import pino from "pino";
 
 class PinoLoggerAdapter implements LoggerProvider {
@@ -128,7 +128,7 @@ configure({
 ### Test Mode
 
 ```typescript
-import { configure, LogLevel } from "@deepractice-ai/agentx-framework";
+import { configure, LogLevel } from "agentxjs";
 
 configure({
   logger: {
@@ -177,7 +177,7 @@ const agent = createAgent(id, driver);
 
 ```typescript
 // Configure once in application entry
-import { configure, LogLevel } from "@deepractice-ai/agentx-framework";
+import { configure, LogLevel } from "agentxjs";
 
 configure({
   logger: { defaultLevel: LogLevel.INFO },

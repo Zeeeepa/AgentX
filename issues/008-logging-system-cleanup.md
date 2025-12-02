@@ -127,7 +127,7 @@ Option B: Create browser-compatible build of `agentx-logger`
 console.log("[SSEReactor] Initialized");
 
 // After
-import { createLogger } from "@deepractice-ai/agentx-logger";
+import { createLogger } from "@agentxjs/common";
 const logger = createLogger("framework/SSEReactor");
 logger.info("Initialized");
 ```
@@ -136,7 +136,7 @@ logger.info("Initialized");
 
 ```typescript
 // In app initialization
-import { LoggerFactory, LogLevel } from "@deepractice-ai/agentx-logger";
+import { LoggerFactory, LogLevel } from "@agentxjs/common";
 
 const levelFromEnv = process.env.LOG_LEVEL?.toUpperCase();
 if (levelFromEnv && levelFromEnv in LogLevel) {

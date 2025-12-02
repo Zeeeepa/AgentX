@@ -56,7 +56,7 @@ This distinction is crucial for AI agent event processing where we care about em
 
 ## Architecture Design
 
-### Core Package: `@deepractice-ai/agentx-mealy`
+### Core Package: `@agentxjs/engine`
 
 A standalone functional Mealy Machine framework with these components:
 
@@ -260,7 +260,7 @@ export const initialEngineState: EngineState = {
 
 ```typescript
 // packages/agentx-engine/src/processors/messageAssemblerProcessor.ts
-import type { Processor } from "@deepractice-ai/agentx-mealy";
+import type { Processor } from "@agentxjs/engine";
 
 export const messageAssemblerProcessor: Processor<
   MessageAssemblerState,
@@ -313,7 +313,7 @@ export const messageAssemblerProcessor: Processor<
 
 ```typescript
 // packages/agentx-engine/src/processors/engineProcessor.ts
-import { combineProcessors } from "@deepractice-ai/agentx-mealy";
+import { combineProcessors } from "@agentxjs/engine";
 
 export const engineProcessor = combineProcessors({
   messageAssembler: messageAssemblerProcessor,
@@ -370,7 +370,7 @@ User sends message
 
 ### Phase 1: agentx-mealy Package (COMPLETED)
 
-- [x] Create `@deepractice-ai/agentx-mealy` package
+- [x] Create `@agentxjs/engine` package
 - [x] Define `Processor` type (Mealy transition function)
 - [x] Define `Source`, `Sink`, `Store` interfaces
 - [x] Implement `MemoryStore`
@@ -536,7 +536,7 @@ function replay(events: Event[]) {
 - [x] Explored naming options (Reducer, Kafka-style, Neural)
 - [x] Discovered Mealy Machine as perfect pattern match
 - [x] Key insight: "State is means, output is goal" (unlike Redux)
-- [x] Created `@deepractice-ai/agentx-mealy` package
+- [x] Created `@agentxjs/engine` package
 - [x] Implemented all core components (Processor, Source, Sink, Store, Mealy, combinators)
 - [ ] Phase 2: Engine Processors (pending)
 

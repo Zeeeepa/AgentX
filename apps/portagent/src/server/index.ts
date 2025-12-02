@@ -23,10 +23,10 @@ import { cors } from "hono/cors";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { existsSync, readFileSync } from "fs";
 
-import { createAgentX, defineAgent } from "@deepractice-ai/agentx";
-import { createAgentXHandler } from "@deepractice-ai/agentx/server";
-import { toHonoHandler } from "@deepractice-ai/agentx/server/adapters/hono";
-import { nodeRuntime } from "@deepractice-ai/agentx-node-runtime";
+import { createAgentX, defineAgent } from "agentxjs";
+import { createAgentXHandler } from "agentxjs/server";
+import { toHonoHandler } from "agentxjs/server/adapters/hono";
+import { nodeRuntime } from "@agentxjs/node-runtime";
 
 import { createAuthMiddleware, authRoutes, generatePassword } from "./auth";
 

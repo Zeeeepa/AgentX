@@ -1,5 +1,6 @@
 {
-  "name": "@deepractice-ai/portagent",
+  "name": "@agentxjs/portagent",
+  "private": true,
   "version": "0.1.0",
   "description": "Portagent - AgentX Portal Application",
   "type": "module",
@@ -25,10 +26,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@deepractice-ai/agentx": "workspace:*",
-    "@deepractice-ai/agentx-node-runtime": "workspace:*",
-    "@deepractice-ai/agentx-types": "workspace:*",
-    "@deepractice-ai/agentx-ui": "workspace:*",
+    "agentxjs": "workspace:*",
+    "@agentxjs/node-runtime": "workspace:*",
+    "@agentxjs/types": "workspace:*",
+    "@agentxjs/ui": "workspace:*",
     "@hono/node-server": "^1.13.7",
     "commander": "^12.1.0",
     "hono": "^4.6.12",

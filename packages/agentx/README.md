@@ -1,10 +1,10 @@
-# @deepractice-ai/agentx
+# agentxjs
 
 > "Define Once, Run Anywhere" - Unified Platform API for AI Agents
 
 ## Overview
 
-`@deepractice-ai/agentx` is the **central entry point** for the AgentX platform, providing a complete API for building and managing AI agents across different deployment scenarios.
+`agentxjs` is the **central entry point** for the AgentX platform, providing a complete API for building and managing AI agents across different deployment scenarios.
 
 **Key Characteristics:**
 
@@ -17,7 +17,7 @@
 ## Installation
 
 ```bash
-pnpm add @deepractice-ai/agentx
+pnpm add agentxjs
 ```
 
 ---
@@ -26,7 +26,7 @@ pnpm add @deepractice-ai/agentx
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────┐
-│                        @deepractice-ai/agentx                        │
+│                        agentxjs                        │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
 │  ┌─────────────────────────────────────────────────────────────┐    │
@@ -70,8 +70,8 @@ The main entry point for creating AgentX instances.
 | `createAgentX` | Function | Factory for AgentX instances with Runtime |
 
 ```typescript
-import { defineAgent, createAgentX } from "@deepractice-ai/agentx";
-import { runtime } from "@deepractice-ai/agentx-runtime";
+import { defineAgent, createAgentX } from "agentxjs";
+import { runtime } from "@agentxjs/node-runtime";
 
 // 1. Define agent (business config only)
 const MyAgent = defineAgent({
@@ -114,7 +114,7 @@ interface AgentManager {
 HTTP handler and SSE transport for exposing agents over the network.
 
 ```typescript
-import { createAgentXHandler } from "@deepractice-ai/agentx/server";
+import { createAgentXHandler } from "agentxjs/server";
 ```
 
 #### `createAgentXHandler(agentx, options?)`
@@ -192,7 +192,7 @@ Ready-to-use adapters for popular HTTP frameworks.
 #### Express
 
 ```typescript
-import { toExpressHandler } from "@deepractice-ai/agentx/server/adapters/express";
+import { toExpressHandler } from "agentxjs/server/adapters/express";
 import express from "express";
 
 const app = express();
@@ -203,7 +203,7 @@ app.use("/agentx", toExpressHandler(handler));
 #### Hono
 
 ```typescript
-import { createHonoRoutes } from "@deepractice-ai/agentx/server/adapters/hono";
+import { createHonoRoutes } from "agentxjs/server/adapters/hono";
 import { Hono } from "hono";
 
 const app = new Hono();
@@ -215,7 +215,7 @@ createHonoRoutes(app, "/agentx", handler);
 
 ```typescript
 // app/agentx/[...path]/route.ts
-import { createNextHandler } from "@deepractice-ai/agentx/server/adapters/next";
+import { createNextHandler } from "agentxjs/server/adapters/next";
 
 const handler = createAgentXHandler(agentx);
 export const { GET, POST, DELETE } = createNextHandler(handler, {
@@ -230,7 +230,7 @@ export const { GET, POST, DELETE } = createNextHandler(handler, {
 Browser SDK for connecting to remote AgentX servers using the same API.
 
 ```typescript
-import { createSSERuntime } from "@deepractice-ai/agentx/client";
+import { createSSERuntime } from "agentxjs/client";
 ```
 
 #### `createSSERuntime(config)`
@@ -238,8 +238,8 @@ import { createSSERuntime } from "@deepractice-ai/agentx/client";
 Creates a browser-compatible Runtime that connects to remote server:
 
 ```typescript
-import { defineAgent, createAgentX } from "@deepractice-ai/agentx";
-import { createSSERuntime } from "@deepractice-ai/agentx/client";
+import { defineAgent, createAgentX } from "agentxjs";
+import { createSSERuntime } from "agentxjs/client";
 
 // Same agent definition as server!
 const MyAgent = defineAgent({
@@ -346,7 +346,7 @@ Server forwards only Stream Layer events, not Message/State/Turn events:
 Built-in dependency injection enables extensibility without coupling:
 
 ```typescript
-import { LoggerFactoryKey } from "@deepractice-ai/agentx-types";
+import { LoggerFactoryKey } from "@agentxjs/types";
 
 // Register custom logger
 agentx.provide(LoggerFactoryKey, myLoggerFactory);
@@ -367,7 +367,7 @@ const logger = agentx.resolve(LoggerFactoryKey);
 ## Package Structure
 
 ```text
-@deepractice-ai/agentx
+agentxjs
 ├── /                    # Core: createAgentX, agentx singleton
 ├── /server              # HTTP handler, SSE transport
 │   └── /adapters        # Framework adapters
@@ -401,14 +401,14 @@ agentx-ui (React components)
 
 ## Related Packages
 
-| Package                                             | Description                |
-| --------------------------------------------------- | -------------------------- |
-| [@deepractice-ai/agentx-types](../agentx-types)     | Type definitions           |
-| [@deepractice-ai/agentx-agent](../agentx-agent)     | Agent runtime              |
-| [@deepractice-ai/agentx-engine](../agentx-engine)   | Event processing engine    |
-| [@deepractice-ai/agentx-runtime](../agentx-runtime) | NodeRuntime + ClaudeDriver |
-| [@deepractice-ai/agentx-logger](../agentx-logger)   | Logging facade             |
-| [@deepractice-ai/agentx-ui](../agentx-ui)           | React components           |
+| Package                                     | Description                |
+| ------------------------------------------- | -------------------------- |
+| [@agentxjs/types](../agentx-types)          | Type definitions           |
+| [@agentxjs/agent](../agentx-agent)          | Agent runtime              |
+| [@agentxjs/engine](../agentx-engine)        | Event processing engine    |
+| [@agentxjs/node-runtime](../agentx-runtime) | NodeRuntime + ClaudeDriver |
+| [@agentxjs/common](../agentx-logger)        | Logging facade             |
+| [@agentxjs/ui](../agentx-ui)                | React components           |
 
 ---
 

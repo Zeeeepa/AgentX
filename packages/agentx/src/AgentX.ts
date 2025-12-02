@@ -6,16 +6,16 @@
  *
  * @example
  * ```typescript
- * import { createAgentX } from "@deepractice-ai/agentx";
- * import { runtime } from "@deepractice-ai/agentx-runtime";
+ * import { createAgentX } from "agentxjs";
+ * import { runtime } from "agentxjs-runtime";
  *
  * const agentx = createAgentX(runtime);
  * const agent = agentx.agents.create(definition, { apiKey: "xxx" });
  * ```
  */
 
-import type { AgentX, Runtime } from "@deepractice-ai/agentx-types";
-import { createLogger } from "@deepractice-ai/agentx-common";
+import type { AgentX, Runtime } from "@agentxjs/types";
+import { createLogger } from "@agentxjs/common";
 import {
   AgentManager,
   SessionManagerImpl,
@@ -34,8 +34,8 @@ const logger = createLogger("agentx/AgentX");
  *
  * @example
  * ```typescript
- * import { createAgentX } from "@deepractice-ai/agentx";
- * import { runtime } from "@deepractice-ai/agentx-runtime";
+ * import { createAgentX } from "agentxjs";
+ * import { runtime } from "agentxjs-runtime";
  *
  * const agentx = createAgentX(runtime);
  * const agent = agentx.agents.create(definition, { apiKey: "xxx" });
