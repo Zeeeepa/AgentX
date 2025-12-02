@@ -143,6 +143,8 @@ export function createClaudeDriver(
       agentId,
       createdAt: context.createdAt,
       ...config,
+      // Set working directory from sandbox workspace
+      cwd: sandbox.workspace.path,
       // Pass resume session ID if provided (for conversation continuity)
       resume: options?.resumeSessionId,
     };

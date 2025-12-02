@@ -152,11 +152,12 @@ class NodeRuntime implements Runtime {
   createSandbox(containerId: string): Sandbox {
     logger.debug("Creating sandbox", { containerId });
 
-    // Create workspace with path under ~/.agentx/workspaces/{containerId}/
+    // Create workspace with path under ~/.agentx/containers/{containerId}/workspace/
+    // Container directory can hold other resources in the future (logs, config, etc.)
     const workspace: Workspace = {
       id: containerId,
       name: containerId,
-      path: `${this.basePath}/workspaces/${containerId}`,
+      path: `${this.basePath}/containers/${containerId}/workspace`,
     };
 
     return new NodeSandbox(containerId, workspace, this.llmProvider);
