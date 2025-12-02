@@ -6,8 +6,7 @@
 
 import { useState, useEffect } from "react";
 import type { AgentX } from "@deepractice-ai/agentx-types";
-import { createAgentX } from "@deepractice-ai/agentx";
-import { sseRuntime } from "@deepractice-ai/agentx/runtime/sse";
+import { createAgentX, sseRuntime } from "@deepractice-ai/agentx";
 import { Workspace, type AgentDefinitionItem } from "@deepractice-ai/agentx-ui";
 import "@deepractice-ai/agentx-ui/globals.css";
 

@@ -125,6 +125,11 @@
 export { defineAgent } from "./defineAgent";
 export { createAgentX } from "./AgentX";
 
+// ===== SSE Runtime (Browser) =====
+
+export { sseRuntime, createSSERuntime } from "./runtime/sse";
+export type { SSERuntimeConfig, ConnectionState } from "./runtime/sse";
+
 // ===== Re-export Types from @deepractice-ai/agentx-types =====
 
 export type {
