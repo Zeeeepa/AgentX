@@ -18,6 +18,9 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    headers: {
+      "Cache-Control": "no-store",
+    },
     proxy: {
       "/agentx": {
         target: "http://localhost:5200",

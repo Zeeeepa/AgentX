@@ -80,7 +80,7 @@ export function InputBox({
   };
 
   return (
-    <form onSubmit={handleSubmit} className={`h-full flex flex-col ${className}`}>
+    <form onSubmit={handleSubmit} className={`h-full relative ${className}`}>
       {/* Textarea - fills entire space */}
       <textarea
         ref={textareaRef}
@@ -89,27 +89,25 @@ export function InputBox({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={disabled}
-        className="flex-1 bg-transparent resize-none focus:outline-none
+        className="w-full h-full bg-transparent resize-none focus:outline-none
                    text-foreground placeholder:text-muted-foreground
-                   disabled:opacity-50 text-sm leading-6 px-2 py-2
+                   disabled:opacity-50 text-sm leading-6 px-3 py-3 pr-14
                    overflow-y-auto border-none"
       />
 
-      {/* Send button - fixed at bottom right */}
-      <div className="flex justify-end pt-2 flex-shrink-0">
-        <button
-          type="submit"
-          disabled={!input.trim() || disabled}
-          className="p-2 bg-primary text-primary-foreground rounded-lg
-                     hover:bg-primary/90 active:bg-primary/80 active:scale-95
-                     transition-all duration-150
-                     disabled:opacity-50 disabled:cursor-not-allowed
-                     disabled:hover:bg-primary disabled:active:scale-100"
-          title="Send message (Enter)"
-        >
-          <Send className="w-5 h-5" />
-        </button>
-      </div>
+      {/* Send button - inside textarea at bottom right */}
+      <button
+        type="submit"
+        disabled={!input.trim() || disabled}
+        className="absolute bottom-3 right-3
+                   p-2 bg-primary text-primary-foreground rounded-lg
+                   hover:bg-primary/90 active:bg-primary/80 active:scale-95
+                   transition-all duration-150
+                   disabled:opacity-50 disabled:cursor-not-allowed"
+        title="Send message (Enter)"
+      >
+        <Send className="w-4 h-4" />
+      </button>
     </form>
   );
 }

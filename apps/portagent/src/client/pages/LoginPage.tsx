@@ -14,7 +14,7 @@ export function LoginPage() {
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    navigate("/", { replace: true });
+    navigate("/workspace", { replace: true });
     return null;
   }
 
@@ -26,7 +26,7 @@ export function LoginPage() {
     const success = await login(password);
 
     if (success) {
-      navigate("/", { replace: true });
+      navigate("/workspace", { replace: true });
     } else {
       setError("Invalid password");
       setIsLoading(false);

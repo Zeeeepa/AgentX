@@ -25,7 +25,15 @@
 
 import { useState, useMemo } from "react";
 import { Search, Plus, MessageSquare, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { SessionItem } from "./types";
+
+// Animation variants for session items
+const sessionItemVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: -20, transition: { duration: 0.15 } },
+};
 
 export interface SessionPaneProps {
   /**
@@ -146,65 +154,75 @@ export function SessionPane({
 
       {/* Session list */}
       <div className="flex-1 overflow-y-auto py-1">
-        {filteredSessions.map((session) => {
-          const isActive = current?.sessionId === session.sessionId;
+        <AnimatePresence mode="popLayout">
+          {filteredSessions.map((session, index) => {
+            const isActive = current?.sessionId === session.sessionId;
 
-          return (
-            <div
-              key={session.sessionId}
-              className={`
-                group relative w-full flex items-start gap-3 px-3 py-2.5 text-left
-                transition-colors cursor-pointer border-l-[3px]
-                ${
-                  isActive
-                    ? "bg-blue-100 dark:bg-blue-900/30 border-l-blue-500"
-                    : "hover:bg-muted/50 border-l-transparent"
-                }
-              `}
-              onClick={() => onSelect(session)}
-            >
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium truncate">
-                    {session.title ?? "Untitled conversation"}
-                  </span>
-                  {session.unreadCount && session.unreadCount > 0 && (
-                    <span className="flex-shrink-0 min-w-[18px] h-[18px] px-1 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
-                      {session.unreadCount}
+            return (
+              <motion.div
+                key={session.sessionId}
+                variants={sessionItemVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.2, delay: Math.min(index * 0.03, 0.2) }}
+                layout
+                className={`
+                  group relative w-full flex items-start gap-3 px-3 py-2.5 text-left
+                  cursor-pointer border-l-[3px]
+                  ${
+                    isActive
+                      ? "bg-blue-100 dark:bg-blue-900/30 border-l-blue-500"
+                      : "hover:bg-muted/50 border-l-transparent"
+                  }
+                `}
+                onClick={() => onSelect(session)}
+              >
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium truncate">
+                      {session.title ?? "Untitled conversation"}
                     </span>
+                    {session.unreadCount && session.unreadCount > 0 && (
+                      <span className="flex-shrink-0 min-w-[18px] h-[18px] px-1 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
+                        {session.unreadCount}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Preview */}
+                  {session.preview && (
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">
+                      {session.preview}
+                    </p>
                   )}
+
+                  {/* Time */}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formatRelativeTime(session.updatedAt)}
+                  </p>
                 </div>
 
-                {/* Preview */}
-                {session.preview && (
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">{session.preview}</p>
+                {/* Delete button - show on hover */}
+                {onDelete && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(session.sessionId);
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md
+                               opacity-0 group-hover:opacity-100 transition-opacity
+                               hover:bg-destructive/10 hover:text-destructive"
+                    title="Delete session"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 )}
-
-                {/* Time */}
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formatRelativeTime(session.updatedAt)}
-                </p>
-              </div>
-
-              {/* Delete button - show on hover */}
-              {onDelete && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(session.sessionId);
-                  }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md
-                             opacity-0 group-hover:opacity-100 transition-opacity
-                             hover:bg-destructive/10 hover:text-destructive"
-                  title="Delete session"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          );
-        })}
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
 
         {/* Empty state */}
         {filteredSessions.length === 0 && (

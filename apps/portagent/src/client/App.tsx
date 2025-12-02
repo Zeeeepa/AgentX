@@ -33,14 +33,16 @@ export function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route
-          path="/"
+          path="/workspace"
           element={
             <ProtectedRoute>
               <ChatPage />
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Redirect root to workspace for now */}
+        <Route path="/" element={<Navigate to="/workspace" replace />} />
+        <Route path="*" element={<Navigate to="/workspace" replace />} />
       </Routes>
     </AuthProvider>
   );

@@ -28,7 +28,7 @@
  * ```
  */
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 
@@ -116,7 +116,7 @@ export function Workspace({
   // ===== Agent Instance Management =====
   const [agent, setAgent] = useState<Agent | null>(null);
   const [historyMessages, setHistoryMessages] = useState<Message[]>([]);
-  const skipResumeRef = useRef(false);
+  const [justCreatedSessionId, setJustCreatedSessionId] = useState<string | null>(null);
 
   // Resume agent when session is selected (for existing sessions)
   // New sessions are handled by handleCreateSession with run() instead
@@ -127,9 +127,9 @@ export function Workspace({
       return;
     }
 
-    // Skip if handleCreateSession already set the agent
-    if (skipResumeRef.current) {
-      skipResumeRef.current = false;
+    // Skip if this session was just created (already has agent via run())
+    if (currentSession.sessionId === justCreatedSessionId) {
+      setJustCreatedSessionId(null);
       return;
     }
 
@@ -162,7 +162,7 @@ export function Workspace({
         agent.destroy?.().catch(console.error);
       }
     };
-  }, [currentSession?.sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentSession?.sessionId, justCreatedSessionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ===== Agent State (maps to agentx.agents) =====
   const {
@@ -222,8 +222,8 @@ export function Workspace({
       session.collect(newAgent);
     }
 
-    // Set agent directly and skip the resume useEffect
-    skipResumeRef.current = true;
+    // Set agent directly and mark this session as just created (skip resume)
+    setJustCreatedSessionId(newSession.sessionId);
     setHistoryMessages([]); // New session has no history
     setAgent(newAgent);
   }, [agentx, currentDefinition, createSession, sessions.length]);
@@ -304,7 +304,7 @@ export function Workspace({
                 />
               </Allotment.Pane>
 
-              <Allotment.Pane minSize={80} maxSize={400} preferredSize={120}>
+              <Allotment.Pane minSize={100} maxSize={400} preferredSize={140}>
                 <InputPane onSend={handleSend} disabled={isLoading} />
               </Allotment.Pane>
             </Allotment>

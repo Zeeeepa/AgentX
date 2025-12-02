@@ -19,6 +19,7 @@
  */
 
 import { useRef, useEffect } from "react";
+import { motion } from "framer-motion";
 import type {
   Message,
   ToolCallMessage as ToolCallMessageType,
@@ -28,6 +29,12 @@ import { UserMessage } from "./items/UserMessage";
 import { AssistantMessage } from "./items/AssistantMessage";
 import { ToolUseMessage } from "./items/ToolUseMessage";
 import { SystemMessage } from "./items/SystemMessage";
+
+// Animation variants for message items
+const messageVariants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0 },
+};
 
 export interface MessageListProps {
   /**
@@ -131,7 +138,7 @@ export function MessageList({ messages, streamingText, className = "" }: Message
       <div className="max-w-4xl mx-auto px-4 py-3 sm:py-4 space-y-3 sm:space-y-4">
         {/* Render grouped messages */}
         {groupedMessages.map((item) => {
-          // Handle grouped tool messages
+          // Handle grouped tool messages (no animation - state changes during execution)
           if ("type" in item && item.type === "tool-use") {
             return (
               <ToolUseMessage
@@ -146,8 +153,20 @@ export function MessageList({ messages, streamingText, className = "" }: Message
           const msg = item as Message;
           switch (msg.subtype) {
             case "user":
-              return <UserMessage key={msg.id} message={msg} />;
+              // Only UserMessage gets animation (static after send)
+              return (
+                <motion.div
+                  key={msg.id}
+                  variants={messageVariants}
+                  initial="hidden"
+                  animate="visible"
+                  transition={{ duration: 0.2 }}
+                >
+                  <UserMessage message={msg} />
+                </motion.div>
+              );
             case "assistant":
+              // No animation - content updates during streaming
               return <AssistantMessage key={msg.id} message={msg} />;
             case "system":
               return <SystemMessage key={msg.id} message={msg} />;
@@ -156,7 +175,7 @@ export function MessageList({ messages, streamingText, className = "" }: Message
           }
         })}
 
-        {/* Streaming message */}
+        {/* Streaming message - no animation wrapper */}
         {streamingText && (
           <AssistantMessage
             message={{

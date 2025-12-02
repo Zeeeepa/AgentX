@@ -38,6 +38,7 @@
 
 import type { AgentError, AgentState, Message } from "@deepractice-ai/agentx-types";
 import { Bot } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { MessagePane } from "./MessagePane";
 import type { AgentDefinitionItem, SessionItem } from "./types";
 
@@ -140,15 +141,26 @@ export function AgentPane({
     <div className={`h-full flex flex-col bg-background ${className}`}>
       {definition && <AgentHeader definition={definition} session={session} agentId={agentId} />}
 
-      <div className="flex-1 min-h-0">
-        <MessagePane
-          messages={messages}
-          streaming={streaming}
-          errors={errors}
-          status={status}
-          isLoading={isLoading}
-          onAbort={onAbort}
-        />
+      <div className="flex-1 min-h-0 relative overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={session?.sessionId ?? "empty"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="absolute inset-0"
+          >
+            <MessagePane
+              messages={messages}
+              streaming={streaming}
+              errors={errors}
+              status={status}
+              isLoading={isLoading}
+              onAbort={onAbort}
+            />
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
