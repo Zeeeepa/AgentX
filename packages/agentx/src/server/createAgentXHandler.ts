@@ -27,6 +27,8 @@ import type {
   ImageRecord,
   SessionRecord,
   MessageRecord,
+  ContainerRecord,
+  ContainerConfig,
 } from "@agentxjs/types";
 import type {
   AgentXHandler,
@@ -255,6 +257,29 @@ export function createAgentXHandler(
       }
       if (method === "DELETE") {
         return { type: "delete_message", messageId };
+      }
+    }
+
+    // Containers routes: /containers, /containers/:containerId
+    if (method === "GET" && path === "/containers") {
+      return { type: "list_containers" };
+    }
+
+    if (method === "POST" && path === "/containers") {
+      return { type: "create_container" };
+    }
+
+    const containerMatch = path.match(/^\/containers\/([^/]+)$/);
+    if (containerMatch) {
+      const containerId = containerMatch[1];
+      if (method === "GET") {
+        return { type: "get_container", containerId };
+      }
+      if (method === "DELETE") {
+        return { type: "delete_container", containerId };
+      }
+      if (method === "HEAD") {
+        return { type: "head_container", containerId };
       }
     }
 
@@ -778,6 +803,48 @@ export function createAgentXHandler(
     return new Response(null, { status: 204 });
   }
 
+  // ----- Containers -----
+
+  async function handleListContainers(): Promise<Response> {
+    const repo = getRepository();
+    const containers = await repo.findAllContainers();
+    return jsonResponse(containers);
+  }
+
+  async function handleCreateContainer(request: Request): Promise<Response> {
+    let config: ContainerConfig | undefined;
+    try {
+      const body = (await request.json()) as { config?: ContainerConfig };
+      config = body.config;
+    } catch {
+      // No body or invalid JSON - create with no config
+    }
+
+    const container: ContainerRecord = await agentx.containers.create(config);
+    return jsonResponse(container, 201);
+  }
+
+  async function handleGetContainer(containerId: string): Promise<Response> {
+    const container = await agentx.containers.get(containerId);
+    if (!container) {
+      return errorResponse("INVALID_REQUEST", `Container ${containerId} not found`, 404);
+    }
+    return jsonResponse(container);
+  }
+
+  async function handleDeleteContainer(containerId: string): Promise<Response> {
+    const deleted = await agentx.containers.delete(containerId);
+    if (!deleted) {
+      return errorResponse("INVALID_REQUEST", `Container ${containerId} not found`, 404);
+    }
+    return new Response(null, { status: 204 });
+  }
+
+  async function handleHeadContainer(containerId: string): Promise<Response> {
+    const exists = await agentx.containers.exists(containerId);
+    return new Response(null, { status: exists ? 200 : 404 });
+  }
+
   // ============================================================================
   // Main Handler
   // ============================================================================
@@ -870,6 +937,18 @@ export function createAgentXHandler(
           return handleSaveMessage(parsed.messageId!, request);
         case "delete_message":
           return handleDeleteMessage(parsed.messageId!);
+
+        // Containers
+        case "list_containers":
+          return handleListContainers();
+        case "create_container":
+          return handleCreateContainer(request);
+        case "get_container":
+          return handleGetContainer(parsed.containerId!);
+        case "delete_container":
+          return handleDeleteContainer(parsed.containerId!);
+        case "head_container":
+          return handleHeadContainer(parsed.containerId!);
 
         case "not_found":
         default:

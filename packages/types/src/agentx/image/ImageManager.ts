@@ -103,18 +103,21 @@ export interface ImageManager {
    * For user-specific sessions, use session.resume() instead.
    *
    * @param imageId - Image identifier
+   * @param options - Optional configuration
+   * @param options.containerId - Container to run in (defaults to auto-created container)
    * @returns Running agent instance
    * @throws Error if image not found
    *
    * @example
    * ```typescript
-   * // Run from MetaImage (fresh start)
+   * // Simple usage (auto-created default container)
    * const metaImage = await agentx.images.getMetaImage("Translator");
    * const agent = await agentx.images.run(metaImage.imageId);
    *
-   * // Run from DerivedImage (with history)
-   * const agent = await agentx.images.run(derivedImageId);
+   * // Multi-tenant usage (explicit container)
+   * const container = await agentx.containers.create();
+   * const agent = await agentx.images.run(metaImage.imageId, { containerId: container.containerId });
    * ```
    */
-  run(imageId: string): Promise<Agent>;
+  run(imageId: string, options?: { containerId?: string }): Promise<Agent>;
 }

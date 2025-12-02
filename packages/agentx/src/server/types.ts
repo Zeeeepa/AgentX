@@ -209,6 +209,11 @@ export interface ParsedRequest {
   messageId?: string;
 
   /**
+   * Container ID (if applicable)
+   */
+  containerId?: string;
+
+  /**
    * Request body (if applicable)
    */
   body?: unknown;
@@ -260,6 +265,12 @@ export type RequestType =
   | "get_message" // GET /messages/:messageId
   | "save_message" // PUT /messages/:messageId
   | "delete_message" // DELETE /messages/:messageId
+  // Containers
+  | "list_containers" // GET /containers
+  | "create_container" // POST /containers
+  | "get_container" // GET /containers/:containerId
+  | "delete_container" // DELETE /containers/:containerId
+  | "head_container" // HEAD /containers/:containerId
   // Not found
   | "not_found"; // Unknown route
 

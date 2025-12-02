@@ -139,6 +139,9 @@ export type {
   GetHealthEndpoint,
 } from "./platform";
 
+// Container module (Manager) - container lifecycle and agent runtime
+export type { ContainerManager } from "./container";
+
 // Definition module (Manager) - registry for agent definitions
 export type { DefinitionManager } from "./definition";
 

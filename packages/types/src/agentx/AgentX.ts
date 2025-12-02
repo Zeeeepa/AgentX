@@ -32,10 +32,20 @@ import type { SessionManager } from "./session";
 import type { PlatformManager } from "./platform";
 import type { DefinitionManager } from "./definition";
 import type { ImageManager } from "./image";
+import type { ContainerManager } from "./container";
+
 /**
  * Base AgentX interface (shared by Local and Remote)
  */
 interface AgentXBase {
+  /**
+   * Container management (resource isolation units)
+   *
+   * In multi-tenant scenarios, each tenant maps to a container.
+   * Containers provide isolated environments for running agents.
+   */
+  readonly containers: ContainerManager;
+
   /**
    * Definition registry (Docker-style: source templates)
    */

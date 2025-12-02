@@ -1,13 +1,11 @@
 /**
  * Repository - Unified persistence interface for AgentX
  *
- * Single interface for all data operations (images, sessions, messages).
+ * Single interface for all data operations (containers, images, sessions, messages).
  * Implementations can be local (SQLite) or remote (HTTP API).
  *
  * Part of Docker-style layered architecture:
- * Definition → build → Image → run → Agent
- *                        ↓
- *                    Session (external wrapper)
+ * Container → Definition → Image → Session → Agent
  *
  * @example
  * ```typescript
@@ -22,6 +20,7 @@
  * ```
  */
 
+import type { ContainerRecord } from "./record/ContainerRecord";
 import type { DefinitionRecord } from "./record/DefinitionRecord";
 import type { ImageRecord } from "./record/ImageRecord";
 import type { SessionRecord } from "./record/SessionRecord";
@@ -31,6 +30,33 @@ import type { MessageRecord } from "./record/MessageRecord";
  * Repository - Unified persistence interface
  */
 export interface Repository {
+  // ==================== Container ====================
+
+  /**
+   * Save a container record (create or update)
+   */
+  saveContainer(record: ContainerRecord): Promise<void>;
+
+  /**
+   * Find container by ID
+   */
+  findContainerById(containerId: string): Promise<ContainerRecord | null>;
+
+  /**
+   * Find all containers
+   */
+  findAllContainers(): Promise<ContainerRecord[]>;
+
+  /**
+   * Delete container by ID
+   */
+  deleteContainer(containerId: string): Promise<void>;
+
+  /**
+   * Check if container exists
+   */
+  containerExists(containerId: string): Promise<boolean>;
+
   // ==================== Definition ====================
 
   /**

@@ -33,191 +33,18 @@
 
 import type {
   Runtime,
-  Container,
   Sandbox,
   RuntimeDriver,
   AgentContext,
   AgentDefinition,
-  Agent,
   Repository,
-  AgentImage,
-  Session,
   LoggerFactory,
+  Logger,
 } from "@agentxjs/types";
-import { AgentInstance } from "@agentxjs/agent";
-import { AgentEngine } from "@agentxjs/engine";
 import { setLoggerFactory } from "@agentxjs/common";
 import { createSSEDriver } from "./SSEDriver";
 import { RemoteRepository } from "./repository";
 import { BrowserLoggerFactory } from "./logger";
-
-/**
- * Server response for run/resume endpoints
- */
-interface CreateAgentResponse {
-  agentId: string;
-  name: string;
-  lifecycle: string;
-  state: string;
-  createdAt: number;
-  endpoints: {
-    sse: string;
-    messages: string;
-    interrupt: string;
-  };
-}
-
-// ============================================================================
-// RemoteContainer - Container that calls remote server for agent creation
-// ============================================================================
-
-class RemoteContainer implements Container {
-  readonly id: string;
-  private readonly agents = new Map<string, Agent>();
-  private readonly serverUrl: string;
-  private readonly headers: Record<string, string>;
-  private readonly sseParams: Record<string, string>;
-  private readonly engine: AgentEngine;
-
-  constructor(
-    serverUrl: string,
-    headers: Record<string, string> = {},
-    sseParams: Record<string, string> = {}
-  ) {
-    this.id = "remote-container";
-    this.serverUrl = serverUrl;
-    this.headers = headers;
-    this.sseParams = sseParams;
-    this.engine = new AgentEngine();
-  }
-
-  /**
-   * Run agent from image (calls server POST /images/:imageId/run)
-   */
-  async run(image: AgentImage): Promise<Agent> {
-    // Call server to create agent
-    const response = await fetch(`${this.serverUrl}/images/${image.imageId}/run`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...this.headers,
-      },
-    });
-
-    if (!response.ok) {
-      const errorBody = (await response
-        .json()
-        .catch(() => ({ error: { message: "Unknown error" } }))) as {
-        error?: { message?: string };
-      };
-      throw new Error(errorBody.error?.message || `Failed to run image: ${response.status}`);
-    }
-
-    const data = (await response.json()) as CreateAgentResponse;
-
-    // Create local agent with SSE driver
-    return this.createLocalAgent(data.agentId, image.definition);
-  }
-
-  /**
-   * Resume agent from session (calls server POST /sessions/:sessionId/resume)
-   */
-  async resume(session: Session): Promise<Agent> {
-    // Call server to resume agent
-    const response = await fetch(`${this.serverUrl}/sessions/${session.sessionId}/resume`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...this.headers,
-      },
-    });
-
-    if (!response.ok) {
-      const errorBody = (await response
-        .json()
-        .catch(() => ({ error: { message: "Unknown error" } }))) as {
-        error?: { message?: string };
-      };
-      throw new Error(errorBody.error?.message || `Failed to resume session: ${response.status}`);
-    }
-
-    const data = (await response.json()) as CreateAgentResponse;
-
-    // Get definition from session's image (simplified - use name as fallback)
-    const definition: AgentDefinition = {
-      name: data.name,
-      systemPrompt: "", // Server handles system prompt
-    };
-
-    // Create local agent with SSE driver
-    return this.createLocalAgent(data.agentId, definition);
-  }
-
-  /**
-   * Create a local AgentInstance with SSE driver
-   */
-  private createLocalAgent(agentId: string, definition: AgentDefinition): Agent {
-    // Create context
-    const context: AgentContext = {
-      agentId,
-      createdAt: Date.now(),
-    };
-
-    // Create SSE driver
-    const driver = createSSEDriver({
-      serverUrl: this.serverUrl,
-      agentId,
-      headers: this.headers,
-      sseParams: this.sseParams,
-    });
-
-    // Create agent instance
-    const agent = new AgentInstance(definition, context, this.engine, driver, noopSandbox);
-
-    // Register agent
-    this.agents.set(agentId, agent);
-
-    return agent;
-  }
-
-  /**
-   * Destroy agent (calls server DELETE /agents/:agentId)
-   */
-  async destroy(agentId: string): Promise<void> {
-    const agent = this.agents.get(agentId);
-    if (agent) {
-      await agent.destroy();
-    }
-
-    // Remove from local cache
-    this.agents.delete(agentId);
-
-    // Call server to destroy agent
-    await fetch(`${this.serverUrl}/agents/${agentId}`, {
-      method: "DELETE",
-      headers: this.headers,
-    }).catch(() => {
-      // Ignore errors - local cleanup is done
-    });
-  }
-
-  get(agentId: string): Agent | undefined {
-    return this.agents.get(agentId);
-  }
-
-  has(agentId: string): boolean {
-    return this.agents.has(agentId);
-  }
-
-  list(): Agent[] {
-    return Array.from(this.agents.values());
-  }
-
-  async destroyAll(): Promise<void> {
-    const agentIds = Array.from(this.agents.keys());
-    await Promise.all(agentIds.map((id) => this.destroy(id)));
-  }
-}
 
 // ============================================================================
 // NoopSandbox - Browser doesn't need local resources
@@ -284,7 +111,6 @@ export interface SSERuntimeConfig {
  */
 class SSERuntime implements Runtime {
   readonly name = "sse";
-  readonly container: Container;
   readonly repository: Repository;
   readonly loggerFactory: LoggerFactory;
 
@@ -305,15 +131,13 @@ class SSERuntime implements Runtime {
     // Set as global logger factory
     setLoggerFactory(this.loggerFactory);
 
-    // Use RemoteContainer - it calls server to resolve agentId
-    this.container = new RemoteContainer(this.serverUrl, this.headers, this.sseParams);
     this.repository = new RemoteRepository({
       serverUrl: this.serverUrl,
       headers: this.headers,
     });
   }
 
-  createSandbox(_name: string): Sandbox {
+  createSandbox(_containerId: string): Sandbox {
     // Browser doesn't need local resources
     return noopSandbox;
   }
@@ -323,7 +147,7 @@ class SSERuntime implements Runtime {
     context: AgentContext,
     _sandbox: Sandbox
   ): RuntimeDriver {
-    // context.agentId is already resolved by RemoteContainer.resolveAgentId()
+    // context.agentId is already resolved by RemoteContainer
     // which called POST /agents on server - so it's the server's agentId
     const driver = createSSEDriver({
       serverUrl: this.serverUrl,
@@ -337,6 +161,10 @@ class SSERuntime implements Runtime {
       ...driver,
       sandbox: noopSandbox,
     };
+  }
+
+  createLogger(name: string): Logger {
+    return this.loggerFactory.getLogger(name);
   }
 }
 

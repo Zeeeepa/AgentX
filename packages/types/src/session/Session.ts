@@ -77,9 +77,11 @@ export interface Session {
    * Creates a new agent instance from the associated image,
    * which contains the frozen definition, config, and messages.
    *
+   * @param options - Optional configuration
+   * @param options.containerId - Container to run in (defaults to auto-created container)
    * @returns Agent instance ready to continue the conversation
    */
-  resume(): Promise<Agent>;
+  resume(options?: { containerId?: string }): Promise<Agent>;
 
   /**
    * Fork this session to create a new branch

@@ -3,7 +3,7 @@
  *
  * ## ADR: Infrastructure Abstraction
  *
- * Runtime is the infrastructure layer, providing all resources needed for Agent execution.
+ * Runtime is the infrastructure layer, providing create functions for technical components.
  * This is key to isomorphic architecture: business code depends on Runtime interface,
  * not concrete implementations.
  *
@@ -11,8 +11,8 @@
  * ┌─────────────────────────────────────────────────────────────┐
  * │                       Runtime Interface                     │
  * │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
- * │  │  Container  │  │   Sandbox   │  │     Repository      │  │
- * │  │ (lifecycle) │  │  (OS + LLM) │  │ (storage abstract)  │  │
+ * │  │createSandbox│  │createDriver │  │     Repository      │  │
+ * │  │  (OS+LLM)   │  │  (AI model) │  │ (storage abstract)  │  │
  * │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
  * └─────────────────────────────────────────────────────────────┘
  *                              │
@@ -31,12 +31,14 @@
  *
  * ## Core Components
  *
- * | Component  | Responsibility              | Server Impl        | Browser Impl      |
- * |------------|-----------------------------|--------------------|-------------------|
- * | Container  | Agent lifecycle management  | MemoryContainer    | MemoryContainer   |
- * | Sandbox    | Resource isolation (OS+LLM) | LocalSandbox       | NoopSandbox       |
- * | Repository | Storage abstraction         | SQLiteRepository   | RemoteRepository  |
- * | Driver     | LLM invocation              | ClaudeDriver       | SSEDriver         |
+ * | Component      | Responsibility              | Server Impl        | Browser Impl      |
+ * |----------------|-----------------------------|--------------------|-------------------|
+ * | createSandbox  | Resource isolation (OS+LLM) | LocalSandbox       | NoopSandbox       |
+ * | createDriver   | LLM invocation              | ClaudeDriver       | SSEDriver         |
+ * | createLogger   | Logging                     | FileLogger         | ConsoleLogger     |
+ * | Repository     | Storage abstraction         | SQLiteRepository   | RemoteRepository  |
+ *
+ * Note: Container lifecycle (ContainerManager) is at AgentX layer, not Runtime.
  *
  * ## Repository Isomorphic Design
  *
@@ -63,9 +65,6 @@ export type { Runtime } from "./Runtime";
 
 // RuntimeDriver - Driver + Sandbox combination
 export type { RuntimeDriver } from "~/runtime/container/driver/RuntimeDriver";
-
-// Container - Agent lifecycle management
-export * from "./container";
 
 // Sandbox - Resource isolation (OS filesystem, process, env; LLM provider)
 export * from "./container/sandbox";

@@ -139,6 +139,8 @@ export type {
   AgentXRemote,
   // defineAgent
   DefineAgentInput,
+  // Container module
+  ContainerManager,
   // Agent module
   AgentManager,
   // Error module
@@ -182,8 +184,10 @@ export type {
   // Runtime types
   Runtime,
   RuntimeDriver,
-  Container,
   Sandbox,
+  // Repository types
+  ContainerRecord,
+  ContainerConfig,
   // Error types
   AgentError,
   ErrorSeverity,

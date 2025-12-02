@@ -19,6 +19,7 @@
 import Database from "better-sqlite3";
 import type {
   Repository,
+  ContainerRecord,
   DefinitionRecord,
   ImageRecord,
   SessionRecord,
@@ -56,6 +57,13 @@ export class SQLiteRepository implements Repository {
 
   private initSchema(): void {
     this.db.exec(`
+      CREATE TABLE IF NOT EXISTS containers (
+        containerId TEXT PRIMARY KEY,
+        createdAt INTEGER NOT NULL,
+        updatedAt INTEGER NOT NULL,
+        config TEXT
+      );
+
       CREATE TABLE IF NOT EXISTS images (
         imageId TEXT PRIMARY KEY,
         type TEXT NOT NULL,
@@ -97,6 +105,51 @@ export class SQLiteRepository implements Repository {
 
     // Enable foreign keys
     this.db.pragma("foreign_keys = ON");
+  }
+
+  // ==================== Container ====================
+
+  async saveContainer(record: ContainerRecord): Promise<void> {
+    const stmt = this.db.prepare(`
+      INSERT INTO containers (containerId, createdAt, updatedAt, config)
+      VALUES (@containerId, @createdAt, @updatedAt, @config)
+      ON CONFLICT(containerId) DO UPDATE SET
+        updatedAt = @updatedAt,
+        config = @config
+    `);
+
+    stmt.run({
+      containerId: record.containerId,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt,
+      config: record.config ? JSON.stringify(record.config) : null,
+    });
+  }
+
+  async findContainerById(containerId: string): Promise<ContainerRecord | null> {
+    const stmt = this.db.prepare("SELECT * FROM containers WHERE containerId = ?");
+    const row = stmt.get(containerId) as ContainerRow | undefined;
+
+    if (!row) return null;
+
+    return this.toContainerRecord(row);
+  }
+
+  async findAllContainers(): Promise<ContainerRecord[]> {
+    const stmt = this.db.prepare("SELECT * FROM containers ORDER BY createdAt DESC");
+    const rows = stmt.all() as ContainerRow[];
+
+    return rows.map((row) => this.toContainerRecord(row));
+  }
+
+  async deleteContainer(containerId: string): Promise<void> {
+    const stmt = this.db.prepare("DELETE FROM containers WHERE containerId = ?");
+    stmt.run(containerId);
+  }
+
+  async containerExists(containerId: string): Promise<boolean> {
+    const stmt = this.db.prepare("SELECT 1 FROM containers WHERE containerId = ?");
+    return stmt.get(containerId) !== undefined;
   }
 
   // ==================== Definition (in-memory) ====================
@@ -300,6 +353,15 @@ export class SQLiteRepository implements Repository {
 
   // ==================== Helpers ====================
 
+  private toContainerRecord(row: ContainerRow): ContainerRecord {
+    return {
+      containerId: row.containerId,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      config: row.config ? JSON.parse(row.config) : undefined,
+    };
+  }
+
   private toImageRecord(row: ImageRow): ImageRecord {
     return {
       imageId: row.imageId,
@@ -344,6 +406,13 @@ export class SQLiteRepository implements Repository {
 }
 
 // Row types for SQLite results
+interface ContainerRow {
+  containerId: string;
+  createdAt: number;
+  updatedAt: number;
+  config: string | null;
+}
+
 interface ImageRow {
   imageId: string;
   type: string;

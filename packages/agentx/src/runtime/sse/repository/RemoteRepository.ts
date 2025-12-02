@@ -15,6 +15,7 @@ import type {
   ImageRecord,
   SessionRecord,
   MessageRecord,
+  ContainerRecord,
 } from "@agentxjs/types";
 import { createLogger } from "@agentxjs/common";
 import { createHttpClient, type KyInstance } from "~/managers/remote/HttpClient";
@@ -196,6 +197,40 @@ export class RemoteRepository implements Repository {
     return result.count;
   }
 
+  // ==================== Container ====================
+
+  async saveContainer(record: ContainerRecord): Promise<void> {
+    await this.client.put(`containers/${record.containerId}`, { json: record });
+  }
+
+  async findContainerById(containerId: string): Promise<ContainerRecord | null> {
+    try {
+      const result = await this.client.get(`containers/${containerId}`).json<ContainerRecord>();
+      return this.parseContainerRecord(result);
+    } catch (error: unknown) {
+      if (this.isNotFound(error)) return null;
+      throw error;
+    }
+  }
+
+  async findAllContainers(): Promise<ContainerRecord[]> {
+    const result = await this.client.get("containers").json<ContainerRecord[]>();
+    return result.map((r) => this.parseContainerRecord(r));
+  }
+
+  async deleteContainer(containerId: string): Promise<void> {
+    await this.client.delete(`containers/${containerId}`);
+  }
+
+  async containerExists(containerId: string): Promise<boolean> {
+    try {
+      await this.client.head(`containers/${containerId}`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   // ==================== Helpers ====================
 
   private isNotFound(error: unknown): boolean {
@@ -229,6 +264,13 @@ export class RemoteRepository implements Repository {
     return {
       ...raw,
       createdAt: new Date(raw.createdAt),
+    };
+  }
+
+  private parseContainerRecord(raw: ContainerRecord): ContainerRecord {
+    return {
+      ...raw,
+      // ContainerRecord uses number timestamps, no conversion needed
     };
   }
 }

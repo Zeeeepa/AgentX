@@ -4,7 +4,7 @@
  * Part of Docker-style layered architecture:
  * Definition → [auto] → MetaImage → Session → [commit] → DerivedImage
  *
- * This implementation uses Repository for persistence and Container for
+ * This implementation uses Repository for persistence and ContainerManager for
  * creating agents from images (like `docker run`).
  */
 
@@ -16,7 +16,7 @@ import type {
   ImageRecord,
   AgentDefinition,
   Agent,
-  Container,
+  ContainerManager,
 } from "@agentxjs/types";
 import { createLogger } from "@agentxjs/common";
 
@@ -61,13 +61,22 @@ function toAgentImage(record: ImageRecord): AgentImage {
 }
 
 /**
- * ImageManager implementation using Repository and Container
+ * ImageManager implementation using Repository and ContainerManager
  */
 export class ImageManagerImpl implements ImageManager {
+  private readonly repository: Repository;
+  private readonly containerManager: ContainerManager;
+  private defaultContainerId?: string;
+
   constructor(
-    private readonly repository: Repository,
-    private readonly container: Container
-  ) {}
+    repository: Repository,
+    containerManager: ContainerManager,
+    defaultContainerId?: string
+  ) {
+    this.repository = repository;
+    this.containerManager = containerManager;
+    this.defaultContainerId = defaultContainerId;
+  }
 
   async get(imageId: string): Promise<AgentImage | undefined> {
     const record = await this.repository.findImageById(imageId);
@@ -120,8 +129,8 @@ export class ImageManagerImpl implements ImageManager {
     return true;
   }
 
-  async run(imageId: string): Promise<Agent> {
-    logger.info("Running agent from image", { imageId });
+  async run(imageId: string, options?: { containerId?: string }): Promise<Agent> {
+    logger.info("Running agent from image", { imageId, containerId: options?.containerId });
 
     // Get image
     const image = await this.get(imageId);
@@ -129,7 +138,18 @@ export class ImageManagerImpl implements ImageManager {
       throw new Error(`Image not found: ${imageId}`);
     }
 
-    // Delegate to container
-    return this.container.run(image);
+    // Resolve containerId (explicit > default > auto-create)
+    let containerId = options?.containerId || this.defaultContainerId;
+
+    if (!containerId) {
+      // Auto-create default container
+      const container = await this.containerManager.create();
+      containerId = container.containerId;
+      this.defaultContainerId = containerId;
+      logger.debug("Auto-created default container", { containerId });
+    }
+
+    // Delegate to container manager
+    return this.containerManager.run(image, containerId);
   }
 }

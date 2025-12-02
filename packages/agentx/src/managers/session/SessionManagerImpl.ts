@@ -16,7 +16,7 @@ import type {
   SessionRecord,
   ImageRecord,
   Agent,
-  Container,
+  ContainerManager,
   Message,
 } from "@agentxjs/types";
 import type { MessageRecord, MessageRole } from "@agentxjs/types";
@@ -54,9 +54,15 @@ class SessionImpl implements Session {
   private _title: string | null;
   private _updatedAt: number;
   private readonly repository: Repository;
-  private readonly container: Container;
+  private readonly containerManager: ContainerManager;
+  private readonly defaultContainerId?: string;
 
-  constructor(record: SessionRecord, repository: Repository, container: Container) {
+  constructor(
+    record: SessionRecord,
+    repository: Repository,
+    containerManager: ContainerManager,
+    defaultContainerId?: string
+  ) {
     this.sessionId = record.sessionId;
     this.userId = record.userId;
     this.imageId = record.imageId;
@@ -64,7 +70,8 @@ class SessionImpl implements Session {
     this.createdAt = record.createdAt.getTime();
     this._updatedAt = record.updatedAt.getTime();
     this.repository = repository;
-    this.container = container;
+    this.containerManager = containerManager;
+    this.defaultContainerId = defaultContainerId;
   }
 
   get title(): string | null {
@@ -75,14 +82,28 @@ class SessionImpl implements Session {
     return this._updatedAt;
   }
 
-  async resume(): Promise<Agent> {
+  async resume(options?: { containerId?: string }): Promise<Agent> {
     logger.info("Resuming agent from session", {
       sessionId: this.sessionId,
       imageId: this.imageId,
+      containerId: options?.containerId,
     });
 
-    // Delegate to container
-    const agent = await this.container.resume(this);
+    // Resolve containerId (explicit > default > auto-create)
+    let containerId = options?.containerId || this.defaultContainerId;
+
+    if (!containerId) {
+      // Auto-create default container
+      const container = await this.containerManager.create();
+      containerId = container.containerId;
+      logger.debug("Auto-created default container for session", {
+        containerId,
+        sessionId: this.sessionId,
+      });
+    }
+
+    // Delegate to container manager
+    const agent = await this.containerManager.resume(this, containerId);
 
     // Auto-collect messages from agent
     this.collect(agent);
@@ -175,7 +196,12 @@ class SessionImpl implements Session {
       newImageId,
     });
 
-    return new SessionImpl(newSessionRecord, this.repository, this.container);
+    return new SessionImpl(
+      newSessionRecord,
+      this.repository,
+      this.containerManager,
+      this.defaultContainerId
+    );
   }
 
   async setTitle(title: string): Promise<void> {
@@ -203,11 +229,17 @@ class SessionImpl implements Session {
  */
 export class SessionManagerImpl implements SessionManager {
   private readonly repository: Repository;
-  private readonly container: Container;
+  private readonly containerManager: ContainerManager;
+  private readonly defaultContainerId?: string;
 
-  constructor(repository: Repository, container: Container) {
+  constructor(
+    repository: Repository,
+    containerManager: ContainerManager,
+    defaultContainerId?: string
+  ) {
     this.repository = repository;
-    this.container = container;
+    this.containerManager = containerManager;
+    this.defaultContainerId = defaultContainerId;
   }
 
   async create(imageId: string, userId: string): Promise<Session> {
@@ -227,14 +259,14 @@ export class SessionManagerImpl implements SessionManager {
 
     logger.info("Session created", { sessionId, imageId, userId });
 
-    return new SessionImpl(record, this.repository, this.container);
+    return new SessionImpl(record, this.repository, this.containerManager, this.defaultContainerId);
   }
 
   async get(sessionId: string): Promise<Session | undefined> {
     const record = await this.repository.findSessionById(sessionId);
     if (!record) return undefined;
 
-    return new SessionImpl(record, this.repository, this.container);
+    return new SessionImpl(record, this.repository, this.containerManager, this.defaultContainerId);
   }
 
   async has(sessionId: string): Promise<boolean> {
@@ -243,17 +275,23 @@ export class SessionManagerImpl implements SessionManager {
 
   async list(): Promise<Session[]> {
     const records = await this.repository.findAllSessions();
-    return records.map((r) => new SessionImpl(r, this.repository, this.container));
+    return records.map(
+      (r) => new SessionImpl(r, this.repository, this.containerManager, this.defaultContainerId)
+    );
   }
 
   async listByImage(imageId: string): Promise<Session[]> {
     const records = await this.repository.findSessionsByImageId(imageId);
-    return records.map((r) => new SessionImpl(r, this.repository, this.container));
+    return records.map(
+      (r) => new SessionImpl(r, this.repository, this.containerManager, this.defaultContainerId)
+    );
   }
 
   async listByUser(userId: string): Promise<Session[]> {
     const records = await this.repository.findSessionsByUserId(userId);
-    return records.map((r) => new SessionImpl(r, this.repository, this.container));
+    return records.map(
+      (r) => new SessionImpl(r, this.repository, this.containerManager, this.defaultContainerId)
+    );
   }
 
   async destroy(sessionId: string): Promise<void> {
