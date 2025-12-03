@@ -28,6 +28,7 @@ services:
 
       # Optional - Auth Configuration
       - JWT_SECRET=change-me-to-a-random-string
+      - INVITE_CODE_REQUIRED=true
     volumes:
       # Persist database
       - portagent-data:/root/.agentx/data
