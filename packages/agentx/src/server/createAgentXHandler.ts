@@ -239,12 +239,6 @@ export function createAgentXHandler(
       }
     }
 
-    // Users routes: /users/:userId/sessions
-    const userMatch = path.match(/^\/users\/([^/]+)\/sessions$/);
-    if (userMatch && method === "GET") {
-      return { type: "list_user_sessions", userId: userMatch[1] };
-    }
-
     // Messages routes: /messages/:messageId
     const messageMatch = path.match(/^\/messages\/([^/]+)$/);
     if (messageMatch) {
@@ -791,14 +785,6 @@ export function createAgentXHandler(
     return jsonResponse(response, 201);
   }
 
-  // ----- Users -----
-
-  async function handleListUserSessions(userId: string): Promise<Response> {
-    const repo = getRepository();
-    const sessions = await repo.findSessionsByUserId(userId);
-    return jsonResponse(sessions);
-  }
-
   // ----- Messages -----
 
   async function handleGetMessage(messageId: string): Promise<Response> {
@@ -962,10 +948,6 @@ export function createAgentXHandler(
           return handleCountSessionMessages(parsed.sessionId!);
         case "resume_session":
           return handleResumeSession(parsed.sessionId!, request);
-
-        // Users
-        case "list_user_sessions":
-          return handleListUserSessions(parsed.userId!);
 
         // Messages
         case "get_message":

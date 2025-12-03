@@ -129,9 +129,9 @@ export interface Repository {
   findSessionsByImageId(imageId: string): Promise<SessionRecord[]>;
 
   /**
-   * Find all sessions for a user
+   * Find all sessions for a container
    */
-  findSessionsByUserId(userId: string): Promise<SessionRecord[]>;
+  findSessionsByContainerId(containerId: string): Promise<SessionRecord[]>;
 
   /**
    * Find all sessions

@@ -127,8 +127,8 @@ export class RemoteRepository implements Repository {
     return result.map((r) => this.parseSessionRecord(r));
   }
 
-  async findSessionsByUserId(userId: string): Promise<SessionRecord[]> {
-    const result = await this.client.get(`users/${userId}/sessions`).json<SessionRecord[]>();
+  async findSessionsByContainerId(containerId: string): Promise<SessionRecord[]> {
+    const result = await this.client.get(`containers/${containerId}/sessions`).json<SessionRecord[]>();
     return result.map((r) => this.parseSessionRecord(r));
   }
 
@@ -240,30 +240,30 @@ export class RemoteRepository implements Repository {
   private parseDefinitionRecord(raw: DefinitionRecord): DefinitionRecord {
     return {
       ...raw,
-      createdAt: new Date(raw.createdAt),
-      updatedAt: new Date(raw.updatedAt),
+      createdAt: typeof raw.createdAt === "string" ? new Date(raw.createdAt).getTime() : raw.createdAt,
+      updatedAt: typeof raw.updatedAt === "string" ? new Date(raw.updatedAt).getTime() : raw.updatedAt,
     };
   }
 
   private parseImageRecord(raw: ImageRecord): ImageRecord {
     return {
       ...raw,
-      createdAt: new Date(raw.createdAt),
+      createdAt: typeof raw.createdAt === "string" ? new Date(raw.createdAt).getTime() : raw.createdAt,
     };
   }
 
   private parseSessionRecord(raw: SessionRecord): SessionRecord {
     return {
       ...raw,
-      createdAt: new Date(raw.createdAt),
-      updatedAt: new Date(raw.updatedAt),
+      createdAt: typeof raw.createdAt === "string" ? new Date(raw.createdAt).getTime() : raw.createdAt,
+      updatedAt: typeof raw.updatedAt === "string" ? new Date(raw.updatedAt).getTime() : raw.updatedAt,
     };
   }
 
   private parseMessageRecord(raw: MessageRecord): MessageRecord {
     return {
       ...raw,
-      createdAt: new Date(raw.createdAt),
+      createdAt: typeof raw.createdAt === "string" ? new Date(raw.createdAt).getTime() : raw.createdAt,
     };
   }
 

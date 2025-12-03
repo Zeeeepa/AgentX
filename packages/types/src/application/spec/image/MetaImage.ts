@@ -67,7 +67,7 @@ export interface MetaImage {
   readonly messages: readonly [];
 
   /**
-   * When this image was created (same as Definition registration time)
+   * When this image was created (Unix milliseconds, same as Definition registration time)
    */
-  readonly createdAt: Date;
+  readonly createdAt: number;
 }

@@ -1,15 +1,19 @@
 /**
  * SessionRecord - Storage schema for Session persistence
  *
- * Pure data type representing a session (external user-facing view) in storage.
- * Session wraps Image for external concerns:
- * - User ownership (userId)
- * - UI display (title, metadata)
+ * Session belongs to a Container and references an Image.
+ *
+ * Architecture:
+ * ```
+ * Container
+ * └── Session (conversation context)
+ *     └── Messages
+ * ```
  *
  * Part of Docker-style layered architecture:
  * Definition → build → Image → run → Agent
  *                        ↓
- *                    Session (external wrapper)
+ *                    Session (runtime context)
  */
 
 /**
@@ -22,9 +26,9 @@ export interface SessionRecord {
   sessionId: string;
 
   /**
-   * Owner user identifier
+   * Container this session belongs to
    */
-  userId: string;
+  containerId: string;
 
   /**
    * Associated image identifier (frozen runtime snapshot)
@@ -37,12 +41,12 @@ export interface SessionRecord {
   title: string | null;
 
   /**
-   * Creation timestamp
+   * Creation timestamp (Unix milliseconds)
    */
-  createdAt: Date;
+  createdAt: number;
 
   /**
-   * Last update timestamp
+   * Last update timestamp (Unix milliseconds)
    */
-  updatedAt: Date;
+  updatedAt: number;
 }

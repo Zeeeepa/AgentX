@@ -1,36 +1,51 @@
 /**
  * Ecosystem Module - Runtime environment for AI Agents
  *
- * Three-layer Ecosystem architecture:
+ * ## ADR: Three-Layer Architecture (Ontological Foundation)
+ *
+ * Based on three fundamental ontological categories from issue #026:
+ *
+ * | Layer       | Ontology  | Protocol    | Content                          |
+ * |-------------|-----------|-------------|----------------------------------|
+ * | Application | Structure | HTTP        | Definition, Image, User          |
+ * | Network     | Relation  | HTTP + WS   | Server, Client, Channel          |
+ * | Ecosystem   | Process   | WS Events   | Runtime, Container, Session, Agent |
+ *
+ * This module defines the **Ecosystem Layer** - dynamic processes and activities.
+ *
  * ```
  * ┌─────────────────────────────────────────────────────────────┐
- * │                    Network Ecosystem                        │
- * │   (Server/Client, Channel - see network/)                   │
+ * │                    Ecosystem Layer                          │
  * ├─────────────────────────────────────────────────────────────┤
- * │                    Runtime Ecosystem                        │
- * │   (Container, Session, Repository)                          │
+ * │  Pure Abstractions (Systems Theory)                         │
+ * │  - Ecosystem: Event bus interface                           │
+ * │  - Receptor: Input boundary (senses external signals)       │
+ * │  - Effector: Output boundary (transmits events)             │
  * ├─────────────────────────────────────────────────────────────┤
- * │                    Agent Ecosystem                          │
- * │   (Agent, Message, Events)                                  │
+ * │  Runtime Layer                                              │
+ * │  - Runtime: Infrastructure interface                        │
+ * │  - Container: Agent isolation boundary                      │
+ * │  - Session: User conversation context                       │
+ * │  - Repository: Storage abstraction                          │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │  Agent Layer                                                │
+ * │  - Agent: AI agent runtime instance                         │
+ * │  - Message: Conversation messages                           │
+ * │  - Events: Stream, State, Message, Turn (4-layer system)    │
  * └─────────────────────────────────────────────────────────────┘
  * ```
  *
- * ## Pure Abstractions (from systems theory)
- * - Ecosystem: Event bus interface
- * - Receptor: Senses external signals (input boundary)
- * - Effector: Transmits events (output boundary)
+ * ## ADR: Event-Driven Architecture
  *
- * ## Runtime Layer
- * - Runtime: Infrastructure interface
- * - Container: Agent isolation boundary
- * - Session: User conversation context
- * - Repository: Storage abstraction
+ * All runtime communication uses events (WebSocket), not HTTP:
+ * - Agent lifecycle events (started, ready, destroyed)
+ * - Conversation events (start, thinking, responding, end)
+ * - Stream events (text_delta, tool_call, tool_result)
  *
- * ## Agent Layer
- * - Agent: AI agent interface
- * - Message: Conversation messages
- * - Events: Stream, State, Message, Turn events
+ * This enables real-time bidirectional communication and
+ * clean separation from static resource management (HTTP).
  *
+ * @see issues/026-three-layer-architecture.md
  * @packageDocumentation
  */
 

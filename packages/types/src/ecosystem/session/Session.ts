@@ -1,5 +1,5 @@
 /**
- * Session - External wrapper for user-facing conversation management
+ * Session - External wrapper for conversation management
  *
  * Part of Docker-style layered architecture:
  * Definition → build → Image → run → Agent
@@ -8,7 +8,7 @@
  *
  * Session is AgentX-specific (Docker doesn't have this).
  * It wraps Image for external concerns:
- * - User ownership (userId)
+ * - Container association (containerId)
  * - UI display (title, metadata)
  * - External system integration
  *
@@ -17,8 +17,8 @@
  *
  * @example
  * ```typescript
- * // Create session for a user
- * const session = await agentx.sessions.create(imageId, userId);
+ * // Create session for a container
+ * const session = await agentx.sessions.create(imageId, containerId);
  *
  * // Resume agent from session's image
  * const agent = await session.resume();
@@ -38,7 +38,7 @@ import type { Agent } from "~/ecosystem/agent/Agent";
 import type { Message } from "~/ecosystem/agent/message/Message";
 
 /**
- * Session represents a user-facing conversation context
+ * Session represents a conversation context
  */
 export interface Session {
   /**
@@ -47,9 +47,9 @@ export interface Session {
   readonly sessionId: string;
 
   /**
-   * Owner user ID
+   * Associated container ID
    */
-  readonly userId: string;
+  readonly containerId: string;
 
   /**
    * Associated image ID (frozen runtime snapshot)

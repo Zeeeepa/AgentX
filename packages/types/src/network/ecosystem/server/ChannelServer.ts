@@ -39,7 +39,7 @@
  * ```
  */
 
-import type { Channel, ChannelUnsubscribe } from "~/network/channel";
+import type { Channel, ChannelUnsubscribe } from "~/network/ecosystem/channel";
 
 /**
  * ChannelServer state

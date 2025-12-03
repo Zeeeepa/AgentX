@@ -47,7 +47,7 @@ function generateImageId(): string {
  */
 class SessionImpl implements Session {
   readonly sessionId: string;
-  readonly userId: string;
+  readonly containerId: string;
   readonly imageId: string;
   readonly createdAt: number;
 
@@ -64,11 +64,11 @@ class SessionImpl implements Session {
     defaultContainerId?: string
   ) {
     this.sessionId = record.sessionId;
-    this.userId = record.userId;
+    this.containerId = record.containerId;
     this.imageId = record.imageId;
     this._title = record.title;
-    this.createdAt = record.createdAt.getTime();
-    this._updatedAt = record.updatedAt.getTime();
+    this.createdAt = record.createdAt;
+    this._updatedAt = record.updatedAt;
     this.repository = repository;
     this.containerManager = containerManager;
     this.defaultContainerId = defaultContainerId;
@@ -127,7 +127,7 @@ class SessionImpl implements Session {
         sessionId,
         role,
         content: data as unknown as Record<string, unknown>,
-        createdAt: new Date(data.timestamp ?? Date.now()),
+        createdAt: data.timestamp ?? Date.now(),
       };
 
       repository.saveMessage(record).catch((error) => {
@@ -173,16 +173,16 @@ class SessionImpl implements Session {
       definition: imageRecord.definition,
       config: imageRecord.config,
       messages: [...imageRecord.messages], // Copy messages
-      createdAt: new Date(),
+      createdAt: Date.now(),
     };
     await this.repository.saveImage(newImageRecord);
 
     // Create new session pointing to new image
     const newSessionId = generateSessionId();
-    const now = new Date();
+    const now = Date.now();
     const newSessionRecord: SessionRecord = {
       sessionId: newSessionId,
-      userId: this.userId,
+      containerId: this.containerId,
       imageId: newImageId,
       title: this._title ? `Fork of ${this._title}` : null,
       createdAt: now,
@@ -207,18 +207,18 @@ class SessionImpl implements Session {
   async setTitle(title: string): Promise<void> {
     logger.debug("Setting session title", { sessionId: this.sessionId, title });
 
-    const now = new Date();
+    const now = Date.now();
     await this.repository.saveSession({
       sessionId: this.sessionId,
-      userId: this.userId,
+      containerId: this.containerId,
       imageId: this.imageId,
       title,
-      createdAt: new Date(this.createdAt),
+      createdAt: this.createdAt,
       updatedAt: now,
     });
 
     this._title = title;
-    this._updatedAt = now.getTime();
+    this._updatedAt = now;
 
     logger.info("Session title updated", { sessionId: this.sessionId, title });
   }
@@ -242,13 +242,13 @@ export class SessionManagerImpl implements SessionManager {
     this.defaultContainerId = defaultContainerId;
   }
 
-  async create(imageId: string, userId: string): Promise<Session> {
+  async create(imageId: string, containerId: string): Promise<Session> {
     const sessionId = generateSessionId();
-    const now = new Date();
+    const now = Date.now();
 
     const record: SessionRecord = {
       sessionId,
-      userId,
+      containerId,
       imageId,
       title: null,
       createdAt: now,
@@ -257,7 +257,7 @@ export class SessionManagerImpl implements SessionManager {
 
     await this.repository.saveSession(record);
 
-    logger.info("Session created", { sessionId, imageId, userId });
+    logger.info("Session created", { sessionId, imageId, containerId });
 
     return new SessionImpl(record, this.repository, this.containerManager, this.defaultContainerId);
   }
@@ -287,8 +287,8 @@ export class SessionManagerImpl implements SessionManager {
     );
   }
 
-  async listByUser(userId: string): Promise<Session[]> {
-    const records = await this.repository.findSessionsByUserId(userId);
+  async listByContainer(containerId: string): Promise<Session[]> {
+    const records = await this.repository.findSessionsByContainerId(containerId);
     return records.map(
       (r) => new SessionImpl(r, this.repository, this.containerManager, this.defaultContainerId)
     );

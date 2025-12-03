@@ -18,7 +18,7 @@
  * ```
  */
 
-import type { PlatformInfo, HealthStatus } from "~/network/endpoint/PlatformEndpoint";
+import type { PlatformInfo, HealthStatus } from "~/network/application/endpoint/PlatformEndpoint";
 
 /**
  * Platform management interface (Remote only)

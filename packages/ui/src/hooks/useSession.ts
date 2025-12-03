@@ -10,14 +10,14 @@
  * ```tsx
  * import { useSession } from "@agentxjs/ui";
  *
- * function SessionList({ agentx, userId }) {
+ * function SessionList({ agentx, containerId }) {
  *   const {
  *     sessions,
  *     currentSession,
  *     selectSession,
  *     createSession,
  *     isLoading,
- *   } = useSession(agentx, userId);
+ *   } = useSession(agentx, containerId);
  *
  *   return (
  *     <div>
@@ -48,7 +48,7 @@ export type { SessionItem } from "~/components/container/types";
  */
 export interface UseSessionResult {
   /**
-   * All sessions for the current user
+   * All sessions for the current container
    */
   sessions: SessionItem[];
 
@@ -126,7 +126,7 @@ export interface UseSessionOptions {
 function toSessionItem(session: Session): SessionItem {
   return {
     sessionId: session.sessionId,
-    userId: session.userId,
+    containerId: session.containerId,
     imageId: session.imageId,
     title: session.title,
     createdAt: session.createdAt,
@@ -140,13 +140,13 @@ function toSessionItem(session: Session): SessionItem {
  * Maps to agentx.sessions API.
  *
  * @param agentx - AgentX instance
- * @param userId - Current user ID
+ * @param containerId - Current container ID
  * @param options - Optional configuration
  * @returns Session state and operations
  */
 export function useSession(
   agentx: AgentX | null,
-  userId: string,
+  containerId: string,
   options: UseSessionOptions = {}
 ): UseSessionResult {
   const { autoLoad = true, onSessionChange, onSessionsChange } = options;
@@ -165,7 +165,7 @@ export function useSession(
     setError(null);
 
     try {
-      const sessionList = await agentx.sessions.listByUser(userId);
+      const sessionList = await agentx.sessions.listByContainer(containerId);
       const items = sessionList.map(toSessionItem);
       setSessions(items);
       onSessionsChange?.(items);
@@ -174,7 +174,7 @@ export function useSession(
     } finally {
       setIsLoading(false);
     }
-  }, [agentx, userId, onSessionsChange]);
+  }, [agentx, containerId, onSessionsChange]);
 
   // Auto-load on mount
   useEffect(() => {
@@ -203,7 +203,7 @@ export function useSession(
       setError(null);
 
       try {
-        const session = await agentx.sessions.create(imageId, userId);
+        const session = await agentx.sessions.create(imageId, containerId);
         if (title) {
           await session.setTitle(title);
         }
@@ -224,7 +224,7 @@ export function useSession(
         setIsLoading(false);
       }
     },
-    [agentx, userId, sessions, onSessionsChange]
+    [agentx, containerId, sessions, onSessionsChange]
   );
 
   // Delete session

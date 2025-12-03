@@ -33,7 +33,7 @@ export interface MessageRecord {
   content: Record<string, unknown>;
 
   /**
-   * Creation timestamp
+   * Creation timestamp (Unix milliseconds)
    */
-  createdAt: Date;
+  createdAt: number;
 }

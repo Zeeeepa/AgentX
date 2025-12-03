@@ -37,12 +37,12 @@ export interface AgentRecord {
   lifecycle: AgentLifecycle;
 
   /**
-   * Creation timestamp
+   * Creation timestamp (Unix milliseconds)
    */
-  createdAt: Date;
+  createdAt: number;
 
   /**
-   * Last update timestamp
+   * Last update timestamp (Unix milliseconds)
    */
-  updatedAt: Date;
+  updatedAt: number;
 }

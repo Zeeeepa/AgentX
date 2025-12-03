@@ -1,23 +1,46 @@
 /**
- * AgentX Types - Type definitions for AI Agent ecosystem
+ * @agentxjs/types - Type definitions for AgentX AI Agent ecosystem
  *
- * ## Three-Layer Architecture
+ * ## ADR: Three-Layer Architecture (Ontological Foundation)
+ *
+ * Based on three fundamental ontological categories (issue #026):
+ *
+ * | Layer       | Ontology  | Protocol    | Content                          |
+ * |-------------|-----------|-------------|----------------------------------|
+ * | Application | Structure | HTTP        | Definition, Image, User          |
+ * | Network     | Relation  | HTTP + WS   | Server, Client, Channel          |
+ * | Ecosystem   | Process   | WS Events   | Runtime, Container, Session, Agent |
  *
  * ```
  * ┌─────────────────────────────────────────────────────────────┐
  * │                    Application Layer                        │
- * │   (AgentX API, Definition, Image, User)                     │
- * │   Protocol: HTTP (static resource CRUD)                     │
+ * │   Static structures - "what exists"                         │
+ * │   Protocol: HTTP (CRUD operations)                          │
  * ├─────────────────────────────────────────────────────────────┤
  * │                    Network Layer                            │
- * │   (Server, Client, Channel, Endpoints)                      │
+ * │   Connections and relations - "how things connect"          │
  * │   Protocol: HTTP + WebSocket                                │
  * ├─────────────────────────────────────────────────────────────┤
  * │                    Ecosystem Layer                          │
- * │   (Runtime, Container, Session, Agent)                      │
+ * │   Dynamic processes - "what happens"                        │
  * │   Protocol: WebSocket Events                                │
  * └─────────────────────────────────────────────────────────────┘
  * ```
+ *
+ * ## ADR: Why This Separation?
+ *
+ * 1. **Protocol Alignment**: Each layer uses the protocol that fits its nature
+ *    - Static resources → HTTP (RESTful CRUD)
+ *    - Dynamic events → WebSocket (real-time bidirectional)
+ *
+ * 2. **Responsibility Isolation**: Clear boundaries prevent coupling
+ *    - Application: Data models and API contracts
+ *    - Network: Communication infrastructure
+ *    - Ecosystem: Runtime behavior
+ *
+ * 3. **Isomorphic Design**: Same types work in Node.js and Browser
+ *    - Browser: Uses Network layer to connect to server
+ *    - Server: Uses Ecosystem layer directly
  *
  * ## Module Structure
  *
@@ -25,22 +48,23 @@
  * |-------------|------------------|------------|-----------------------------|
  * | Application | application/     | HTTP       | Static resources + API      |
  * |             | └ spec/          | -          | Definition, Image           |
- * |             | └ agentx/        | -          | Managers                    |
- * |             | └ user/          | -          | User types                  |
- * |             | └ common/        | -          | Utilities                   |
- * |             | └ error/         | -          | Error types                 |
- * |             | └ guards/        | -          | Type guards                 |
- * | Network     | network/         | HTTP/WS    | Server, Client, Channel     |
- * |             | └ server/        | WS         | Listen for connections      |
- * |             | └ client/        | WS         | Connect to server           |
- * |             | └ channel/       | WS         | Bidirectional communication |
- * |             | └ endpoint/      | HTTP       | Static resource CRUD        |
+ * |             | └ agentx/        | -          | Platform Managers           |
+ * |             | └ user/          | -          | User identity               |
+ * |             | └ common/        | -          | Logger, utilities           |
+ * |             | └ error/         | -          | Error type system           |
+ * |             | └ guards/        | -          | Runtime type guards         |
+ * | Network     | network/         | HTTP/WS    | Communication layer         |
+ * |             | └ server/        | WS         | Accept connections          |
+ * |             | └ channel/       | WS         | Bidirectional transport     |
+ * |             | └ endpoint/      | HTTP       | REST API contracts          |
  * | Ecosystem   | ecosystem/       | WS Event   | Runtime environment         |
- * |             | └ agent/         | -          | Agent types and events      |
+ * |             | └ agent/         | -          | Agent, Message, Events      |
  * |             | └ session/       | -          | Session management          |
- * |             | └ container/     | -          | Container, Sandbox          |
+ * |             | └ container/     | -          | Container, Sandbox, LLM     |
  * |             | └ repository/    | -          | Storage abstraction         |
+ * |             | └ receptors/     | -          | Event listeners             |
  *
+ * @see issues/026-three-layer-architecture.md
  * @see issues/025-ecosystem-channel-architecture.md
  * @packageDocumentation
  */

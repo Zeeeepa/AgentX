@@ -28,14 +28,14 @@ export default meta;
 type Story = StoryObj<typeof SessionPane>;
 
 // Mock constants
-const MOCK_USER_ID = "user_default";
+const MOCK_CONTAINER_ID = "container_default";
 const MOCK_IMAGE_ID = "image_claude_abc123";
 
 // Mock data
 const mockSessions: SessionItem[] = [
   {
     sessionId: "session_1",
-    userId: MOCK_USER_ID,
+    containerId: MOCK_CONTAINER_ID,
     imageId: MOCK_IMAGE_ID,
     title: "Code Refactoring",
     createdAt: Date.now() - 3600000,
@@ -45,7 +45,7 @@ const mockSessions: SessionItem[] = [
   },
   {
     sessionId: "session_2",
-    userId: MOCK_USER_ID,
+    containerId: MOCK_CONTAINER_ID,
     imageId: MOCK_IMAGE_ID,
     title: "API Design Discussion",
     createdAt: Date.now() - 86400000,
@@ -54,7 +54,7 @@ const mockSessions: SessionItem[] = [
   },
   {
     sessionId: "session_3",
-    userId: MOCK_USER_ID,
+    containerId: MOCK_CONTAINER_ID,
     imageId: MOCK_IMAGE_ID,
     title: "Weekly Report Summary",
     createdAt: Date.now() - 172800000,
@@ -63,7 +63,7 @@ const mockSessions: SessionItem[] = [
   },
   {
     sessionId: "session_4",
-    userId: MOCK_USER_ID,
+    containerId: MOCK_CONTAINER_ID,
     imageId: MOCK_IMAGE_ID,
     title: "Performance Optimization",
     createdAt: Date.now() - 259200000,
@@ -72,7 +72,7 @@ const mockSessions: SessionItem[] = [
   },
   {
     sessionId: "session_5",
-    userId: MOCK_USER_ID,
+    containerId: MOCK_CONTAINER_ID,
     imageId: MOCK_IMAGE_ID,
     title: "Old Discussion",
     createdAt: Date.now() - 604800000,
@@ -143,7 +143,7 @@ export const WithoutAgentName: Story = {
 function ManySessionsComponent() {
   const manySessions: SessionItem[] = Array.from({ length: 20 }, (_, i) => ({
     sessionId: `session_${i}`,
-    userId: MOCK_USER_ID,
+    containerId: MOCK_CONTAINER_ID,
     imageId: MOCK_IMAGE_ID,
     title: `Topic ${i + 1}: ${["Bug Fix", "Feature Request", "Code Review", "Discussion", "Analysis"][i % 5]}`,
     createdAt: Date.now() - i * 86400000,

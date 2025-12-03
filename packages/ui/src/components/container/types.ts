@@ -15,7 +15,7 @@ import type { AgentDefinition } from "@agentxjs/types";
  * Part of Docker-style layered architecture:
  * Definition → build → Image → run → Agent
  *                        ↓
- *                    Session (userId + imageId)
+ *                    Session (containerId + imageId)
  */
 export interface SessionItem {
   /**
@@ -24,9 +24,9 @@ export interface SessionItem {
   sessionId: string;
 
   /**
-   * Owner user ID
+   * Associated container ID
    */
-  userId: string;
+  containerId: string;
 
   /**
    * Associated image ID (frozen runtime snapshot)

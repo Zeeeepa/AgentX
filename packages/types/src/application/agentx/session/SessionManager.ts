@@ -8,14 +8,14 @@
  *
  * @example
  * ```typescript
- * // Create session for an image and user
- * const session = await agentx.sessions.create(imageId, userId);
+ * // Create session for an image and container
+ * const session = await agentx.sessions.create(imageId, containerId);
  *
  * // Resume agent from session
  * const agent = await session.resume();
  *
- * // List sessions by user
- * const sessions = await agentx.sessions.listByUser(userId);
+ * // List sessions by container
+ * const sessions = await agentx.sessions.listByContainer(containerId);
  *
  * // Fork session
  * const forkedSession = await session.fork();
@@ -32,13 +32,13 @@ import type { Session } from "~/ecosystem/session/Session";
  */
 export interface SessionManager {
   /**
-   * Create a new session for an image and user
+   * Create a new session for an image and container
    *
    * @param imageId - The image ID to create session for
-   * @param userId - The user ID who owns this session
+   * @param containerId - The container ID that owns this session
    * @returns Created session
    */
-  create(imageId: string, userId: string): Promise<Session>;
+  create(imageId: string, containerId: string): Promise<Session>;
 
   /**
    * Get an existing session by ID
@@ -72,12 +72,12 @@ export interface SessionManager {
   listByImage(imageId: string): Promise<Session[]>;
 
   /**
-   * List all sessions for a user
+   * List all sessions for a container
    *
-   * @param userId - The user ID
-   * @returns Array of sessions for the user
+   * @param containerId - The container ID
+   * @returns Array of sessions for the container
    */
-  listByUser(userId: string): Promise<Session[]>;
+  listByContainer(containerId: string): Promise<Session[]>;
 
   /**
    * Destroy a session

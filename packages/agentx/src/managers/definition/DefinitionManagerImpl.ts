@@ -32,7 +32,7 @@ function generateMetaImageId(definitionName: string): string {
  * Convert AgentDefinition to DefinitionRecord
  */
 function toDefinitionRecord(definition: AgentDefinition): DefinitionRecord {
-  const now = new Date();
+  const now = Date.now();
   return {
     name: definition.name,
     description: definition.description,
@@ -77,7 +77,7 @@ export class DefinitionManagerImpl implements DefinitionManager {
       definition: definition as unknown as Record<string, unknown>,
       config: {},
       messages: [],
-      createdAt: new Date(),
+      createdAt: Date.now(),
     };
 
     // Save MetaImage to repository (async, fire-and-forget)

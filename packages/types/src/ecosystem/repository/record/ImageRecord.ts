@@ -76,9 +76,9 @@ export interface ImageRecord {
   messages: Record<string, unknown>[];
 
   /**
-   * Creation timestamp
+   * Creation timestamp (Unix milliseconds)
    */
-  createdAt: Date;
+  createdAt: number;
 
   /**
    * Driver-specific state for resume capability

@@ -199,11 +199,6 @@ export interface ParsedRequest {
   sessionId?: string;
 
   /**
-   * User ID (if applicable)
-   */
-  userId?: string;
-
-  /**
    * Message ID (if applicable)
    */
   messageId?: string;
@@ -259,8 +254,6 @@ export type RequestType =
   | "delete_session_messages" // DELETE /sessions/:sessionId/messages
   | "count_session_messages" // GET /sessions/:sessionId/messages/count
   | "resume_session" // POST /sessions/:sessionId/resume
-  // Users
-  | "list_user_sessions" // GET /users/:userId/sessions
   // Messages
   | "get_message" // GET /messages/:messageId
   | "save_message" // PUT /messages/:messageId

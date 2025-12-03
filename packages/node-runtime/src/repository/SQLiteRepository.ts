@@ -87,7 +87,7 @@ export class SQLiteRepository implements Repository {
 
       CREATE TABLE IF NOT EXISTS sessions (
         sessionId TEXT PRIMARY KEY,
-        userId TEXT NOT NULL,
+        containerId TEXT NOT NULL,
         imageId TEXT NOT NULL,
         title TEXT,
         createdAt TEXT NOT NULL,
@@ -95,7 +95,7 @@ export class SQLiteRepository implements Repository {
       );
 
       CREATE INDEX IF NOT EXISTS idx_sessions_imageId ON sessions(imageId);
-      CREATE INDEX IF NOT EXISTS idx_sessions_userId ON sessions(userId);
+      CREATE INDEX IF NOT EXISTS idx_sessions_containerId ON sessions(containerId);
 
       CREATE TABLE IF NOT EXISTS messages (
         messageId TEXT PRIMARY KEY,
@@ -239,8 +239,8 @@ export class SQLiteRepository implements Repository {
 
   async saveSession(record: SessionRecord): Promise<void> {
     const stmt = this.db.prepare(`
-      INSERT INTO sessions (sessionId, userId, imageId, title, createdAt, updatedAt)
-      VALUES (@sessionId, @userId, @imageId, @title, @createdAt, @updatedAt)
+      INSERT INTO sessions (sessionId, containerId, imageId, title, createdAt, updatedAt)
+      VALUES (@sessionId, @containerId, @imageId, @title, @createdAt, @updatedAt)
       ON CONFLICT(sessionId) DO UPDATE SET
         title = @title,
         updatedAt = @updatedAt
@@ -248,7 +248,7 @@ export class SQLiteRepository implements Repository {
 
     stmt.run({
       sessionId: record.sessionId,
-      userId: record.userId,
+      containerId: record.containerId,
       imageId: record.imageId,
       title: record.title,
       createdAt: toISOString(record.createdAt),
@@ -274,9 +274,11 @@ export class SQLiteRepository implements Repository {
     return rows.map((row) => this.toSessionRecord(row));
   }
 
-  async findSessionsByUserId(userId: string): Promise<SessionRecord[]> {
-    const stmt = this.db.prepare("SELECT * FROM sessions WHERE userId = ? ORDER BY updatedAt DESC");
-    const rows = stmt.all(userId) as SessionRow[];
+  async findSessionsByContainerId(containerId: string): Promise<SessionRecord[]> {
+    const stmt = this.db.prepare(
+      "SELECT * FROM sessions WHERE containerId = ? ORDER BY updatedAt DESC"
+    );
+    const rows = stmt.all(containerId) as SessionRow[];
 
     return rows.map((row) => this.toSessionRecord(row));
   }
@@ -377,7 +379,7 @@ export class SQLiteRepository implements Repository {
       definition: JSON.parse(row.definition),
       config: JSON.parse(row.config),
       messages: JSON.parse(row.messages),
-      createdAt: new Date(row.createdAt),
+      createdAt: new Date(row.createdAt).getTime(),
       driverState: row.driverState ? JSON.parse(row.driverState) : null,
     };
   }
@@ -385,11 +387,11 @@ export class SQLiteRepository implements Repository {
   private toSessionRecord(row: SessionRow): SessionRecord {
     return {
       sessionId: row.sessionId,
-      userId: row.userId,
+      containerId: row.containerId,
       imageId: row.imageId,
       title: row.title,
-      createdAt: new Date(row.createdAt),
-      updatedAt: new Date(row.updatedAt),
+      createdAt: new Date(row.createdAt).getTime(),
+      updatedAt: new Date(row.updatedAt).getTime(),
     };
   }
 
@@ -399,7 +401,7 @@ export class SQLiteRepository implements Repository {
       sessionId: row.sessionId,
       role: row.role as MessageRole,
       content: JSON.parse(row.content),
-      createdAt: new Date(row.createdAt),
+      createdAt: new Date(row.createdAt).getTime(),
     };
   }
 
@@ -433,7 +435,7 @@ interface ImageRow {
 
 interface SessionRow {
   sessionId: string;
-  userId: string;
+  containerId: string;
   imageId: string;
   title: string | null;
   createdAt: string;

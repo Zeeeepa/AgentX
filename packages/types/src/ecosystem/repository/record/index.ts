@@ -7,6 +7,16 @@
  *
  * Part of Docker-style layered architecture:
  * Container → Definition → Image → Session → Agent
+ *
+ * ## ADR: Timestamp Convention
+ *
+ * All timestamp fields use `number` (Unix milliseconds) instead of `Date` because:
+ * 1. JSON serialization: `Date` becomes string, `number` stays consistent
+ * 2. Database storage: SQLite stores as INTEGER, no conversion needed
+ * 3. Cross-platform: Same representation in Node.js, Browser, and Edge
+ * 4. Performance: No parsing overhead when reading from storage
+ *
+ * Use `Date.now()` to create, `new Date(timestamp)` to display.
  */
 
 export type { ContainerRecord, ContainerConfig } from "./ContainerRecord";

@@ -21,7 +21,7 @@
  * ```
  */
 
-import type { AgentDefinition } from "~/ecosystem/agent/AgentDefinition";
+import type { AgentDefinition } from "~/application/spec/definition";
 
 /**
  * Input for defining an agent

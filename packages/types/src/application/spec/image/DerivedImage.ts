@@ -75,7 +75,7 @@ export interface DerivedImage {
   readonly messages: ImageMessage[];
 
   /**
-   * When this image was created (commit time)
+   * When this image was created (Unix milliseconds, commit time)
    */
-  readonly createdAt: Date;
+  readonly createdAt: number;
 }
