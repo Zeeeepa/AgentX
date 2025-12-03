@@ -1,6 +1,6 @@
 # Portagent Docker Compose
 # Usage:
-#   1. Copy .env.example to .env and fill in values
+#   1. Edit environment variables below (at minimum: LLM_PROVIDER_KEY)
 #   2. Run: docker compose up -d
 #   3. Access: http://localhost:5200
 
@@ -12,15 +12,22 @@ services:
     container_name: portagent
     restart: unless-stopped
     ports:
-      - "${PORT:-5200}:5200"
+      - "5200:5200"
     environment:
+      # Required
+      - LLM_PROVIDER_KEY=sk-ant-xxxxx
+
+      # Optional - LLM Configuration
+      - LLM_PROVIDER_URL=https://api.anthropic.com
+      - LLM_PROVIDER_MODEL=claude-sonnet-4-20250514
+
+      # Optional - Server Configuration
       - NODE_ENV=production
       - PORT=5200
-      - LOG_LEVEL=${LOG_LEVEL:-info}
-      - LLM_PROVIDER_KEY=${LLM_PROVIDER_KEY}
-      - LLM_PROVIDER_URL=${LLM_PROVIDER_URL:-}
-      - LLM_PROVIDER_MODEL=${LLM_PROVIDER_MODEL:-}
-      - JWT_SECRET=${JWT_SECRET:-}
+      - LOG_LEVEL=info
+
+      # Optional - Auth Configuration
+      - JWT_SECRET=change-me-to-a-random-string
     volumes:
       # Persist database
       - portagent-data:/root/.agentx/data
