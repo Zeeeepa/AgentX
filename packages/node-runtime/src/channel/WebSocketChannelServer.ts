@@ -20,10 +20,12 @@
 
 import { WebSocketServer, WebSocket } from "ws";
 import type {
+  // Server types (application-level)
   ChannelServer,
   ChannelServerState,
   ConnectionHandler,
   ChannelServerStateHandler,
+  // Channel types (runtime-level)
   Channel,
   ChannelState,
   ChannelEventHandler,

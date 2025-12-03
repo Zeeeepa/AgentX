@@ -1,125 +1,64 @@
 /**
- * AgentX Types - Industry-level type definitions for AI Agent ecosystem
+ * AgentX Types - Type definitions for AI Agent ecosystem
  *
- * 140+ TypeScript files, zero runtime dependencies.
- *
- * ## ADR: Isomorphic Architecture
- *
- * AgentX uses an isomorphic architecture for "Define Once, Run Anywhere":
+ * ## Three-Layer Architecture
  *
  * ```
  * ┌─────────────────────────────────────────────────────────────┐
- * │                    Application Code                         │
- * │                    (identical)                              │
- * │   const agentx = createAgentX(runtime);                     │
- * │   agentx.definitions.register(MyDef);                       │
- * └────────────────────────┬────────────────────────────────────┘
- *                          │
- *          ┌───────────────┴───────────────┐
- *          │                               │
- *          ▼                               ▼
- * ┌─────────────────────┐       ┌─────────────────────┐
- * │   Server Runtime    │       │   Browser Runtime   │
- * │   SQLiteRepository  │       │   RemoteRepository  │
- * │   (direct DB write) │       │   (HTTP → Server)   │
- * └─────────────────────┘       └─────────────────────┘
+ * │                    Application Layer                        │
+ * │   (AgentX API, Definition, Image, User)                     │
+ * │   Protocol: HTTP (static resource CRUD)                     │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │                    Network Layer                            │
+ * │   (Server, Client, Channel, Endpoints)                      │
+ * │   Protocol: HTTP + WebSocket                                │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │                    Ecosystem Layer                          │
+ * │   (Runtime, Container, Session, Agent)                      │
+ * │   Protocol: WebSocket Events                                │
+ * └─────────────────────────────────────────────────────────────┘
  * ```
- *
- * **Key Insight**: Business logic (agentx/) and infrastructure (runtime/) are separated.
- * Through Repository interface, same business code runs on Server or Browser.
  *
  * ## Module Structure
  *
- * | Module      | Purpose                                      | Layer          |
- * |-------------|----------------------------------------------|----------------|
- * | agentx/     | Business API (defineAgent, createAgentX)     | Business Logic |
- * | runtime/    | Infrastructure (Repository, Container)       | Infrastructure |
- * | definition/ | AgentDefinition (like Dockerfile)            | Source Layer   |
- * | image/      | AgentImage = MetaImage | DerivedImage        | Build Artifact |
- * | session/    | Session (user conversation)                  | Runtime        |
- * | agent/      | Agent core contracts                         | Core Layer     |
- * | event/      | 4-layer events (Stream→State→Message→Turn)   | Event Layer    |
- * | message/    | Message formats and content parts            | Message Layer  |
+ * | Layer       | Module           | Protocol   | Purpose                     |
+ * |-------------|------------------|------------|-----------------------------|
+ * | Application | application/     | HTTP       | Static resources + API      |
+ * |             | └ spec/          | -          | Definition, Image           |
+ * |             | └ agentx/        | -          | Managers                    |
+ * |             | └ user/          | -          | User types                  |
+ * |             | └ common/        | -          | Utilities                   |
+ * |             | └ error/         | -          | Error types                 |
+ * |             | └ guards/        | -          | Type guards                 |
+ * | Network     | network/         | HTTP/WS    | Server, Client, Channel     |
+ * |             | └ server/        | WS         | Listen for connections      |
+ * |             | └ client/        | WS         | Connect to server           |
+ * |             | └ channel/       | WS         | Bidirectional communication |
+ * |             | └ endpoint/      | HTTP       | Static resource CRUD        |
+ * | Ecosystem   | ecosystem/       | WS Event   | Runtime environment         |
+ * |             | └ agent/         | -          | Agent types and events      |
+ * |             | └ session/       | -          | Session management          |
+ * |             | └ container/     | -          | Container, Sandbox          |
+ * |             | └ repository/    | -          | Storage abstraction         |
  *
- * ## Key ADR References
- *
- * - `agentx/index.ts` - Business API layer design
- * - `runtime/index.ts` - Infrastructure layer design
- * - `runtime/repository/index.ts` - Repository isomorphic design
- * - `issues/022-runtime-agentx-isomorphic-architecture.md` - Full architecture doc
- *
+ * @see issues/025-ecosystem-channel-architecture.md
  * @packageDocumentation
  */
 
 // ============================================================================
-// Docker-style Layered Architecture
-// AgentFile/Code → Definition → MetaImage → Session → Agent
+// Application Layer (HTTP - Static Resources)
 // ============================================================================
 
-// Agent state
-export type { AgentState } from "./agent/AgentState";
-
-// User types
-export * from "./user";
-
-// Definition types (Docker-style: source template, like Dockerfile)
-export * from "./definition";
-
-// Image types (Docker-style: built artifact, like Docker Image)
-export * from "./image";
+export * from "./application";
 
 // ============================================================================
-// Business Logic Layer (Platform API)
-// Platform-agnostic, isomorphic
+// Network Layer (HTTP + WebSocket)
 // ============================================================================
 
-// Platform context (AgentX) - includes defineAgent, createAgentX
-// This is the business logic entry point, isomorphic via Runtime
-export * from "./agentx";
+export * from "./network";
 
 // ============================================================================
-// Infrastructure Layer (Runtime)
-// Provides Repository, Container, Sandbox
+// Ecosystem Layer (WebSocket Events)
 // ============================================================================
 
-// Runtime resource types (includes Repository for isomorphic storage)
-// Repository is key to isomorphism: SQLiteRepository vs RemoteRepository
-export * from "./runtime";
-
-// ============================================================================
-// Core Contracts
-// Agent, Driver, Presenter, etc.
-// ============================================================================
-
-// Agent contracts
-export * from "./agent";
-
-// Common internal infrastructure (logger, etc.)
-export * from "./common";
-
-// Error types
-export * from "./error";
-
-// Message types
-export * from "./agent/message";
-
-// Event types (4-layer: Stream → State → Message → Turn)
-export * from "./agent/event";
-
-// LLM types
-export * from "./llm";
-
-// MCP types (Model Context Protocol)
-export * from "./mcp";
-
-// Session types
-export * from "./session";
-
-// Container types
-export * from "./container";
-
-// Ecosystem (pure abstractions from systems theory)
 export * from "./ecosystem";
-
-// Type guards
-export * from "./guards";
