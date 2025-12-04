@@ -2,7 +2,7 @@
  * ImageRecord - Storage schema for AgentImage persistence
  *
  * Pure data type representing an image (frozen snapshot) in storage.
- * Contains serialized definition, config, and messages for resume/fork capability.
+ * Contains serialized definition and messages for resume/fork capability.
  *
  * Part of Docker-style layered architecture:
  * Definition → build → Image → run → Agent
@@ -10,6 +10,10 @@
  * Supports two image types:
  * - 'meta': Genesis image (auto-created from Definition)
  * - 'derived': Committed image (from session.commit())
+ *
+ * Note: Environment-specific state (e.g., Claude SDK session_id) is stored
+ * separately in EnvironmentRecord, not here. This keeps ImageRecord clean
+ * and focused on business-layer concerns.
  */
 
 /**
@@ -24,7 +28,6 @@ export type ImageType = "meta" | "derived";
  * - Type (meta or derived)
  * - Definition name (for lookup)
  * - Definition (business config at build time)
- * - Config (runtime config at build time)
  * - Messages (conversation history)
  * - Parent image (for derived images)
  */
@@ -63,12 +66,6 @@ export interface ImageRecord {
   definition: Record<string, unknown>;
 
   /**
-   * Serialized runtime config (JSON)
-   * Frozen snapshot of model, apiKey reference, etc. at build time
-   */
-  config: Record<string, unknown>;
-
-  /**
    * Serialized messages (JSON array)
    * - MetaImage: always []
    * - DerivedImage: frozen conversation history
@@ -79,13 +76,4 @@ export interface ImageRecord {
    * Creation timestamp (Unix milliseconds)
    */
   createdAt: number;
-
-  /**
-   * Driver-specific state for resume capability
-   * - Generic storage for driver implementation details
-   * - Claude Driver: { sdkSessionId: "xxx" }
-   * - Other drivers can store their own resume data
-   * - May be null for images that haven't been run yet
-   */
-  driverState?: Record<string, unknown> | null;
 }

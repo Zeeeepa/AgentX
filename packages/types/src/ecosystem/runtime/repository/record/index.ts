@@ -24,3 +24,4 @@ export type { DefinitionRecord } from "./DefinitionRecord";
 export type { ImageRecord, ImageType } from "./ImageRecord";
 export type { SessionRecord } from "./SessionRecord";
 export type { MessageRecord } from "./MessageRecord";
+export type { EnvironmentRecord } from "./EnvironmentRecord";

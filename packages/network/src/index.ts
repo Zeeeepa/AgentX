@@ -13,13 +13,13 @@
  * │   (HTTP for Application)    │   (WebSocket for Ecosystem)   │
  * │                             │                               │
  * │   ┌─────────────────────┐   │   ┌─────────────────────────┐ │
- * │   │  server/            │   │   │  server/                │ │
- * │   │  ApplicationHandler │   │   │  WebSocketChannelServer │ │
- * │   └─────────────────────┘   │   └─────────────────────────┘ │
- * │   ┌─────────────────────┐   │   ┌─────────────────────────┐ │
- * │   │  client/            │   │   │  channel/               │ │
- * │   │  ApplicationClient  │   │   │  WebSocketChannel       │ │
- * │   └─────────────────────┘   │   └─────────────────────────┘ │
+ * │   │  server/            │   │   │  peer/                  │ │
+ * │   │  ApplicationHandler │   │   │  WebSocketPeer          │ │
+ * │   └─────────────────────┘   │   │  (upstream + downstream)│ │
+ * │   ┌─────────────────────┐   │   └─────────────────────────┘ │
+ * │   │  client/            │   │                               │
+ * │   │  ApplicationClient  │   │                               │
+ * │   └─────────────────────┘   │                               │
  * └─────────────────────────────┴───────────────────────────────┘
  * ```
  *
@@ -29,35 +29,47 @@
  * ```typescript
  * import {
  *   createApplicationHandler,
- *   createWebSocketChannelServer,
+ *   createWebSocketPeer,
  * } from "@agentxjs/network";
  *
  * // HTTP API
  * const handler = createApplicationHandler(agentx, { repository });
  *
- * // WebSocket
- * const wsServer = createWebSocketChannelServer({ port: 5200 });
- * wsServer.onConnection((channel) => {
- *   // Handle channel events
+ * // WebSocket Peer
+ * const peer = createWebSocketPeer();
+ * await peer.listenDownstream({ port: 5200 });
+ * peer.onDownstreamConnection((conn) => {
+ *   conn.onEvent((event) => console.log(event));
  * });
- * await wsServer.listen();
+ * ```
+ *
+ * **Relay (Node.js)**:
+ * ```typescript
+ * import { createWebSocketPeer } from "@agentxjs/network";
+ *
+ * const peer = createWebSocketPeer();
+ * await peer.connectUpstream({ url: "ws://source:5200" });
+ * await peer.listenDownstream({ port: 5201 });
+ *
+ * // Forward upstream events to downstream
+ * peer.onUpstreamEvent((event) => peer.broadcast(event));
  * ```
  *
  * **Client (Browser)**:
  * ```typescript
  * import {
  *   createApplicationClient,
- *   createWebSocketChannel,
+ *   createWebSocketPeer,
  * } from "@agentxjs/network";
  *
  * // HTTP API
  * const client = createApplicationClient({ baseUrl: "http://localhost:5200/api" });
  * const definitions = await client.definitions.list();
  *
- * // WebSocket
- * const channel = createWebSocketChannel({ url: "ws://localhost:5200/ws" });
- * channel.on((event) => console.log(event));
- * await channel.connect();
+ * // WebSocket Peer (upstream only)
+ * const peer = createWebSocketPeer();
+ * await peer.connectUpstream({ url: "ws://localhost:5200" });
+ * peer.onUpstreamEvent((event) => console.log(event));
  * ```
  *
  * @packageDocumentation

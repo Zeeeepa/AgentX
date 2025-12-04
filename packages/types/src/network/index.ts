@@ -13,13 +13,13 @@
  * │   (HTTP for Application)    │   (WebSocket for Ecosystem)   │
  * │                             │                               │
  * │   ┌─────────────────────┐   │   ┌─────────────────────┐     │
- * │   │  server/            │   │   │  server/            │     │
- * │   │  ApplicationHandler │   │   │  ChannelServer      │     │
- * │   └─────────────────────┘   │   └─────────────────────┘     │
- * │   ┌─────────────────────┐   │   ┌─────────────────────┐     │
- * │   │  client/            │   │   │  channel/           │     │
- * │   │  ApplicationClient  │   │   │  Channel            │     │
- * │   └─────────────────────┘   │   └─────────────────────┘     │
+ * │   │  server/            │   │   │  peer/              │     │
+ * │   │  ApplicationHandler │   │   │  Peer               │     │
+ * │   └─────────────────────┘   │   │  (upstream +        │     │
+ * │   ┌─────────────────────┐   │   │   downstream)       │     │
+ * │   │  client/            │   │   └─────────────────────┘     │
+ * │   │  ApplicationClient  │   │                               │
+ * │   └─────────────────────┘   │                               │
  * │   ┌─────────────────────┐   │                               │
  * │   │  endpoint/          │   │                               │
  * │   │  HTTP contracts     │   │                               │
@@ -35,8 +35,7 @@
  * - Contracts: `Endpoint` types for type-safe API definitions
  *
  * **Ecosystem (WebSocket)**:
- * - Server: `ChannelServer` for accepting WebSocket connections
- * - Client: `Channel` for bidirectional event streaming
+ * - Peer: Bidirectional node that can connect upstream and serve downstream
  *
  * @see issues/026-three-layer-architecture.md
  * @packageDocumentation

@@ -25,6 +25,7 @@ import type { DefinitionRecord } from "./record/DefinitionRecord";
 import type { ImageRecord } from "./record/ImageRecord";
 import type { SessionRecord } from "./record/SessionRecord";
 import type { MessageRecord } from "./record/MessageRecord";
+import type { EnvironmentRecord } from "./record/EnvironmentRecord";
 
 /**
  * Repository - Unified persistence interface
@@ -192,4 +193,31 @@ export interface Repository {
    * @deprecated Messages should be stored in ImageRecord.messages
    */
   countMessagesBySessionId(sessionId: string): Promise<number>;
+
+  // ==================== Environment ====================
+
+  /**
+   * Save an environment record (create or update)
+   */
+  saveEnvironment(record: EnvironmentRecord): Promise<void>;
+
+  /**
+   * Find environment record by session ID
+   */
+  findEnvironmentBySessionId(sessionId: string): Promise<EnvironmentRecord | null>;
+
+  /**
+   * Find environment records by type
+   */
+  findEnvironmentsByType(environmentType: string): Promise<EnvironmentRecord[]>;
+
+  /**
+   * Delete environment record by session ID
+   */
+  deleteEnvironment(sessionId: string): Promise<void>;
+
+  /**
+   * Check if environment record exists for session
+   */
+  environmentExists(sessionId: string): Promise<boolean>;
 }
