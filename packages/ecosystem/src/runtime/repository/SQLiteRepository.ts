@@ -27,6 +27,7 @@ import type {
   SessionRecord,
   MessageRecord,
   MessageRole,
+  EnvironmentRecord,
 } from "@agentxjs/types";
 
 /**
@@ -76,14 +77,22 @@ export class SQLiteRepository implements Repository {
         definitionName TEXT NOT NULL,
         parentImageId TEXT,
         definition TEXT NOT NULL,
-        config TEXT NOT NULL,
         messages TEXT NOT NULL,
-        createdAt TEXT NOT NULL,
-        driverState TEXT
+        createdAt TEXT NOT NULL
       );
 
       CREATE INDEX IF NOT EXISTS idx_images_definitionName ON images(definitionName);
       CREATE INDEX IF NOT EXISTS idx_images_type ON images(type);
+
+      CREATE TABLE IF NOT EXISTS environments (
+        sessionId TEXT PRIMARY KEY,
+        environmentType TEXT NOT NULL,
+        state TEXT NOT NULL,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_environments_type ON environments(environmentType);
 
       CREATE TABLE IF NOT EXISTS sessions (
         sessionId TEXT PRIMARY KEY,
@@ -184,16 +193,14 @@ export class SQLiteRepository implements Repository {
 
   async saveImage(record: ImageRecord): Promise<void> {
     const stmt = this.db.prepare(`
-      INSERT INTO images (imageId, type, definitionName, parentImageId, definition, config, messages, createdAt, driverState)
-      VALUES (@imageId, @type, @definitionName, @parentImageId, @definition, @config, @messages, @createdAt, @driverState)
+      INSERT INTO images (imageId, type, definitionName, parentImageId, definition, messages, createdAt)
+      VALUES (@imageId, @type, @definitionName, @parentImageId, @definition, @messages, @createdAt)
       ON CONFLICT(imageId) DO UPDATE SET
         type = @type,
         definitionName = @definitionName,
         parentImageId = @parentImageId,
         definition = @definition,
-        config = @config,
-        messages = @messages,
-        driverState = @driverState
+        messages = @messages
     `);
 
     stmt.run({
@@ -202,10 +209,8 @@ export class SQLiteRepository implements Repository {
       definitionName: record.definitionName,
       parentImageId: record.parentImageId,
       definition: JSON.stringify(record.definition),
-      config: JSON.stringify(record.config),
       messages: JSON.stringify(record.messages),
       createdAt: toISOString(record.createdAt),
-      driverState: record.driverState ? JSON.stringify(record.driverState) : null,
     });
   }
 
@@ -359,6 +364,55 @@ export class SQLiteRepository implements Repository {
     return row.count;
   }
 
+  // ==================== Environment ====================
+
+  async saveEnvironment(record: EnvironmentRecord): Promise<void> {
+    const stmt = this.db.prepare(`
+      INSERT INTO environments (sessionId, environmentType, state, createdAt, updatedAt)
+      VALUES (@sessionId, @environmentType, @state, @createdAt, @updatedAt)
+      ON CONFLICT(sessionId) DO UPDATE SET
+        environmentType = @environmentType,
+        state = @state,
+        updatedAt = @updatedAt
+    `);
+
+    stmt.run({
+      sessionId: record.sessionId,
+      environmentType: record.environmentType,
+      state: JSON.stringify(record.state),
+      createdAt: toISOString(record.createdAt),
+      updatedAt: toISOString(record.updatedAt),
+    });
+  }
+
+  async findEnvironmentBySessionId(sessionId: string): Promise<EnvironmentRecord | null> {
+    const stmt = this.db.prepare("SELECT * FROM environments WHERE sessionId = ?");
+    const row = stmt.get(sessionId) as EnvironmentRow | undefined;
+
+    if (!row) return null;
+
+    return this.toEnvironmentRecord(row);
+  }
+
+  async findEnvironmentsByType(environmentType: string): Promise<EnvironmentRecord[]> {
+    const stmt = this.db.prepare(
+      "SELECT * FROM environments WHERE environmentType = ? ORDER BY createdAt DESC"
+    );
+    const rows = stmt.all(environmentType) as EnvironmentRow[];
+
+    return rows.map((row) => this.toEnvironmentRecord(row));
+  }
+
+  async deleteEnvironment(sessionId: string): Promise<void> {
+    const stmt = this.db.prepare("DELETE FROM environments WHERE sessionId = ?");
+    stmt.run(sessionId);
+  }
+
+  async environmentExists(sessionId: string): Promise<boolean> {
+    const stmt = this.db.prepare("SELECT 1 FROM environments WHERE sessionId = ?");
+    return stmt.get(sessionId) !== undefined;
+  }
+
   // ==================== Helpers ====================
 
   private toContainerRecord(row: ContainerRow): ContainerRecord {
@@ -377,10 +431,8 @@ export class SQLiteRepository implements Repository {
       definitionName: row.definitionName,
       parentImageId: row.parentImageId,
       definition: JSON.parse(row.definition),
-      config: JSON.parse(row.config),
       messages: JSON.parse(row.messages),
       createdAt: new Date(row.createdAt).getTime(),
-      driverState: row.driverState ? JSON.parse(row.driverState) : null,
     };
   }
 
@@ -402,6 +454,16 @@ export class SQLiteRepository implements Repository {
       role: row.role as MessageRole,
       content: JSON.parse(row.content),
       createdAt: new Date(row.createdAt).getTime(),
+    };
+  }
+
+  private toEnvironmentRecord(row: EnvironmentRow): EnvironmentRecord {
+    return {
+      sessionId: row.sessionId,
+      environmentType: row.environmentType,
+      state: JSON.parse(row.state),
+      createdAt: new Date(row.createdAt).getTime(),
+      updatedAt: new Date(row.updatedAt).getTime(),
     };
   }
 
@@ -427,10 +489,8 @@ interface ImageRow {
   definitionName: string;
   parentImageId: string | null;
   definition: string;
-  config: string;
   messages: string;
   createdAt: string;
-  driverState: string | null;
 }
 
 interface SessionRow {
@@ -448,4 +508,12 @@ interface MessageRow {
   role: string;
   content: string;
   createdAt: string;
+}
+
+interface EnvironmentRow {
+  sessionId: string;
+  environmentType: string;
+  state: string;
+  createdAt: string;
+  updatedAt: string;
 }

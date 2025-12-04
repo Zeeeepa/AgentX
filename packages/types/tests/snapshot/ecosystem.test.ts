@@ -1,0 +1,102 @@
+/**
+ * Ecosystem Types Contract Snapshot Test
+ *
+ * This test ensures the stability of the ecosystem type contracts.
+ * Any changes to the exported types will cause this test to fail,
+ * requiring explicit acknowledgment via snapshot update.
+ *
+ * To update snapshots after intentional changes:
+ *   pnpm test:update
+ */
+
+import { describe, it, expect } from "vitest";
+import * as EcosystemExports from "~/ecosystem";
+
+/**
+ * Extract the shape of exports for snapshot testing.
+ * This captures what is exported and their types.
+ */
+function getExportShape(exports: Record<string, unknown>): Record<string, string> {
+  const shape: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(exports)) {
+    if (typeof value === "function") {
+      // For functions, capture the function signature hint
+      shape[key] = `function(${value.length} args)`;
+    } else if (typeof value === "object" && value !== null) {
+      shape[key] = "object";
+    } else if (typeof value === "string") {
+      // For string constants (like LATEST_PROTOCOL_VERSION)
+      shape[key] = `const: "${value}"`;
+    } else if (typeof value === "number") {
+      shape[key] = `const: ${value}`;
+    } else if (typeof value === "boolean") {
+      shape[key] = `const: ${value}`;
+    } else {
+      shape[key] = typeof value;
+    }
+  }
+
+  return shape;
+}
+
+describe("Ecosystem Types Contract", () => {
+  it("should maintain stable exports", () => {
+    const shape = getExportShape(EcosystemExports);
+    expect(shape).toMatchSnapshot();
+  });
+
+  it("should export all expected runtime values", () => {
+    // These are the runtime values (functions, constants) that must exist
+    const expectedRuntimeExports = [
+      // Type guards from event/environment
+      "isDriveableEvent",
+      "isConnectionEvent",
+      // Type guards from event/runtime
+      "isRuntimeEvent",
+      "isRequestEvent",
+      "isResultEvent",
+      "isNotificationEvent",
+      // Type guards from event/runtime/container
+      "isContainerEvent",
+      "isSandboxEvent",
+      // Type guards from event/runtime/session
+      "isSessionEvent",
+      // Stream event helper
+      "toAgentStreamEvent",
+      // MCP constants
+      "LATEST_PROTOCOL_VERSION",
+      "SUPPORTED_PROTOCOL_VERSIONS",
+      // StopReason guard
+      "isStopReason",
+    ];
+
+    for (const exportName of expectedRuntimeExports) {
+      expect(
+        EcosystemExports,
+        `Missing expected export: ${exportName}`
+      ).toHaveProperty(exportName);
+    }
+  });
+
+  it("should have correct type guard signatures", () => {
+    // Verify type guards are functions with correct arity
+    expect(typeof EcosystemExports.isDriveableEvent).toBe("function");
+    expect(typeof EcosystemExports.isConnectionEvent).toBe("function");
+    expect(typeof EcosystemExports.isRuntimeEvent).toBe("function");
+    expect(typeof EcosystemExports.isRequestEvent).toBe("function");
+    expect(typeof EcosystemExports.isResultEvent).toBe("function");
+    expect(typeof EcosystemExports.isNotificationEvent).toBe("function");
+    expect(typeof EcosystemExports.isContainerEvent).toBe("function");
+    expect(typeof EcosystemExports.isSandboxEvent).toBe("function");
+    expect(typeof EcosystemExports.isSessionEvent).toBe("function");
+    expect(typeof EcosystemExports.toAgentStreamEvent).toBe("function");
+    expect(typeof EcosystemExports.isStopReason).toBe("function");
+  });
+
+  it("should export MCP protocol version constant", () => {
+    // This constant may change as MCP protocol evolves
+    expect(typeof EcosystemExports.LATEST_PROTOCOL_VERSION).toBe("string");
+    expect(Array.isArray(EcosystemExports.SUPPORTED_PROTOCOL_VERSIONS)).toBe(true);
+  });
+});

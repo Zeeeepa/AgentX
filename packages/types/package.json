@@ -27,7 +27,10 @@
     "clean": "rm -rf dist",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "dev": "tsup --watch"
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:update": "vitest run --update"
   },
   "keywords": [
     "agentx",
@@ -39,7 +42,8 @@
   "author": "Deepractice AI",
   "devDependencies": {
     "tsup": "^8.0.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^3.2.4"
   },
   "publishConfig": {
     "access": "public"
