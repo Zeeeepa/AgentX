@@ -22,7 +22,7 @@ import { existsSync, readFileSync } from "fs";
 import { createAgentX, defineAgent } from "agentxjs";
 import { createAgentXHandler, type AgentXHandlerWithUtils } from "agentxjs/server";
 import { toHonoHandler } from "agentxjs/server/adapters/hono";
-import { nodeRuntime } from "@agentxjs/node-runtime";
+import { nodeRuntime } from "../../../../temp/node-runtime/dist";
 import { homedir } from "node:os";
 import { join } from "node:path";
 

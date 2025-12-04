@@ -1,9 +1,10 @@
 /**
- * RemoteEcosystem - Browser/Remote Ecosystem implementation
+ * RemoteEcosystem - Factory for Network-backed Ecosystem
  *
- * Assembles ecosystem components for browser environment:
- * - SystemBus: Central event bus
- * - WebSocketEnvironment: WebSocket Receptor + Effector
+ * Assembles:
+ * - SystemBus from local implementation
+ * - Channel from @agentxjs/network
+ * - NetworkEnvironment to bridge Channel ↔ SystemBus
  *
  * @example
  * ```typescript
@@ -13,53 +14,33 @@
  *   url: "wss://api.example.com/ws",
  * });
  *
- * // Subscribe to events
+ * await ecosystem.connect();
+ *
  * ecosystem.bus.on("text_chunk", (event) => {
  *   console.log("Text:", event.data.text);
  * });
  *
- * // Send a message (emits to bus, WebSocketEffector sends to server)
  * ecosystem.bus.emit({
  *   type: "user_message",
  *   data: { content: "Hello!" },
  * });
  *
- * // Clean up
  * ecosystem.dispose();
  * ```
  */
 
-import type { SystemBus, Environment } from "@agentxjs/types";
+import type { SystemBus, Environment, Channel } from "@agentxjs/types";
+import { createWebSocketChannel, type WebSocketChannelConfig } from "@agentxjs/network";
 import { SystemBusImpl } from "./SystemBusImpl";
-import { WebSocketEnvironment, type WebSocketEnvironmentConfig } from "./environment";
+import { NetworkEnvironment } from "./environment";
 
 /**
  * RemoteEcosystem configuration
  */
-export interface RemoteEcosystemConfig {
-  /**
-   * WebSocket endpoint URL (ws:// or wss://)
-   */
-  url: string;
-
-  /**
-   * Reconnect on disconnect (default: true)
-   */
-  reconnect?: boolean;
-
-  /**
-   * Reconnect delay in ms (default: 3000)
-   */
-  reconnectDelay?: number;
-
-  /**
-   * Max reconnect attempts (default: 5)
-   */
-  maxReconnectAttempts?: number;
-}
+export interface RemoteEcosystemConfig extends WebSocketChannelConfig {}
 
 /**
- * RemoteEcosystem - Assembled ecosystem for browser/remote
+ * RemoteEcosystem - Network-backed Ecosystem
  */
 export class RemoteEcosystem {
   /**
@@ -68,50 +49,48 @@ export class RemoteEcosystem {
   readonly bus: SystemBus;
 
   /**
-   * WebSocket environment (Receptor + Effector)
+   * Network environment (Receptor + Effector)
    */
   readonly environment: Environment;
 
-  private readonly wsEnvironment: WebSocketEnvironment;
+  /**
+   * Underlying network channel
+   */
+  readonly channel: Channel;
 
   constructor(config: RemoteEcosystemConfig) {
-    // Create SystemBus
+    // 1. Create SystemBus
     this.bus = new SystemBusImpl();
 
-    // Create WebSocket environment
-    const wsConfig: WebSocketEnvironmentConfig = {
-      url: config.url,
-      reconnect: config.reconnect,
-      reconnectDelay: config.reconnectDelay,
-      maxReconnectAttempts: config.maxReconnectAttempts,
-    };
+    // 2. Create Channel from network package
+    this.channel = createWebSocketChannel(config);
 
-    this.wsEnvironment = new WebSocketEnvironment(wsConfig);
-    this.environment = this.wsEnvironment;
+    // 3. Create NetworkEnvironment to bridge Channel ↔ SystemBus
+    this.environment = new NetworkEnvironment(this.channel);
 
-    // Connect environment to SystemBus
+    // 4. Connect environment to bus
     this.environment.receptor.emit(this.bus);
     this.environment.effector.subscribe(this.bus);
+  }
+
+  /**
+   * Connect to remote server
+   */
+  async connect(): Promise<void> {
+    await this.channel.connect();
   }
 
   /**
    * Dispose the ecosystem and clean up resources
    */
   dispose(): void {
-    this.wsEnvironment.close();
+    this.channel.disconnect();
     this.bus.destroy();
   }
 }
 
 /**
  * Create a Remote Ecosystem
- *
- * @example
- * ```typescript
- * const ecosystem = remoteEcosystem({
- *   url: "wss://api.example.com/ws",
- * });
- * ```
  */
 export function remoteEcosystem(config: RemoteEcosystemConfig): RemoteEcosystem {
   return new RemoteEcosystem(config);

@@ -1,7 +1,7 @@
 /**
- * Remote Environment implementations
+ * Network Environment - Bridges Network Channel to Ecosystem
  */
 
-export { WebSocketReceptor, type WebSocketReceptorConfig } from "./WebSocketReceptor";
-export { WebSocketEffector, type WebSocketEffectorConfig } from "./WebSocketEffector";
-export { WebSocketEnvironment, type WebSocketEnvironmentConfig } from "./WebSocketEnvironment";
+export { NetworkReceptor } from "./NetworkReceptor";
+export { NetworkEffector } from "./NetworkEffector";
+export { NetworkEnvironment } from "./NetworkEnvironment";

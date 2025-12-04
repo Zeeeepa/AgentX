@@ -1,7 +1,7 @@
 {
   "name": "@agentxjs/remote-ecosystem",
   "version": "0.1.0",
-  "description": "Remote/Browser Ecosystem for AgentX - SSE/WebSocket Environment",
+  "description": "Remote Ecosystem for AgentX - Network-backed Ecosystem factory",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -31,8 +31,8 @@
   },
   "dependencies": {
     "@agentxjs/common": "workspace:*",
-    "@agentxjs/types": "workspace:*",
-    "rxjs": "^7.8.2"
+    "@agentxjs/network": "workspace:*",
+    "@agentxjs/types": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.9.2",

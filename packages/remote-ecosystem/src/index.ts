@@ -1,12 +1,9 @@
 /**
  * @agentxjs/remote-ecosystem
  *
- * Browser/Remote Ecosystem for AgentX
+ * Remote Ecosystem for AgentX - Network-backed Ecosystem factory
  *
- * Provides:
- * - RemoteEcosystem: Main assembly for browser environment
- * - WebSocketEnvironment: WebSocket bidirectional communication
- * - SystemBus: Browser-friendly event bus
+ * Bridges Network layer (Channel) to Ecosystem layer (SystemBus + Environment).
  *
  * @example
  * ```typescript
@@ -16,24 +13,19 @@
  *   url: "wss://api.example.com/ws",
  * });
  *
+ * await ecosystem.connect();
+ *
  * ecosystem.bus.on("text_chunk", (e) => {
  *   console.log(e.data.text);
  * });
  * ```
  */
 
-// Main assembly
+// Main factory
 export { RemoteEcosystem, remoteEcosystem, type RemoteEcosystemConfig } from "./RemoteEcosystem";
 
-// Environment
-export {
-  WebSocketEnvironment,
-  WebSocketReceptor,
-  WebSocketEffector,
-  type WebSocketEnvironmentConfig,
-  type WebSocketReceptorConfig,
-  type WebSocketEffectorConfig,
-} from "./environment";
+// Environment bridge (Network → Ecosystem)
+export { NetworkEnvironment, NetworkReceptor, NetworkEffector } from "./environment";
 
-// SystemBus
+// SystemBus implementation
 export { SystemBusImpl } from "./SystemBusImpl";

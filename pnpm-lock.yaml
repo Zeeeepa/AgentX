@@ -364,12 +364,12 @@ importers:
       '@agentxjs/common':
         specifier: workspace:*
         version: link:../common
+      '@agentxjs/network':
+        specifier: workspace:*
+        version: link:../network
       '@agentxjs/types':
         specifier: workspace:*
         version: link:../types
-      rxjs:
-        specifier: ^7.8.2
-        version: 7.8.2
     devDependencies:
       '@types/node':
         specifier: ^24.9.2
