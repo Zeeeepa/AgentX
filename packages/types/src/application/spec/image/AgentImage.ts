@@ -32,10 +32,10 @@
  * ```
  */
 
-import type { UserMessage } from "~/ecosystem/runtime/agent/message/UserMessage";
-import type { AssistantMessage } from "~/ecosystem/runtime/agent/message/AssistantMessage";
-import type { ToolCallMessage } from "~/ecosystem/runtime/agent/message/ToolCallMessage";
-import type { ToolResultMessage } from "~/ecosystem/runtime/agent/message/ToolResultMessage";
+import type { UserMessage } from "~/runtime/agent/message/UserMessage";
+import type { AssistantMessage } from "~/runtime/agent/message/AssistantMessage";
+import type { ToolCallMessage } from "~/runtime/agent/message/ToolCallMessage";
+import type { ToolResultMessage } from "~/runtime/agent/message/ToolResultMessage";
 import type { MetaImage } from "./MetaImage";
 import type { DerivedImage } from "./DerivedImage";
 

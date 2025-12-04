@@ -24,8 +24,8 @@
  * ```
  */
 
-import type { Repository } from "~/ecosystem/runtime/repository";
-import type { UserMessage } from "~/ecosystem/runtime/agent/message";
+import type { Repository } from "~/runtime/repository";
+import type { UserMessage } from "~/runtime/agent/message";
 
 /**
  * ApplicationHandler - Framework-agnostic HTTP request handler

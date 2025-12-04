@@ -32,7 +32,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@agentxjs/node-ecosystem": "workspace:*",
+    "@agentxjs/runtime": "workspace:*",
     "@agentxjs/types": "workspace:*",
     "@agentxjs/ui": "workspace:*",
     "@hono/node-server": "^1.13.7",

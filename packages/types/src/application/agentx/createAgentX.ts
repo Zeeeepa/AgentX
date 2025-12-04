@@ -15,7 +15,7 @@
  */
 
 import type { AgentX } from "./AgentX";
-import type { Runtime } from "~/ecosystem/runtime/Runtime";
+import type { Runtime } from "~/runtime/Runtime";
 
 // ============================================================================
 // Function Declaration - Authoritative API

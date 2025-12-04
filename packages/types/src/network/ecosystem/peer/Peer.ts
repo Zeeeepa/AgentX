@@ -63,7 +63,7 @@
  * ```
  */
 
-import type { EnvironmentEvent } from "~/ecosystem/event";
+import type { EnvironmentEvent } from "~/runtime/event";
 
 // ============================================================================
 // Types

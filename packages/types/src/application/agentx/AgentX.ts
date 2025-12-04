@@ -1,5 +1,5 @@
 /**
- * AgentX - Platform API (extends Ecosystem)
+ * AgentX - Platform API (extends Runtime)
  *
  * The central entry point for all agent operations.
  * Like Express app or Vue app, AgentX provides a unified
@@ -45,14 +45,14 @@ import type { PlatformManager } from "./platform";
 import type { DefinitionManager } from "./definition";
 import type { ImageManager } from "./image";
 import type { ContainerManager } from "./container";
-import type { Ecosystem } from "~/ecosystem/Ecosystem";
-import type { EnvironmentEvent } from "~/ecosystem/event";
+import type { Runtime } from "~/runtime/Runtime";
+import type { EnvironmentEvent } from "~/runtime/event";
 
 /**
  * Base AgentX interface (shared by Local and Remote)
  * Extends Ecosystem to provide event subscription across the entire ecosystem.
  */
-interface AgentXBase extends Ecosystem<EnvironmentEvent> {
+interface AgentXBase extends Runtime<EnvironmentEvent> {
   /**
    * Container management (resource isolation units)
    *

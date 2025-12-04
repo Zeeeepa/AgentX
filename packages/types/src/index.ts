@@ -1,5 +1,5 @@
 /**
- * @agentxjs/types - Type definitions for AgentX AI Agent ecosystem
+ * @agentxjs/types - Type definitions for AgentX AI Agent platform
  *
  * ## ADR: Three-Layer Architecture (Ontological Foundation)
  *
@@ -9,7 +9,7 @@
  * |-------------|-----------|-------------|----------------------------------|
  * | Application | Structure | HTTP        | Definition, Image, User          |
  * | Network     | Relation  | HTTP + WS   | Server, Client, Channel          |
- * | Ecosystem   | Process   | WS Events   | Runtime, Container, Session, Agent |
+ * | Runtime     | Process   | WS Events   | Container, Session, Agent        |
  *
  * ```
  * ┌─────────────────────────────────────────────────────────────┐
@@ -21,7 +21,7 @@
  * │   Connections and relations - "how things connect"          │
  * │   Protocol: HTTP + WebSocket                                │
  * ├─────────────────────────────────────────────────────────────┤
- * │                    Ecosystem Layer                          │
+ * │                    Runtime Layer                            │
  * │   Dynamic processes - "what happens"                        │
  * │   Protocol: WebSocket Events                                │
  * └─────────────────────────────────────────────────────────────┘
@@ -36,11 +36,11 @@
  * 2. **Responsibility Isolation**: Clear boundaries prevent coupling
  *    - Application: Data models and API contracts
  *    - Network: Communication infrastructure
- *    - Ecosystem: Runtime behavior
+ *    - Runtime: Execution behavior
  *
  * 3. **Isomorphic Design**: Same types work in Node.js and Browser
  *    - Browser: Uses Network layer to connect to server
- *    - Server: Uses Ecosystem layer directly
+ *    - Server: Uses Runtime layer directly
  *
  * ## Module Structure
  *
@@ -57,12 +57,11 @@
  * |             | └ server/        | WS         | Accept connections          |
  * |             | └ channel/       | WS         | Bidirectional transport     |
  * |             | └ endpoint/      | HTTP       | REST API contracts          |
- * | Ecosystem   | ecosystem/       | WS Event   | Runtime environment         |
+ * | Runtime     | runtime/         | WS Event   | Execution environment       |
  * |             | └ agent/         | -          | Agent, Message, Events      |
  * |             | └ session/       | -          | Session management          |
  * |             | └ container/     | -          | Container, Sandbox, LLM     |
  * |             | └ repository/    | -          | Storage abstraction         |
- * |             | └ receptors/     | -          | Event listeners             |
  *
  * @see issues/026-three-layer-architecture.md
  * @see issues/025-ecosystem-channel-architecture.md
@@ -82,7 +81,7 @@ export * from "./application";
 export * from "./network";
 
 // ============================================================================
-// Ecosystem Layer (WebSocket Events)
+// Runtime Layer (WebSocket Events)
 // ============================================================================
 
-export * from "./ecosystem";
+export * from "./runtime";

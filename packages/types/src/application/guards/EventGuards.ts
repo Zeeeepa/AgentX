@@ -4,12 +4,12 @@
  * Runtime type guards for event classification.
  */
 
-import type { AgentOutput } from "~/ecosystem/runtime/agent/AgentOutput";
-import type { AgentStateEvent } from "~/ecosystem/event/runtime/agent/state";
-import type { DriveableEvent } from "~/ecosystem/event/environment/DriveableEvent";
-import type { AgentMessageEvent } from "~/ecosystem/event/runtime/agent/message";
-import type { AgentTurnEvent } from "~/ecosystem/event/runtime/agent/turn";
-import type { AllAgentErrorEvent } from "~/ecosystem/event/runtime/agent/error";
+import type { AgentOutput } from "~/runtime/agent/AgentOutput";
+import type { AgentStateEvent } from "~/runtime/event/runtime/agent/state";
+import type { DriveableEvent } from "~/runtime/event/environment/DriveableEvent";
+import type { AgentMessageEvent } from "~/runtime/event/runtime/agent/message";
+import type { AgentTurnEvent } from "~/runtime/event/runtime/agent/turn";
+import type { AllAgentErrorEvent } from "~/runtime/event/runtime/agent/error";
 
 /**
  * State event type names (single source of truth)

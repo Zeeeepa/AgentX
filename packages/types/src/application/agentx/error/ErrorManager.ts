@@ -25,8 +25,8 @@
  */
 
 import type { AgentError } from "~/application/error";
-import type { AgentErrorOccurredEvent } from "~/ecosystem/event/runtime/agent/error";
-import type { Unsubscribe } from "~/ecosystem/runtime/agent/AgentEventHandler";
+import type { AgentErrorOccurredEvent } from "~/runtime/event/runtime/agent/error";
+import type { Unsubscribe } from "~/runtime/agent/AgentEventHandler";
 
 /**
  * Error handler callback
