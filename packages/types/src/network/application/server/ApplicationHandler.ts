@@ -24,7 +24,7 @@
  * ```
  */
 
-import type { Repository } from "~/runtime/repository";
+import type { Repository } from "~/persistence";
 import type { UserMessage } from "~/runtime/agent/message";
 
 /**

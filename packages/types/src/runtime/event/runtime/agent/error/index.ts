@@ -3,11 +3,21 @@
  *
  * Error events for agent operations.
  * Separate from state events for special handling (SSE transport, UI display).
+ *
+ * TODO: Integrate with unified error system when designed
  */
 
 import type { RuntimeEvent } from "../../RuntimeEvent";
-import type { ErrorSeverity } from "~/application/error/BaseAgentError";
-import type { AgentErrorCode } from "~/application/error/AgentError";
+
+/**
+ * Error severity level
+ */
+export type ErrorSeverity = "fatal" | "error" | "warning";
+
+/**
+ * Error code for agent errors
+ */
+export type AgentErrorCode = string;
 
 /**
  * Base ErrorEvent

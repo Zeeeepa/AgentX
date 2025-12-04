@@ -1,39 +1,29 @@
 /**
- * defineAgent implementation
- *
- * "Define Once, Run Anywhere"
- *
- * Creates an AgentDefinition with business-level config.
+ * defineAgent - Create an agent definition
  *
  * @example
  * ```typescript
- * import { defineAgent, createAgentX } from "agentxjs";
- * import { runtime } from "agentxjs-runtime";
- *
  * const MyAgent = defineAgent({
- *   name: "Translator",
- *   systemPrompt: "You are a translator",
+ *   name: "Assistant",
+ *   systemPrompt: "You are helpful",
  * });
  *
- * const agentx = createAgentX(runtime);
- * const agent = agentx.agents.create(MyAgent);
+ * agentx.definitions.register(MyAgent);
  * ```
  */
 
 import type { AgentDefinition, DefineAgentInput } from "@agentxjs/types";
 
 /**
- * defineAgent - Create an agent definition
+ * defineAgent - Define an agent template
  *
  * @param input - Agent definition input
  * @returns Agent definition
  */
 export function defineAgent(input: DefineAgentInput): AgentDefinition {
-  const { name, description, systemPrompt } = input;
-
   return {
-    name,
-    description,
-    systemPrompt,
+    name: input.name,
+    description: input.description,
+    systemPrompt: input.systemPrompt,
   };
 }

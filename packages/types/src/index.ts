@@ -1,87 +1,74 @@
 /**
  * @agentxjs/types - Type definitions for AgentX AI Agent platform
  *
- * ## ADR: Three-Layer Architecture (Ontological Foundation)
+ * ## Six-Layer Architecture
  *
- * Based on three fundamental ontological categories (issue #026):
- *
- * | Layer       | Ontology  | Protocol    | Content                          |
- * |-------------|-----------|-------------|----------------------------------|
- * | Application | Structure | HTTP        | Definition, Image, User          |
- * | Network     | Relation  | HTTP + WS   | Server, Client, Channel          |
- * | Runtime     | Process   | WS Events   | Container, Session, Agent        |
+ * | Layer       | Serves         | Content                          |
+ * |-------------|----------------|----------------------------------|
+ * | common      | Platform devs  | Logger, Utils (internal tools)   |
+ * | agentx      | API consumers  | Unified API entry point          |
+ * | application | App developers | Static resources (Definition, Image) |
+ * | persistence | Storage        | Repository interfaces, Records   |
+ * | network     | Communication  | Server, Client, Channel          |
+ * | runtime     | Agents         | Container, Session, Agent, Events |
  *
  * ```
  * ┌─────────────────────────────────────────────────────────────┐
+ * │                    Common Layer                             │
+ * │   Internal tools for platform developers                    │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │                    AgentX Layer                             │
+ * │   Unified API - AgentX, APIs                                │
+ * ├─────────────────────────────────────────────────────────────┤
  * │                    Application Layer                        │
- * │   Static structures - "what exists"                         │
- * │   Protocol: HTTP (CRUD operations)                          │
+ * │   Static resources - Definition, Image, User                │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │                    Persistence Layer                        │
+ * │   Storage abstraction - Repository, Records                 │
  * ├─────────────────────────────────────────────────────────────┤
  * │                    Network Layer                            │
- * │   Connections and relations - "how things connect"          │
- * │   Protocol: HTTP + WebSocket                                │
+ * │   Communication infrastructure                              │
  * ├─────────────────────────────────────────────────────────────┤
  * │                    Runtime Layer                            │
- * │   Dynamic processes - "what happens"                        │
- * │   Protocol: WebSocket Events                                │
+ * │   Dynamic instances - Container, Session, Agent             │
  * └─────────────────────────────────────────────────────────────┘
  * ```
  *
- * ## ADR: Why This Separation?
- *
- * 1. **Protocol Alignment**: Each layer uses the protocol that fits its nature
- *    - Static resources → HTTP (RESTful CRUD)
- *    - Dynamic events → WebSocket (real-time bidirectional)
- *
- * 2. **Responsibility Isolation**: Clear boundaries prevent coupling
- *    - Application: Data models and API contracts
- *    - Network: Communication infrastructure
- *    - Runtime: Execution behavior
- *
- * 3. **Isomorphic Design**: Same types work in Node.js and Browser
- *    - Browser: Uses Network layer to connect to server
- *    - Server: Uses Runtime layer directly
- *
- * ## Module Structure
- *
- * | Layer       | Module           | Protocol   | Purpose                     |
- * |-------------|------------------|------------|-----------------------------|
- * | Application | application/     | HTTP       | Static resources + API      |
- * |             | └ spec/          | -          | Definition, Image           |
- * |             | └ agentx/        | -          | Platform Managers           |
- * |             | └ user/          | -          | User identity               |
- * |             | └ common/        | -          | Logger, utilities           |
- * |             | └ error/         | -          | Error type system           |
- * |             | └ guards/        | -          | Runtime type guards         |
- * | Network     | network/         | HTTP/WS    | Communication layer         |
- * |             | └ server/        | WS         | Accept connections          |
- * |             | └ channel/       | WS         | Bidirectional transport     |
- * |             | └ endpoint/      | HTTP       | REST API contracts          |
- * | Runtime     | runtime/         | WS Event   | Execution environment       |
- * |             | └ agent/         | -          | Agent, Message, Events      |
- * |             | └ session/       | -          | Session management          |
- * |             | └ container/     | -          | Container, Sandbox, LLM     |
- * |             | └ repository/    | -          | Storage abstraction         |
- *
- * @see issues/026-three-layer-architecture.md
- * @see issues/025-ecosystem-channel-architecture.md
  * @packageDocumentation
  */
 
 // ============================================================================
-// Application Layer (HTTP - Static Resources)
+// Common Layer (Internal Platform Tools)
+// ============================================================================
+
+export * from "./common";
+
+// ============================================================================
+// AgentX Layer (Unified API)
+// ============================================================================
+
+export * from "./agentx";
+
+// ============================================================================
+// Application Layer (Static Resources)
 // ============================================================================
 
 export * from "./application";
 
 // ============================================================================
-// Network Layer (HTTP + WebSocket)
+// Persistence Layer (Storage Abstraction)
+// ============================================================================
+
+export * from "./persistence";
+
+// ============================================================================
+// Network Layer (Communication)
 // ============================================================================
 
 export * from "./network";
 
 // ============================================================================
-// Runtime Layer (WebSocket Events)
+// Runtime Layer (Dynamic Instances)
 // ============================================================================
 
 export * from "./runtime";

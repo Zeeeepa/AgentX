@@ -181,6 +181,9 @@ importers:
       '@agentxjs/common':
         specifier: workspace:*
         version: link:../common
+      '@agentxjs/mirror':
+        specifier: workspace:*
+        version: link:../mirror
       '@agentxjs/types':
         specifier: workspace:*
         version: link:../types

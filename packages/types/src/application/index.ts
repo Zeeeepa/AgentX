@@ -1,44 +1,17 @@
 /**
- * Application Module - Static resources and API layer
+ * Application Module - Static Resources
  *
- * ## ADR: Three-Layer Architecture (Ontological Foundation)
- *
- * Based on three fundamental ontological categories from issue #026:
- *
- * | Layer       | Ontology  | Protocol    | Content                          |
- * |-------------|-----------|-------------|----------------------------------|
- * | Application | Structure | HTTP        | Definition, Image, User          |
- * | Network     | Relation  | HTTP + WS   | Server, Client, Channel          |
- * | Ecosystem   | Process   | WS Events   | Runtime, Container, Session, Agent |
- *
- * This module defines the **Application Layer** - static structures and forms.
- *
- * ## ADR: Static vs Dynamic Resources
- *
- * Application layer contains **static resources** managed via HTTP CRUD:
+ * Contains static resources that don't change during runtime:
  * - Definition: Agent blueprint (like Dockerfile)
  * - Image: Built artifact (like Docker Image)
  * - User: User identity
  *
- * These resources are **structure** - they don't change during runtime.
- * Dynamic resources (Agent, Session) belong to Ecosystem layer.
+ * These are managed via HTTP CRUD operations.
+ * Dynamic resources (Container, Session, Agent) belong to Runtime layer.
  *
- * ## Module Structure
- *
- * - spec/    - Static blueprints (Definition, Image)
- * - agentx/  - Platform API (Managers)
- * - user/    - User identity types
- * - common/  - Shared utilities (logger)
- * - error/   - Error type system
- * - guards/  - Runtime type guards
- *
- * @see issues/026-three-layer-architecture.md
  * @packageDocumentation
  */
 
-export * from "./spec";
-export * from "./agentx";
+export * from "./definition";
+export * from "./image";
 export * from "./user";
-export * from "./common";
-export * from "./error";
-export * from "./guards";

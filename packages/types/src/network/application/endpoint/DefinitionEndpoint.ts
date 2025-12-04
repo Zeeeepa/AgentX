@@ -5,7 +5,7 @@
  */
 
 import type { Endpoint } from "./Endpoint";
-import type { AgentDefinition } from "~/application/spec/definition";
+import type { AgentDefinition } from "~/application/definition";
 
 // ============================================================================
 // Response Types

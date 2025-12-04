@@ -71,6 +71,7 @@
   "devDependencies": {
     "@agentxjs/agent": "workspace:*",
     "@agentxjs/engine": "workspace:*",
+    "@agentxjs/mirror": "workspace:*",
     "@deepracticex/vitest-cucumber": "^1.4.3",
     "@types/node": "^24.9.2",
     "@vitest/ui": "^3.2.4",

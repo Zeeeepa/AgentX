@@ -1,0 +1,8 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AgentX Types Contract > should maintain stable exports 1`] = `
+{
+  "createAgentX": "undefined",
+  "defineAgent": "undefined",
+}
+`;

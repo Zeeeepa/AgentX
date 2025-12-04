@@ -5,7 +5,7 @@
  */
 
 import type { Endpoint } from "./Endpoint";
-import type { AgentImage, MetaImage } from "~/application/spec/image";
+import type { AgentImage, MetaImage } from "~/application/image";
 
 // ============================================================================
 // Response Types

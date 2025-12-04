@@ -49,9 +49,6 @@ export * from "./container/llm";
 // Session
 export * from "./session";
 
-// Repository
-export * from "./repository";
-
 // ============================================================================
 // Agent Layer
 // ============================================================================
