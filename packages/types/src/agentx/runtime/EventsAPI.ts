@@ -18,7 +18,7 @@
  * ```
  */
 
-import type { RuntimeEvent } from "~/runtime/event/runtime/RuntimeEvent";
+import type { RuntimeEvent } from "~/runtime/event/RuntimeEvent";
 import type { Unsubscribe } from "~/agent";
 
 /**

@@ -4,7 +4,7 @@
  * Events for file system operations in the agent's working directory.
  */
 
-import type { RuntimeEvent } from "~/runtime/event/runtime/RuntimeEvent";
+import type { RuntimeEvent } from "~/runtime/event/RuntimeEvent";
 
 /**
  * Base WorkdirEvent

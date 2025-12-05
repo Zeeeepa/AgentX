@@ -3,6 +3,7 @@
  */
 
 import type { SessionRecord } from "./record/SessionRecord";
+import type { Message } from "~/agent/message/Message";
 
 /**
  * SessionRepository - Storage operations for sessions
@@ -19,9 +20,9 @@ export interface SessionRepository {
   findSessionById(sessionId: string): Promise<SessionRecord | null>;
 
   /**
-   * Find all sessions for an image
+   * Find session by agent ID
    */
-  findSessionsByImageId(imageId: string): Promise<SessionRecord[]>;
+  findSessionByAgentId(agentId: string): Promise<SessionRecord | null>;
 
   /**
    * Find all sessions for a container
@@ -39,12 +40,24 @@ export interface SessionRepository {
   deleteSession(sessionId: string): Promise<void>;
 
   /**
-   * Delete all sessions for an image
-   */
-  deleteSessionsByImageId(imageId: string): Promise<void>;
-
-  /**
    * Check if session exists
    */
   sessionExists(sessionId: string): Promise<boolean>;
+
+  // ==================== Message Operations ====================
+
+  /**
+   * Add a message to a session
+   */
+  addMessage(sessionId: string, message: Message): Promise<void>;
+
+  /**
+   * Get all messages for a session
+   */
+  getMessages(sessionId: string): Promise<Message[]>;
+
+  /**
+   * Clear all messages for a session
+   */
+  clearMessages(sessionId: string): Promise<void>;
 }

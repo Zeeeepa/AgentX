@@ -4,7 +4,7 @@
  * Events for MCP (Model Context Protocol) tool operations.
  */
 
-import type { RuntimeEvent } from "~/runtime/event/runtime/RuntimeEvent";
+import type { RuntimeEvent } from "~/runtime/event/RuntimeEvent";
 
 /**
  * Base MCPEvent

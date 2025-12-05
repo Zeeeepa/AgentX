@@ -15,11 +15,10 @@ import type {
   Container,
   Agent,
   AgentDefinition,
-  Sandbox,
-  Workspace,
-  SystemBus,
+  Persistence,
 } from "@agentxjs/types";
-import { AgentEngine } from "@agentxjs/engine";
+import type { Sandbox, Workdir, SystemBus } from "@agentxjs/types/runtime/internal";
+import { AgentEngine } from "@agentxjs/agent";
 import { AgentInstance, createAgentContext } from "@agentxjs/agent";
 import { createLogger } from "@agentxjs/common";
 import { BusDriver } from "../driver";
@@ -43,6 +42,11 @@ export interface ContainerImplConfig {
   bus: SystemBus;
 
   /**
+   * Persistence layer for data storage
+   */
+  persistence: Persistence;
+
+  /**
    * Base path for workspaces (default: ~/.agentx)
    */
   basePath?: string;
@@ -56,11 +60,13 @@ export class ContainerImpl implements Container {
 
   private readonly agents = new Map<string, Agent>();
   private readonly bus: SystemBus;
+  private readonly persistence: Persistence;
   private readonly basePath: string;
 
   constructor(config: ContainerImplConfig) {
     this.containerId = config.containerId;
     this.bus = config.bus;
+    this.persistence = config.persistence;
     this.basePath = config.basePath ?? join(homedir(), ".agentx");
 
     logger.info("Container created", { containerId: this.containerId });
@@ -194,15 +200,15 @@ export class ContainerImpl implements Container {
    * Create Sandbox for an Agent
    */
   private createSandbox(agentId: string): Sandbox {
-    const workspace: Workspace = {
+    const workdir: Workdir = {
       id: agentId,
-      name: `workspace_${agentId}`,
-      path: join(this.basePath, "containers", this.containerId, "workspaces", agentId),
+      name: `workdir_${agentId}`,
+      path: join(this.basePath, "containers", this.containerId, "workdirs", agentId),
     };
 
     return {
       name: `sandbox_${agentId}`,
-      workspace,
+      workdir,
     };
   }
 }

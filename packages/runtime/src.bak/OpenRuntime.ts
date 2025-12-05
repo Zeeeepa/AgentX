@@ -27,12 +27,9 @@
  * ```
  */
 
-import type {
-  Runtime,
-  Container,
-  LoggerFactory,
-  Unsubscribe,
-} from "@agentxjs/types";
+import type { LoggerFactory, Persistence, ContainerRecord } from "@agentxjs/types";
+import type { Runtime } from "@agentxjs/types/runtime";
+import type { Container, Unsubscribe } from "@agentxjs/types/runtime/internal";
 import { Subject } from "rxjs";
 import { createLogger, setLoggerFactory } from "@agentxjs/common";
 import { SystemBusImpl } from "./SystemBusImpl";
@@ -47,6 +44,12 @@ const logger = createLogger("runtime/OpenRuntime");
  * OpenRuntime configuration
  */
 export interface OpenRuntimeConfig {
+  /**
+   * Persistence layer for data storage
+   * Required for container/session management
+   */
+  persistence: Persistence;
+
   /**
    * Logger factory or config
    * @default FileLoggerFactory at ~/.agentx/logs/
@@ -65,13 +68,16 @@ export interface OpenRuntimeConfig {
  */
 export class OpenRuntime implements Runtime {
   private readonly bus: SystemBusImpl;
+  private readonly persistence: Persistence;
   private readonly loggerFactory: LoggerFactory;
   private readonly basePath: string;
+  /** In-memory cache of active containers */
   private readonly containers = new Map<string, Container>();
   private readonly eventSubject = new Subject<unknown>();
 
-  constructor(config: OpenRuntimeConfig = {}) {
+  constructor(config: OpenRuntimeConfig) {
     this.basePath = config.basePath ?? join(homedir(), ".agentx");
+    this.persistence = config.persistence;
 
     // 1. Initialize logger factory first
     this.loggerFactory = this.resolveLoggerFactory(config.logger);
@@ -89,24 +95,88 @@ export class OpenRuntime implements Runtime {
 
   /**
    * Create a Container for managing Agent instances
+   *
+   * Creates both:
+   * - ContainerRecord in persistence (for durability)
+   * - ContainerImpl in memory (for runtime operations)
    */
-  createContainer(containerId: string): Container {
-    // Check if container already exists
-    const existing = this.containers.get(containerId);
-    if (existing) {
-      logger.debug("Returning existing container", { containerId });
-      return existing;
+  async createContainer(containerId: string): Promise<Container> {
+    // Check if container already exists in memory cache
+    const cached = this.containers.get(containerId);
+    if (cached) {
+      logger.debug("Returning cached container", { containerId });
+      return cached;
     }
 
-    logger.info("Creating container", { containerId });
+    // Check if container exists in persistence
+    const existingRecord = await this.persistence.containers.findContainerById(containerId);
+    if (existingRecord) {
+      logger.debug("Loading existing container from persistence", { containerId });
+      return this.loadContainer(existingRecord);
+    }
+
+    logger.info("Creating new container", { containerId });
+
+    // 1. Create and save ContainerRecord
+    const now = Date.now();
+    const record: ContainerRecord = {
+      containerId,
+      createdAt: now,
+      updatedAt: now,
+    };
+    await this.persistence.containers.saveContainer(record);
+
+    // 2. Create ContainerImpl in memory
+    return this.loadContainer(record);
+  }
+
+  /**
+   * Get a Container by ID
+   *
+   * Returns cached instance or loads from persistence.
+   */
+  async getContainer(containerId: string): Promise<Container | undefined> {
+    // Check memory cache first
+    const cached = this.containers.get(containerId);
+    if (cached) {
+      return cached;
+    }
+
+    // Load from persistence
+    const record = await this.persistence.containers.findContainerById(containerId);
+    if (!record) {
+      return undefined;
+    }
+
+    return this.loadContainer(record);
+  }
+
+  /**
+   * List all Containers
+   */
+  async listContainers(): Promise<Container[]> {
+    const records = await this.persistence.containers.findAllContainers();
+    return Promise.all(records.map((record) => this.loadContainer(record)));
+  }
+
+  /**
+   * Load a Container from record into memory
+   */
+  private loadContainer(record: ContainerRecord): Container {
+    // Check cache first (may have been loaded by another call)
+    const cached = this.containers.get(record.containerId);
+    if (cached) {
+      return cached;
+    }
 
     const container = new ContainerImpl({
-      containerId,
+      containerId: record.containerId,
       bus: this.bus,
       basePath: this.basePath,
+      persistence: this.persistence,
     });
 
-    this.containers.set(containerId, container);
+    this.containers.set(record.containerId, container);
 
     return container;
   }
@@ -178,15 +248,19 @@ export class OpenRuntime implements Runtime {
  *
  * @example
  * ```typescript
- * // Default configuration
- * const runtime = openRuntime();
+ * import { createNodePersistence } from "@agentxjs/persistence";
  *
- * // Custom base path
+ * // With memory persistence (for testing)
  * const runtime = openRuntime({
- *   basePath: "/custom/path",
+ *   persistence: createNodePersistence(),
+ * });
+ *
+ * // With SQLite persistence
+ * const runtime = openRuntime({
+ *   persistence: createNodePersistence({ driver: "sqlite", path: "./data.db" }),
  * });
  * ```
  */
-export function openRuntime(config?: OpenRuntimeConfig): Runtime {
+export function openRuntime(config: OpenRuntimeConfig): Runtime {
   return new OpenRuntime(config);
 }

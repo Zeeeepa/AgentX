@@ -1,57 +1,28 @@
 /**
- * @agentxjs/runtime - Open source Runtime for AI Agents
- *
- * Provides Runtime implementation for Node.js platform:
- * - OpenRuntime: Creates and manages Containers
- * - Container: Manages Agents (run, destroy)
- * - SystemBus: Central event bus
- * - Environment: Claude SDK integration
- *
- * Architecture:
- * ```
- * OpenRuntime
- *   └── Container (manages Agents)
- *         └── Agent (with Sandbox)
- * ```
+ * @agentxjs/runtime - Runtime for AI Agents
  *
  * @example
  * ```typescript
- * import { openRuntime } from "@agentxjs/runtime";
+ * import { createRuntime } from "@agentxjs/runtime";
+ * import { createNodePersistence } from "@agentxjs/persistence";
  *
- * const runtime = openRuntime();
- * const container = runtime.createContainer("my-container");
- * const agent = container.run({
+ * const runtime = createRuntime({
+ *   persistence: createNodePersistence(),
+ * });
+ *
+ * await runtime.containers.create("my-container");
+ * const agent = await runtime.agents.run("my-container", {
  *   name: "Assistant",
  *   systemPrompt: "You are helpful",
  * });
  *
- * agent.on("text_delta", (e) => process.stdout.write(e.data.text));
+ * runtime.events.on("text_delta", (e) => console.log(e.data.text));
  * await agent.receive("Hello!");
  *
- * runtime.dispose();
+ * await runtime.dispose();
  * ```
+ *
+ * @packageDocumentation
  */
 
-// OpenRuntime (main entry point)
-export { OpenRuntime, openRuntime, type OpenRuntimeConfig } from "./OpenRuntime";
-
-// Container
-export { ContainerImpl, type ContainerImplConfig } from "./container";
-
-// SystemBus
-export { SystemBusImpl } from "./SystemBusImpl";
-
-// Driver
-export { BusDriver, type BusDriverConfig } from "./driver";
-
-// Environment
-export * from "./environment";
-
-// Infrastructure (Repository, LLM, Logger)
-export * from "./runtime";
-
-// Utils
-export * from "./utils";
-
-// Legacy exports (deprecated)
-export { AgentRuntime, createRuntime, type AgentRuntimeConfig } from "./AgentRuntime";
+export { createRuntime, type RuntimeConfig } from "./createRuntime";

@@ -8,7 +8,7 @@
  * @see packages/types/src/ecosystem/Environment.ts
  */
 
-import type { Environment, Receptor, Effector } from "@agentxjs/types/runtime/internal";
+import type { Environment, Receptor, Effector } from "@agentxjs/types";
 import { ClaudeReceptor } from "./ClaudeReceptor";
 import { ClaudeEffector, type ClaudeEffectorConfig } from "./ClaudeEffector";
 

@@ -20,7 +20,7 @@ import type {
   BusEventHandler,
   SubscribeOptions,
   Unsubscribe,
-} from "@agentxjs/types";
+} from "@agentxjs/types/runtime/internal";
 import { Subject } from "rxjs";
 import { createLogger } from "@agentxjs/common";
 

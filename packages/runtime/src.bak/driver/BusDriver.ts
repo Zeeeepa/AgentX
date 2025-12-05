@@ -16,12 +16,9 @@
  * ```
  */
 
-import type {
-  AgentDriver,
-  SystemBus,
-  UserMessage,
-  DriveableEvent,
-} from "@agentxjs/types";
+import type { AgentDriver, UserMessage } from "@agentxjs/types/agent";
+import type { SystemBus } from "@agentxjs/types/runtime/internal";
+import type { DriveableEvent } from "@agentxjs/types/runtime";
 import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("ecosystem/BusDriver");

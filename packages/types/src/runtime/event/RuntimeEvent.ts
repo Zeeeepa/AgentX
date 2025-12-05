@@ -20,7 +20,7 @@
  * ```
  */
 
-import type { SystemEvent, EventSource, EventIntent, EventCategory } from "../base";
+import type { SystemEvent, EventSource, EventIntent, EventCategory } from "./base";
 
 /**
  * RuntimeContext - Context information attached to RuntimeEvents

@@ -4,8 +4,7 @@
  * Subscribes to user_message events on SystemBus and sends to Claude SDK.
  */
 
-import type { Effector, SystemBus } from "@agentxjs/types/runtime/internal";
-import type { UserMessage } from "@agentxjs/types/agent";
+import type { Effector, SystemBus, UserMessage } from "@agentxjs/types";
 import {
   query,
   type SDKUserMessage,

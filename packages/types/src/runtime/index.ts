@@ -13,7 +13,21 @@
 // Runtime Entry
 // ============================================================================
 
-export type { Runtime, RuntimeEventHandler } from "./Runtime";
+export type {
+  Runtime,
+  RuntimeEventHandler,
+  Unsubscribe,
+  ContainerInfo,
+  ContainersAPI,
+  AgentsAPI,
+  EventsAPI,
+} from "./Runtime";
+
+export type {
+  LLMProvider,
+  ClaudeLLMConfig,
+  ClaudeLLMProvider,
+} from "./LLMProvider";
 
 // ============================================================================
 // Agent Runtime
@@ -33,3 +47,20 @@ export type {
   EventIntent,
   EventCategory,
 } from "./event/base/SystemEvent";
+
+export type {
+  DriveableEvent,
+  DriveableEventType,
+  MessageStartEvent,
+  MessageDeltaEvent,
+  MessageStopEvent,
+  TextContentBlockStartEvent,
+  TextDeltaEvent,
+  TextContentBlockStopEvent,
+  ToolUseContentBlockStartEvent,
+  InputJsonDeltaEvent,
+  ToolUseContentBlockStopEvent,
+  ToolCallEvent,
+  ToolResultEvent,
+  InterruptedEvent,
+} from "./event/environment";

@@ -1,0 +1,32 @@
+/**
+ * createRuntime - Factory for creating Runtime instances
+ */
+
+import type { Persistence } from "@agentxjs/types";
+import type { Runtime, LLMProvider, ClaudeLLMConfig } from "@agentxjs/types/runtime";
+import { RuntimeImpl } from "./RuntimeImpl";
+
+/**
+ * Runtime configuration
+ */
+export interface RuntimeConfig {
+  /**
+   * Persistence layer for data storage
+   */
+  persistence: Persistence;
+
+  /**
+   * LLM provider for AI model access
+   */
+  llmProvider: LLMProvider<ClaudeLLMConfig>;
+}
+
+/**
+ * Create a Runtime instance
+ *
+ * @param config - Runtime configuration
+ * @returns Runtime instance
+ */
+export function createRuntime(config: RuntimeConfig): Runtime {
+  return new RuntimeImpl(config);
+}

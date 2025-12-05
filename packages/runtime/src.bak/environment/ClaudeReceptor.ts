@@ -13,14 +13,15 @@
  * ```
  */
 
-import type { Receptor, SystemBus } from "@agentxjs/types/runtime/internal";
 import type {
+  Receptor,
+  SystemBus,
   DriveableEvent,
   MessageStartEvent,
   TextDeltaEvent,
   MessageStopEvent,
   InterruptedEvent,
-} from "@agentxjs/types/runtime";
+} from "@agentxjs/types";
 import type { SDKPartialAssistantMessage } from "@anthropic-ai/claude-agent-sdk";
 import { Subject } from "rxjs";
 import { createLogger } from "@agentxjs/common";

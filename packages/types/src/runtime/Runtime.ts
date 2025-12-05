@@ -1,4 +1,30 @@
-import type { Container } from "./internal/container/Container";
+/**
+ * Runtime - Unified API for managing Containers and Agents
+ *
+ * Runtime is the single entry point for all operations.
+ *
+ * @example
+ * ```typescript
+ * const runtime = createRuntime({ persistence });
+ *
+ * // Container operations
+ * await runtime.containers.create("my-container");
+ * const container = await runtime.containers.get("my-container");
+ *
+ * // Agent operations
+ * const agent = await runtime.agents.run("my-container", config);
+ * await agent.receive("Hello!");
+ *
+ * // Event subscription
+ * runtime.events.on("text_delta", (e) => console.log(e.data.text));
+ *
+ * // Cleanup
+ * await runtime.dispose();
+ * ```
+ */
+
+import type { Agent } from "./Agent";
+import type { AgentConfig } from "./AgentConfig";
 
 /**
  * Unsubscribe function returned by event subscription.
@@ -7,61 +33,112 @@ export type Unsubscribe = () => void;
 
 /**
  * Handler function for runtime events.
- * Generic to allow different event types.
  */
 export type RuntimeEventHandler<E = unknown> = (event: E) => void;
 
 /**
- * Runtime interface - the execution environment for AI Agents.
- *
- * Runtime is the top-level abstraction that:
- * - Creates and manages Containers
- * - Provides event infrastructure
- * - Handles resource lifecycle
- *
- * Architecture:
- * ```
- * Runtime
- *   └── Container (manages Agents)
- *         └── Agent (with Sandbox)
- * ```
- *
- * This is a pure abstraction. Concrete implementations:
- * - @agentxjs/runtime (Node.js)
- * - @agentxjs/mirror (Browser, proxies to server)
+ * Container info returned by containers API
+ */
+export interface ContainerInfo {
+  readonly containerId: string;
+  readonly createdAt: number;
+  readonly agentCount: number;
+}
+
+/**
+ * Containers API - Container management operations
+ */
+export interface ContainersAPI {
+  /**
+   * Create a new container
+   */
+  create(containerId: string): Promise<ContainerInfo>;
+
+  /**
+   * Get container by ID
+   */
+  get(containerId: string): Promise<ContainerInfo | undefined>;
+
+  /**
+   * List all containers
+   */
+  list(): Promise<ContainerInfo[]>;
+
+  /**
+   * Dispose a container and all its agents
+   */
+  dispose(containerId: string): Promise<void>;
+}
+
+/**
+ * Agents API - Agent management operations
+ */
+export interface AgentsAPI {
+  /**
+   * Run an agent in a container
+   */
+  run(containerId: string, config: AgentConfig): Promise<Agent>;
+
+  /**
+   * Get agent by ID
+   */
+  get(agentId: string): Agent | undefined;
+
+  /**
+   * List all agents in a container
+   */
+  list(containerId: string): Agent[];
+
+  /**
+   * Destroy an agent
+   */
+  destroy(agentId: string): Promise<boolean>;
+
+  /**
+   * Destroy all agents in a container
+   */
+  destroyAll(containerId: string): Promise<void>;
+}
+
+/**
+ * Events API - Event subscription operations
+ */
+export interface EventsAPI<E = unknown> {
+  /**
+   * Subscribe to a specific event type
+   */
+  on<T extends string>(
+    type: T,
+    handler: RuntimeEventHandler<E>
+  ): Unsubscribe;
+
+  /**
+   * Subscribe to all events
+   */
+  onAll(handler: RuntimeEventHandler<E>): Unsubscribe;
+}
+
+/**
+ * Runtime interface - the unified API for AI Agents
  */
 export interface Runtime<E = unknown> {
   /**
-   * Create a Container for managing Agent instances.
-   *
-   * Each Container provides:
-   * - Agent lifecycle management (run, destroy)
-   * - Sandbox isolation per Agent
-   * - Internal event bus
-   *
-   * @param containerId - Unique container identifier
-   * @returns Container instance
+   * Container management API
    */
-  createContainer(containerId: string): Container;
+  readonly containers: ContainersAPI;
 
   /**
-   * Subscribe to all runtime events.
-   *
-   * @param handler - Callback invoked for each event
-   * @returns Unsubscribe function to stop listening
+   * Agent management API
    */
-  on(handler: RuntimeEventHandler<E>): Unsubscribe;
+  readonly agents: AgentsAPI;
 
   /**
-   * Emit an event to the runtime.
-   * Used internally by Receptors.
-   *
-   * @param event - The event to emit
+   * Event subscription API
    */
-  emit(event: E): void;
+  readonly events: EventsAPI<E>;
 
   /**
-   * Dispose the runtime and clean up resources.
+   * Dispose runtime and all resources
    */
-  dispose(): void;
+  dispose(): Promise<void>;
 }
