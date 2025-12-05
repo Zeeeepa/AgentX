@@ -12,7 +12,6 @@
 // Workdir Events
 export type {
   WorkdirEvent,
-  AllWorkdirEvent,
   WorkdirRequestEvent,
   WorkdirResultEvent,
   FileReadRequest,
@@ -25,11 +24,11 @@ export type {
   DirectoryListResult,
   WorkdirErrorEvent,
 } from "./workdir";
+export { isWorkdirEvent } from "./workdir";
 
 // MCP Events
 export type {
   MCPEvent,
-  AllMCPEvent,
   MCPRequestEvent,
   MCPResultEvent,
   ToolExecuteRequest,
@@ -40,18 +39,19 @@ export type {
   ResourceReadRequest,
   ResourceReadResult,
 } from "./mcp";
+export { isMCPEvent } from "./mcp";
 
 // ============================================================================
 // Combined Union
 // ============================================================================
 
-import type { AllWorkdirEvent } from "./workdir";
-import type { AllMCPEvent } from "./mcp";
+import type { WorkdirEvent } from "./workdir";
+import type { MCPEvent } from "./mcp";
 
 /**
  * SandboxEvent - All sandbox events
  */
-export type SandboxEvent = AllWorkdirEvent | AllMCPEvent;
+export type SandboxEvent = WorkdirEvent | MCPEvent;
 
 /**
  * Type guard: is this a sandbox event?

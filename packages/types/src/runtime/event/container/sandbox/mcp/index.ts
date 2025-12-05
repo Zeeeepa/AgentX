@@ -2,17 +2,36 @@
  * Sandbox MCP Events
  *
  * Events for MCP (Model Context Protocol) tool operations.
+ *
+ * All MCPEvents have:
+ * - source: "sandbox"
+ * - category: "mcp"
+ * - intent: "request" | "result" | "notification"
  */
 
-import type { RuntimeEvent } from "~/runtime/event/RuntimeEvent";
+import type { SystemEvent } from "~/runtime/event/base";
+
+// ============================================================================
+// Base Types
+// ============================================================================
 
 /**
- * Base MCPEvent
+ * Base MCPRequest
  */
-export interface MCPEvent<T extends string = string, D = unknown> extends RuntimeEvent<T, D> {
-  source: "sandbox";
-  category: "mcp";
-}
+interface BaseMCPRequest<T extends string, D = unknown>
+  extends SystemEvent<T, D, "sandbox", "mcp", "request"> {}
+
+/**
+ * Base MCPResult
+ */
+interface BaseMCPResult<T extends string, D = unknown>
+  extends SystemEvent<T, D, "sandbox", "mcp", "result"> {}
+
+/**
+ * Base MCPNotification
+ */
+interface BaseMCPNotification<T extends string, D = unknown>
+  extends SystemEvent<T, D, "sandbox", "mcp", "notification"> {}
 
 // ============================================================================
 // Tool Execution Events
@@ -21,44 +40,47 @@ export interface MCPEvent<T extends string = string, D = unknown> extends Runtim
 /**
  * ToolExecuteRequest - Request to execute a tool
  */
-export interface ToolExecuteRequest extends MCPEvent<"tool_execute_request"> {
-  intent: "request";
-  data: {
-    toolId: string;
-    toolName: string;
-    serverName: string;
-    input: Record<string, unknown>;
-    timestamp: number;
-  };
-}
+export interface ToolExecuteRequest
+  extends BaseMCPRequest<
+    "tool_execute_request",
+    {
+      toolId: string;
+      toolName: string;
+      serverName: string;
+      input: Record<string, unknown>;
+      timestamp: number;
+    }
+  > {}
 
 /**
  * ToolExecutedEvent - Tool execution completed
  */
-export interface ToolExecutedEvent extends MCPEvent<"tool_executed"> {
-  intent: "result";
-  data: {
-    toolId: string;
-    toolName: string;
-    result: unknown;
-    duration: number;
-    timestamp: number;
-  };
-}
+export interface ToolExecutedEvent
+  extends BaseMCPResult<
+    "tool_executed",
+    {
+      toolId: string;
+      toolName: string;
+      result: unknown;
+      duration: number;
+      timestamp: number;
+    }
+  > {}
 
 /**
  * ToolExecutionErrorEvent - Tool execution failed
  */
-export interface ToolExecutionErrorEvent extends MCPEvent<"tool_execution_error"> {
-  intent: "notification";
-  data: {
-    toolId: string;
-    toolName: string;
-    code: string;
-    message: string;
-    timestamp: number;
-  };
-}
+export interface ToolExecutionErrorEvent
+  extends BaseMCPNotification<
+    "tool_execution_error",
+    {
+      toolId: string;
+      toolName: string;
+      code: string;
+      message: string;
+      timestamp: number;
+    }
+  > {}
 
 // ============================================================================
 // MCP Server Events
@@ -67,28 +89,30 @@ export interface ToolExecutionErrorEvent extends MCPEvent<"tool_execution_error"
 /**
  * MCPServerConnectedEvent - MCP server connected
  */
-export interface MCPServerConnectedEvent extends MCPEvent<"mcp_server_connected"> {
-  intent: "notification";
-  data: {
-    serverName: string;
-    version?: string;
-    toolCount: number;
-    resourceCount: number;
-    timestamp: number;
-  };
-}
+export interface MCPServerConnectedEvent
+  extends BaseMCPNotification<
+    "mcp_server_connected",
+    {
+      serverName: string;
+      version?: string;
+      toolCount: number;
+      resourceCount: number;
+      timestamp: number;
+    }
+  > {}
 
 /**
  * MCPServerDisconnectedEvent - MCP server disconnected
  */
-export interface MCPServerDisconnectedEvent extends MCPEvent<"mcp_server_disconnected"> {
-  intent: "notification";
-  data: {
-    serverName: string;
-    reason?: string;
-    timestamp: number;
-  };
-}
+export interface MCPServerDisconnectedEvent
+  extends BaseMCPNotification<
+    "mcp_server_disconnected",
+    {
+      serverName: string;
+      reason?: string;
+      timestamp: number;
+    }
+  > {}
 
 // ============================================================================
 // Resource Events
@@ -97,35 +121,37 @@ export interface MCPServerDisconnectedEvent extends MCPEvent<"mcp_server_disconn
 /**
  * ResourceReadRequest - Request to read an MCP resource
  */
-export interface ResourceReadRequest extends MCPEvent<"resource_read_request"> {
-  intent: "request";
-  data: {
-    serverName: string;
-    uri: string;
-  };
-}
+export interface ResourceReadRequest
+  extends BaseMCPRequest<
+    "resource_read_request",
+    {
+      serverName: string;
+      uri: string;
+    }
+  > {}
 
 /**
  * ResourceReadResult - Resource read result
  */
-export interface ResourceReadResult extends MCPEvent<"resource_read_result"> {
-  intent: "result";
-  data: {
-    serverName: string;
-    uri: string;
-    content: unknown;
-    mimeType?: string;
-  };
-}
+export interface ResourceReadResult
+  extends BaseMCPResult<
+    "resource_read_result",
+    {
+      serverName: string;
+      uri: string;
+      content: unknown;
+      mimeType?: string;
+    }
+  > {}
 
 // ============================================================================
 // Union Type
 // ============================================================================
 
 /**
- * AllMCPEvent - All MCP events
+ * MCPEvent - All MCP events
  */
-export type AllMCPEvent =
+export type MCPEvent =
   | ToolExecuteRequest
   | ToolExecutedEvent
   | ToolExecutionErrorEvent
@@ -143,3 +169,10 @@ export type MCPRequestEvent = ToolExecuteRequest | ResourceReadRequest;
  * MCP result events
  */
 export type MCPResultEvent = ToolExecutedEvent | ResourceReadResult;
+
+/**
+ * Type guard: is this a MCPEvent?
+ */
+export function isMCPEvent(event: SystemEvent): event is MCPEvent {
+  return event.source === "sandbox" && event.category === "mcp";
+}

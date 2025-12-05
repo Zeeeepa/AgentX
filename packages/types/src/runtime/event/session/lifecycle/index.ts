@@ -2,18 +2,24 @@
  * Session Lifecycle Events
  *
  * Events for session creation and destruction.
+ *
+ * All SessionLifecycleEvents have:
+ * - source: "session"
+ * - category: "lifecycle"
+ * - intent: "notification"
  */
 
-import type { RuntimeEvent } from "../../RuntimeEvent";
+import type { SystemEvent } from "../../base";
+
+// ============================================================================
+// Base Type
+// ============================================================================
 
 /**
  * Base SessionLifecycleEvent
  */
-export interface SessionLifecycleEvent<T extends string = string, D = unknown>
-  extends RuntimeEvent<T, D> {
-  source: "session";
-  category: "lifecycle";
-}
+interface BaseSessionLifecycleEvent<T extends string, D = unknown>
+  extends SystemEvent<T, D, "session", "lifecycle", "notification"> {}
 
 // ============================================================================
 // Lifecycle Events
@@ -22,33 +28,42 @@ export interface SessionLifecycleEvent<T extends string = string, D = unknown>
 /**
  * SessionCreatedEvent - Session was created
  */
-export interface SessionCreatedEvent extends SessionLifecycleEvent<"session_created"> {
-  intent: "notification";
-  data: {
-    sessionId: string;
-    imageId: string;
-    containerId: string;
-    title?: string;
-    createdAt: number;
-  };
-}
+export interface SessionCreatedEvent
+  extends BaseSessionLifecycleEvent<
+    "session_created",
+    {
+      sessionId: string;
+      imageId: string;
+      containerId: string;
+      title?: string;
+      createdAt: number;
+    }
+  > {}
 
 /**
  * SessionDestroyedEvent - Session was destroyed
  */
-export interface SessionDestroyedEvent extends SessionLifecycleEvent<"session_destroyed"> {
-  intent: "notification";
-  data: {
-    sessionId: string;
-    reason?: string;
-  };
-}
+export interface SessionDestroyedEvent
+  extends BaseSessionLifecycleEvent<
+    "session_destroyed",
+    {
+      sessionId: string;
+      reason?: string;
+    }
+  > {}
 
 // ============================================================================
 // Union Type
 // ============================================================================
 
 /**
- * AllSessionLifecycleEvent - All session lifecycle events
+ * SessionLifecycleEvent - All session lifecycle events
  */
-export type AllSessionLifecycleEvent = SessionCreatedEvent | SessionDestroyedEvent;
+export type SessionLifecycleEvent = SessionCreatedEvent | SessionDestroyedEvent;
+
+/**
+ * Type guard: is this a SessionLifecycleEvent?
+ */
+export function isSessionLifecycleEvent(event: SystemEvent): event is SessionLifecycleEvent {
+  return event.source === "session" && event.category === "lifecycle";
+}

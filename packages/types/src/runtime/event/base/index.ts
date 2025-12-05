@@ -6,4 +6,13 @@ export type {
   EventSource,
   EventIntent,
   EventCategory,
+  EventContext,
+} from "./SystemEvent";
+
+export {
+  isFromSource,
+  hasIntent,
+  isRequest,
+  isResult,
+  isNotification,
 } from "./SystemEvent";

@@ -1,41 +1,41 @@
 /**
  * Event System - Unified event definitions for AgentX
  *
- * Event Hierarchy:
- * ```
- * SystemEvent (base)
- * │
- * ├── EnvironmentEvent (external world perception)
- * │   ├── DriveableEvent (can drive Agent)
- * │   │   └── message_start, text_delta, tool_call...
- * │   └── ConnectionEvent (network status)
- * │       └── connected, disconnected, reconnecting
- * │
- * └── RuntimeEvent (Container internal)
- *     ├── AgentEvent
- *     │   ├── stream (real-time output)
- *     │   ├── state (transitions)
- *     │   ├── message (complete messages)
- *     │   ├── turn (conversation turns)
- *     │   └── error (agent errors)
- *     │
- *     ├── SessionEvent
- *     │   ├── lifecycle (created, destroyed)
- *     │   ├── persist (save, message persistence)
- *     │   └── action (resume, fork, title update)
- *     │
- *     ├── ContainerEvent
- *     │   └── lifecycle (created, destroyed, agent registration)
- *     │
- *     └── SandboxEvent
- *         ├── workspace (file operations)
- *         └── mcp (tool operations)
- * ```
+ * All events extend SystemEvent with:
+ * - type: Event type identifier
+ * - timestamp: When it happened
+ * - data: Event payload
+ * - source: Where it came from
+ * - category: What kind of event
+ * - intent: What it means (notification/request/result)
+ * - context: Optional scope information
  *
- * Design Principles:
- * - Type-as-Documentation: Types are self-explanatory
- * - Isomorphic: Same events work in Node and Browser
- * - Request/Result: Request events can be forwarded or executed
+ * Event Sources:
+ * ```
+ * SystemEvent
+ * │
+ * ├── source: "environment"   ← External world (Claude API, Network)
+ * │   ├── category: "stream"     → message_start, text_delta, message_stop...
+ * │   └── category: "connection" → connected, disconnected, reconnecting
+ * │
+ * ├── source: "container"     ← Container operations
+ * │   └── category: "lifecycle"  → container_created, agent_registered...
+ * │
+ * ├── source: "session"       ← Session operations
+ * │   ├── category: "lifecycle"  → session_created, session_destroyed
+ * │   ├── category: "persist"    → session_saved, message_persisted
+ * │   └── category: "action"     → session_resumed, session_forked
+ * │
+ * ├── source: "sandbox"       ← Sandbox resources
+ * │   ├── category: "workdir"    → file_read, file_written
+ * │   └── category: "mcp"        → tool_execute, mcp_server_connected
+ * │
+ * └── source: "agent"         ← Agent internal
+ *     ├── category: "stream"     → (forwarded from environment)
+ *     ├── category: "state"      → state transitions
+ *     ├── category: "message"    → complete messages
+ *     └── category: "turn"       → conversation turns
+ * ```
  */
 
 // ============================================================================
@@ -47,6 +47,14 @@ export type {
   EventSource,
   EventIntent,
   EventCategory,
+  EventContext,
+} from "./base";
+export {
+  isFromSource,
+  hasIntent,
+  isRequest,
+  isResult,
+  isNotification,
 } from "./base";
 
 // ============================================================================
@@ -56,9 +64,13 @@ export type {
 export * from "./environment";
 
 // ============================================================================
-// Runtime Events (Container Internal)
+// Container Events
 // ============================================================================
 
-export * from "./RuntimeEvent";
 export * from "./container";
+
+// ============================================================================
+// Session Events
+// ============================================================================
+
 export * from "./session";

@@ -1,5 +1,9 @@
 /**
  * Environment Events - External world perception
+ *
+ * All events from external world (LLM API, Network)
+ * - source: "environment"
+ * - category: "stream" | "connection"
  */
 
 // Driveable Events (can drive Agent)
@@ -24,6 +28,7 @@ export type {
   // Interrupt
   InterruptedEvent,
 } from "./DriveableEvent";
+export { isDriveableEvent } from "./DriveableEvent";
 
 // Connection Events (network status)
 export type {
@@ -33,7 +38,9 @@ export type {
   DisconnectedEvent,
   ReconnectingEvent,
 } from "./ConnectionEvent";
+export { isConnectionEvent } from "./ConnectionEvent";
 
-// Environment Event (base and union)
-export type { BaseEnvironmentEvent, EnvironmentEvent } from "./EnvironmentEvent";
-export { isDriveableEvent, isConnectionEvent } from "./EnvironmentEvent";
+// EnvironmentEvent - Union of all environment events
+export type EnvironmentEvent =
+  | import("./DriveableEvent").DriveableEvent
+  | import("./ConnectionEvent").ConnectionEvent;

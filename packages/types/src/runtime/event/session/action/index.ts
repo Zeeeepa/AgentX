@@ -2,18 +2,30 @@
  * Session Action Events
  *
  * Events for user-initiated session actions (resume, fork, etc.)
+ *
+ * All SessionActionEvents have:
+ * - source: "session"
+ * - category: "action"
+ * - intent: "request" | "result"
  */
 
-import type { RuntimeEvent } from "../../RuntimeEvent";
+import type { SystemEvent } from "../../base";
+
+// ============================================================================
+// Base Types
+// ============================================================================
 
 /**
- * Base SessionActionEvent
+ * Base SessionActionRequest
  */
-export interface SessionActionEvent<T extends string = string, D = unknown>
-  extends RuntimeEvent<T, D> {
-  source: "session";
-  category: "action";
-}
+interface BaseSessionActionRequest<T extends string, D = unknown>
+  extends SystemEvent<T, D, "session", "action", "request"> {}
+
+/**
+ * Base SessionActionResult
+ */
+interface BaseSessionActionResult<T extends string, D = unknown>
+  extends SystemEvent<T, D, "session", "action", "result"> {}
 
 // ============================================================================
 // Resume Events
@@ -22,25 +34,27 @@ export interface SessionActionEvent<T extends string = string, D = unknown>
 /**
  * SessionResumeRequest - Request to resume a session
  */
-export interface SessionResumeRequest extends SessionActionEvent<"session_resume_request"> {
-  intent: "request";
-  data: {
-    sessionId: string;
-    containerId?: string;
-  };
-}
+export interface SessionResumeRequest
+  extends BaseSessionActionRequest<
+    "session_resume_request",
+    {
+      sessionId: string;
+      containerId?: string;
+    }
+  > {}
 
 /**
  * SessionResumedEvent - Session was resumed
  */
-export interface SessionResumedEvent extends SessionActionEvent<"session_resumed"> {
-  intent: "result";
-  data: {
-    sessionId: string;
-    agentId: string;
-    resumedAt: number;
-  };
-}
+export interface SessionResumedEvent
+  extends BaseSessionActionResult<
+    "session_resumed",
+    {
+      sessionId: string;
+      agentId: string;
+      resumedAt: number;
+    }
+  > {}
 
 // ============================================================================
 // Fork Events
@@ -49,26 +63,28 @@ export interface SessionResumedEvent extends SessionActionEvent<"session_resumed
 /**
  * SessionForkRequest - Request to fork a session
  */
-export interface SessionForkRequest extends SessionActionEvent<"session_fork_request"> {
-  intent: "request";
-  data: {
-    sessionId: string;
-    newTitle?: string;
-  };
-}
+export interface SessionForkRequest
+  extends BaseSessionActionRequest<
+    "session_fork_request",
+    {
+      sessionId: string;
+      newTitle?: string;
+    }
+  > {}
 
 /**
  * SessionForkedEvent - Session was forked
  */
-export interface SessionForkedEvent extends SessionActionEvent<"session_forked"> {
-  intent: "result";
-  data: {
-    originalSessionId: string;
-    newSessionId: string;
-    newImageId: string;
-    forkedAt: number;
-  };
-}
+export interface SessionForkedEvent
+  extends BaseSessionActionResult<
+    "session_forked",
+    {
+      originalSessionId: string;
+      newSessionId: string;
+      newImageId: string;
+      forkedAt: number;
+    }
+  > {}
 
 // ============================================================================
 // Title Update Events
@@ -78,34 +94,35 @@ export interface SessionForkedEvent extends SessionActionEvent<"session_forked">
  * SessionTitleUpdateRequest - Request to update session title
  */
 export interface SessionTitleUpdateRequest
-  extends SessionActionEvent<"session_title_update_request"> {
-  intent: "request";
-  data: {
-    sessionId: string;
-    title: string;
-  };
-}
+  extends BaseSessionActionRequest<
+    "session_title_update_request",
+    {
+      sessionId: string;
+      title: string;
+    }
+  > {}
 
 /**
  * SessionTitleUpdatedEvent - Session title was updated
  */
-export interface SessionTitleUpdatedEvent extends SessionActionEvent<"session_title_updated"> {
-  intent: "result";
-  data: {
-    sessionId: string;
-    title: string;
-    updatedAt: number;
-  };
-}
+export interface SessionTitleUpdatedEvent
+  extends BaseSessionActionResult<
+    "session_title_updated",
+    {
+      sessionId: string;
+      title: string;
+      updatedAt: number;
+    }
+  > {}
 
 // ============================================================================
-// Union Type
+// Union Types
 // ============================================================================
 
 /**
- * AllSessionActionEvent - All session action events
+ * SessionActionEvent - All session action events
  */
-export type AllSessionActionEvent =
+export type SessionActionEvent =
   | SessionResumeRequest
   | SessionResumedEvent
   | SessionForkRequest
@@ -128,3 +145,10 @@ export type SessionActionResultEvent =
   | SessionResumedEvent
   | SessionForkedEvent
   | SessionTitleUpdatedEvent;
+
+/**
+ * Type guard: is this a SessionActionEvent?
+ */
+export function isSessionActionEvent(event: SystemEvent): event is SessionActionEvent {
+  return event.source === "session" && event.category === "action";
+}

@@ -9,12 +9,12 @@
 // Lifecycle Events
 export type {
   ContainerLifecycleEvent,
-  AllContainerLifecycleEvent,
   ContainerCreatedEvent,
   ContainerDestroyedEvent,
   AgentRegisteredEvent,
   AgentUnregisteredEvent,
 } from "./lifecycle";
+export { isContainerLifecycleEvent } from "./lifecycle";
 
 // Sandbox Events
 export * from "./sandbox";
@@ -23,13 +23,13 @@ export * from "./sandbox";
 // Combined Union
 // ============================================================================
 
-import type { AllContainerLifecycleEvent } from "./lifecycle";
+import type { ContainerLifecycleEvent } from "./lifecycle";
 import type { SandboxEvent } from "./sandbox";
 
 /**
  * ContainerEvent - All container events
  */
-export type ContainerEvent = AllContainerLifecycleEvent | SandboxEvent;
+export type ContainerEvent = ContainerLifecycleEvent | SandboxEvent;
 
 /**
  * Type guard: is this a container event?

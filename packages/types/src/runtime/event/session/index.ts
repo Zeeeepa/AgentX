@@ -10,15 +10,14 @@
 // Lifecycle Events
 export type {
   SessionLifecycleEvent,
-  AllSessionLifecycleEvent,
   SessionCreatedEvent,
   SessionDestroyedEvent,
 } from "./lifecycle";
+export { isSessionLifecycleEvent } from "./lifecycle";
 
 // Persist Events
 export type {
   SessionPersistEvent,
-  AllSessionPersistEvent,
   SessionPersistRequestEvent,
   SessionPersistResultEvent,
   SessionSaveRequest,
@@ -26,11 +25,11 @@ export type {
   MessagePersistRequest,
   MessagePersistedEvent,
 } from "./persist";
+export { isSessionPersistEvent } from "./persist";
 
 // Action Events
 export type {
   SessionActionEvent,
-  AllSessionActionEvent,
   SessionActionRequestEvent,
   SessionActionResultEvent,
   SessionResumeRequest,
@@ -40,19 +39,20 @@ export type {
   SessionTitleUpdateRequest,
   SessionTitleUpdatedEvent,
 } from "./action";
+export { isSessionActionEvent } from "./action";
 
 // ============================================================================
 // Combined Union
 // ============================================================================
 
-import type { AllSessionLifecycleEvent } from "./lifecycle";
-import type { AllSessionPersistEvent } from "./persist";
-import type { AllSessionActionEvent } from "./action";
+import type { SessionLifecycleEvent } from "./lifecycle";
+import type { SessionPersistEvent } from "./persist";
+import type { SessionActionEvent } from "./action";
 
 /**
  * SessionEvent - All session events
  */
-export type SessionEvent = AllSessionLifecycleEvent | AllSessionPersistEvent | AllSessionActionEvent;
+export type SessionEvent = SessionLifecycleEvent | SessionPersistEvent | SessionActionEvent;
 
 /**
  * Type guard: is this a session event?

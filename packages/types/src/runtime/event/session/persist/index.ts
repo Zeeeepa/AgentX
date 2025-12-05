@@ -6,18 +6,30 @@
  * Isomorphic Design:
  * - Request events may be forwarded (RemoteEcosystem) or executed (NodeEcosystem)
  * - Result events confirm completion
+ *
+ * All SessionPersistEvents have:
+ * - source: "session"
+ * - category: "persist"
+ * - intent: "request" | "result"
  */
 
-import type { RuntimeEvent } from "../../RuntimeEvent";
+import type { SystemEvent } from "../../base";
+
+// ============================================================================
+// Base Types
+// ============================================================================
 
 /**
- * Base SessionPersistEvent
+ * Base SessionPersistRequest
  */
-export interface SessionPersistEvent<T extends string = string, D = unknown>
-  extends RuntimeEvent<T, D> {
-  source: "session";
-  category: "persist";
-}
+interface BaseSessionPersistRequest<T extends string, D = unknown>
+  extends SystemEvent<T, D, "session", "persist", "request"> {}
+
+/**
+ * Base SessionPersistResult
+ */
+interface BaseSessionPersistResult<T extends string, D = unknown>
+  extends SystemEvent<T, D, "session", "persist", "result"> {}
 
 // ============================================================================
 // Save Events
@@ -26,25 +38,27 @@ export interface SessionPersistEvent<T extends string = string, D = unknown>
 /**
  * SessionSaveRequest - Request to save session
  */
-export interface SessionSaveRequest extends SessionPersistEvent<"session_save_request"> {
-  intent: "request";
-  data: {
-    sessionId: string;
-    title?: string;
-    metadata?: Record<string, unknown>;
-  };
-}
+export interface SessionSaveRequest
+  extends BaseSessionPersistRequest<
+    "session_save_request",
+    {
+      sessionId: string;
+      title?: string;
+      metadata?: Record<string, unknown>;
+    }
+  > {}
 
 /**
  * SessionSavedEvent - Session was saved
  */
-export interface SessionSavedEvent extends SessionPersistEvent<"session_saved"> {
-  intent: "result";
-  data: {
-    sessionId: string;
-    savedAt: number;
-  };
-}
+export interface SessionSavedEvent
+  extends BaseSessionPersistResult<
+    "session_saved",
+    {
+      sessionId: string;
+      savedAt: number;
+    }
+  > {}
 
 // ============================================================================
 // Message Persist Events
@@ -53,36 +67,38 @@ export interface SessionSavedEvent extends SessionPersistEvent<"session_saved"> 
 /**
  * MessagePersistRequest - Request to persist a message
  */
-export interface MessagePersistRequest extends SessionPersistEvent<"message_persist_request"> {
-  intent: "request";
-  data: {
-    sessionId: string;
-    messageId: string;
-    role: "user" | "assistant" | "tool_call" | "tool_result";
-    content: unknown;
-  };
-}
+export interface MessagePersistRequest
+  extends BaseSessionPersistRequest<
+    "message_persist_request",
+    {
+      sessionId: string;
+      messageId: string;
+      role: "user" | "assistant" | "tool_call" | "tool_result";
+      content: unknown;
+    }
+  > {}
 
 /**
  * MessagePersistedEvent - Message was persisted
  */
-export interface MessagePersistedEvent extends SessionPersistEvent<"message_persisted"> {
-  intent: "result";
-  data: {
-    sessionId: string;
-    messageId: string;
-    savedAt: number;
-  };
-}
+export interface MessagePersistedEvent
+  extends BaseSessionPersistResult<
+    "message_persisted",
+    {
+      sessionId: string;
+      messageId: string;
+      savedAt: number;
+    }
+  > {}
 
 // ============================================================================
-// Union Type
+// Union Types
 // ============================================================================
 
 /**
- * AllSessionPersistEvent - All session persist events
+ * SessionPersistEvent - All session persist events
  */
-export type AllSessionPersistEvent =
+export type SessionPersistEvent =
   | SessionSaveRequest
   | SessionSavedEvent
   | MessagePersistRequest
@@ -97,3 +113,10 @@ export type SessionPersistRequestEvent = SessionSaveRequest | MessagePersistRequ
  * Session persist result events
  */
 export type SessionPersistResultEvent = SessionSavedEvent | MessagePersistedEvent;
+
+/**
+ * Type guard: is this a SessionPersistEvent?
+ */
+export function isSessionPersistEvent(event: SystemEvent): event is SessionPersistEvent {
+  return event.source === "session" && event.category === "persist";
+}

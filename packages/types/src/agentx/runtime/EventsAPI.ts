@@ -18,7 +18,7 @@
  * ```
  */
 
-import type { RuntimeEvent } from "~/runtime/event/RuntimeEvent";
+import type { SystemEvent } from "~/runtime/event/base";
 import type { Unsubscribe } from "~/agent";
 
 /**
@@ -42,9 +42,9 @@ export interface EventsAPI {
    * unsubscribe();
    * ```
    */
-  on<T extends RuntimeEvent["type"]>(
+  on<T extends SystemEvent["type"]>(
     type: T,
-    handler: (event: Extract<RuntimeEvent, { type: T }>) => void
+    handler: (event: Extract<SystemEvent, { type: T }>) => void
   ): Unsubscribe;
 
   /**
@@ -53,5 +53,5 @@ export interface EventsAPI {
    * @param handler - Event handler for all events
    * @returns Unsubscribe function
    */
-  onAll(handler: (event: RuntimeEvent) => void): Unsubscribe;
+  onAll(handler: (event: SystemEvent) => void): Unsubscribe;
 }

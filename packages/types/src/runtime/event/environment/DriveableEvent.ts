@@ -1,33 +1,40 @@
 /**
- * DriveableEvent - Events that can drive Agent through Mealy Machine
+ * DriveableEvent - Events from LLM that can drive Agent
  *
- * These events are:
- * 1. Output by Receptor (with turnId)
- * 2. Filtered by Driver (using turnId)
- * 3. Transformed by Driver into AgentStreamEvent (adding agentId)
- * 4. Processed by Engine
+ * These are environment events with:
+ * - source: "environment"
+ * - category: "stream"
+ * - intent: "notification"
  *
- * Relationship: DriveableEvent ⊂ EnvironmentEvent
- *
- * Type Hierarchy:
- * ```
- * EnvironmentEvent (has turnId)
- * ├── DriveableEvent ← Receptor outputs this
- * │   ├── MessageStartEvent
- * │   ├── TextDeltaEvent
- * │   ├── ToolCallEvent
- * │   └── ...
- * └── ConnectionEvent (network status only)
- * ```
- *
- * Key Design:
- * - All DriveableEvents have turnId for correlation
- * - Receptor is stateless, outputs events to SystemBus
- * - Driver filters events by turnId and adds agentId
+ * Flow:
+ * 1. Receptor receives from Claude SDK
+ * 2. Receptor emits DriveableEvent to SystemBus
+ * 3. BusDriver listens and forwards to Agent
+ * 4. Agent Engine processes the event
  */
 
-import type { BaseEnvironmentEvent } from "./EnvironmentEvent";
+import type { SystemEvent } from "../base";
 import type { StopReason } from "~/runtime/internal/container/llm/StopReason";
+
+// ============================================================================
+// Base Type for Stream Events
+// ============================================================================
+
+/**
+ * Base interface for all LLM stream events
+ *
+ * All DriveableEvents have:
+ * - source: "environment" (from external LLM)
+ * - category: "stream" (streaming output)
+ * - intent: "notification" (informational, no action needed)
+ */
+interface BaseStreamEvent<T extends string, D = unknown>
+  extends SystemEvent<T, D, "environment", "stream", "notification"> {
+  /**
+   * Content block index (for multi-block responses)
+   */
+  index?: number;
+}
 
 // ============================================================================
 // Message Lifecycle Events
@@ -36,39 +43,30 @@ import type { StopReason } from "~/runtime/internal/container/llm/StopReason";
 /**
  * MessageStartEvent - Emitted when streaming message begins
  */
-export interface MessageStartEvent extends BaseEnvironmentEvent<"message_start"> {
-  data: {
-    message: {
-      id: string;
-      model: string;
-    };
+export interface MessageStartEvent extends BaseStreamEvent<"message_start", {
+  message: {
+    id: string;
+    model: string;
   };
-  index?: number;
-}
+}> {}
 
 /**
  * MessageDeltaEvent - Emitted with message-level updates
  */
-export interface MessageDeltaEvent extends BaseEnvironmentEvent<"message_delta"> {
-  data: {
-    usage?: {
-      inputTokens: number;
-      outputTokens: number;
-    };
+export interface MessageDeltaEvent extends BaseStreamEvent<"message_delta", {
+  usage?: {
+    inputTokens: number;
+    outputTokens: number;
   };
-  index?: number;
-}
+}> {}
 
 /**
  * MessageStopEvent - Emitted when streaming message completes
  */
-export interface MessageStopEvent extends BaseEnvironmentEvent<"message_stop"> {
-  data: {
-    stopReason?: StopReason;
-    stopSequence?: string;
-  };
-  index?: number;
-}
+export interface MessageStopEvent extends BaseStreamEvent<"message_stop", {
+  stopReason?: StopReason;
+  stopSequence?: string;
+}> {}
 
 // ============================================================================
 // Text Content Block Events
@@ -77,26 +75,21 @@ export interface MessageStopEvent extends BaseEnvironmentEvent<"message_stop"> {
 /**
  * TextContentBlockStartEvent - Text block started
  */
-export interface TextContentBlockStartEvent extends BaseEnvironmentEvent<"text_content_block_start"> {
-  data: Record<string, never>;
+export interface TextContentBlockStartEvent extends BaseStreamEvent<"text_content_block_start", Record<string, never>> {
   index: number;
 }
 
 /**
  * TextDeltaEvent - Incremental text output
  */
-export interface TextDeltaEvent extends BaseEnvironmentEvent<"text_delta"> {
-  data: {
-    text: string;
-  };
-  index?: number;
-}
+export interface TextDeltaEvent extends BaseStreamEvent<"text_delta", {
+  text: string;
+}> {}
 
 /**
  * TextContentBlockStopEvent - Text block completed
  */
-export interface TextContentBlockStopEvent extends BaseEnvironmentEvent<"text_content_block_stop"> {
-  data: Record<string, never>;
+export interface TextContentBlockStopEvent extends BaseStreamEvent<"text_content_block_stop", Record<string, never>> {
   index: number;
 }
 
@@ -107,29 +100,26 @@ export interface TextContentBlockStopEvent extends BaseEnvironmentEvent<"text_co
 /**
  * ToolUseContentBlockStartEvent - Tool use block started
  */
-export interface ToolUseContentBlockStartEvent extends BaseEnvironmentEvent<"tool_use_content_block_start"> {
-  data: {
-    id: string;
-    name: string;
-  };
+export interface ToolUseContentBlockStartEvent extends BaseStreamEvent<"tool_use_content_block_start", {
+  id: string;
+  name: string;
+}> {
   index: number;
 }
 
 /**
  * InputJsonDeltaEvent - Incremental tool input JSON
  */
-export interface InputJsonDeltaEvent extends BaseEnvironmentEvent<"input_json_delta"> {
-  data: {
-    partialJson: string;
-  };
+export interface InputJsonDeltaEvent extends BaseStreamEvent<"input_json_delta", {
+  partialJson: string;
+}> {
   index: number;
 }
 
 /**
  * ToolUseContentBlockStopEvent - Tool use block completed
  */
-export interface ToolUseContentBlockStopEvent extends BaseEnvironmentEvent<"tool_use_content_block_stop"> {
-  data: Record<string, never>;
+export interface ToolUseContentBlockStopEvent extends BaseStreamEvent<"tool_use_content_block_stop", Record<string, never>> {
   index: number;
 }
 
@@ -140,26 +130,20 @@ export interface ToolUseContentBlockStopEvent extends BaseEnvironmentEvent<"tool
 /**
  * ToolCallEvent - Tool call ready for execution
  */
-export interface ToolCallEvent extends BaseEnvironmentEvent<"tool_call"> {
-  data: {
-    id: string;
-    name: string;
-    input: Record<string, unknown>;
-  };
-  index?: number;
-}
+export interface ToolCallEvent extends BaseStreamEvent<"tool_call", {
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+}> {}
 
 /**
  * ToolResultEvent - Tool execution result
  */
-export interface ToolResultEvent extends BaseEnvironmentEvent<"tool_result"> {
-  data: {
-    toolUseId: string;
-    result: unknown;
-    isError?: boolean;
-  };
-  index?: number;
-}
+export interface ToolResultEvent extends BaseStreamEvent<"tool_result", {
+  toolUseId: string;
+  result: unknown;
+  isError?: boolean;
+}> {}
 
 // ============================================================================
 // Interrupt Event
@@ -168,12 +152,9 @@ export interface ToolResultEvent extends BaseEnvironmentEvent<"tool_result"> {
 /**
  * InterruptedEvent - Stream interrupted
  */
-export interface InterruptedEvent extends BaseEnvironmentEvent<"interrupted"> {
-  data: {
-    reason: "user_interrupt" | "timeout" | "error" | "system";
-  };
-  index?: number;
-}
+export interface InterruptedEvent extends BaseStreamEvent<"interrupted", {
+  reason: "user_interrupt" | "timeout" | "error" | "system";
+}> {}
 
 // ============================================================================
 // Union Type
@@ -205,3 +186,10 @@ export type DriveableEvent =
  * DriveableEventType - String literal union of all driveable event types
  */
 export type DriveableEventType = DriveableEvent["type"];
+
+/**
+ * Type guard: is this a DriveableEvent?
+ */
+export function isDriveableEvent(event: SystemEvent): event is DriveableEvent {
+  return event.source === "environment" && event.category === "stream";
+}
