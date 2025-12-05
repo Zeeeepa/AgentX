@@ -15,3 +15,6 @@ export type {
   DownstreamConnectionHandler,
   PeerUnsubscribe,
 } from "./Peer";
+
+// Re-export EnvironmentEvent for convenience
+export type { EnvironmentEvent } from "~/runtime/event";

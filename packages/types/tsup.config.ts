@@ -4,6 +4,7 @@ export default defineConfig({
   entry: {
     index: "src/index.ts",
     agent: "src/agent/index.ts",
+    "agent-internal": "src/agent/internal/index.ts",
     runtime: "src/runtime/index.ts",
     application: "src/application/index.ts",
     network: "src/network/index.ts",

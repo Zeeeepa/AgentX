@@ -13,7 +13,7 @@
  * ```
  */
 
-import type { UserMessage } from "./message";
+import type { UserMessage } from "../message";
 
 /**
  * Next function to continue the middleware chain

@@ -4,7 +4,7 @@
  * Records all presented outputs for testing assertions.
  */
 
-import type { AgentPresenter, AgentOutput } from "@agentxjs/types/agent";
+import type { AgentOutput, AgentPresenter } from "@agentxjs/types/agent";
 
 export class MockPresenter implements AgentPresenter {
   readonly name: string;

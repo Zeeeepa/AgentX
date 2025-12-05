@@ -2,7 +2,7 @@
  * AgentEventHandler - Event subscription types
  */
 
-import type { AgentOutput } from "./AgentOutput";
+import type { AgentOutput } from "../AgentOutput";
 
 /**
  * Unsubscribe function returned by on()

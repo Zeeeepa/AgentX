@@ -19,7 +19,7 @@
  * ```
  */
 
-import type { AgentOutput } from "./AgentOutput";
+import type { AgentOutput } from "../AgentOutput";
 
 /**
  * Next function to continue the interceptor chain

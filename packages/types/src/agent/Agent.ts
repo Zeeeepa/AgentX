@@ -34,12 +34,10 @@
 import type { UserMessage } from "./message";
 import type { AgentState } from "./AgentState";
 import type { AgentLifecycle } from "./AgentLifecycle";
-import type { AgentEventHandler, Unsubscribe } from "./AgentEventHandler";
-import type { AgentMiddleware } from "./AgentMiddleware";
-import type { AgentInterceptor } from "./AgentInterceptor";
+import type { AgentEventHandler, Unsubscribe } from "./internal/AgentEventHandler";
+import type { AgentMiddleware } from "./internal/AgentMiddleware";
+import type { AgentInterceptor } from "./internal/AgentInterceptor";
 import type { AgentOutput } from "./AgentOutput";
-import type { AgentDriver } from "./AgentDriver";
-import type { AgentPresenter } from "./AgentPresenter";
 import type { MessageQueue } from "./MessageQueue";
 
 /**
@@ -201,38 +199,3 @@ export interface Agent {
   destroy(): Promise<void>;
 }
 
-/**
- * Options for creating an Agent
- */
-export interface CreateAgentOptions {
-  /**
-   * Driver - Event producer (LLM interaction)
-   */
-  driver: AgentDriver;
-
-  /**
-   * Presenter - Event consumer (side effects)
-   */
-  presenter: AgentPresenter;
-}
-
-/**
- * Factory function to create an Agent
- *
- * Agent is a logical processing unit that coordinates:
- * - Driver: produces stream events from LLM
- * - Engine: assembles events (internal, created automatically)
- * - Presenter: consumes processed events
- *
- * @example
- * ```typescript
- * const agent = createAgent({
- *   driver: new ClaudeDriver(config),
- *   presenter: new SSEPresenter(connection),
- * });
- *
- * agent.on("text_delta", (e) => console.log(e.data.text));
- * await agent.receive("Hello!");
- * ```
- */
-export declare function createAgent(options: CreateAgentOptions): Agent;

@@ -23,6 +23,11 @@
       "import": "./dist/agent.js",
       "require": "./dist/agent.cjs"
     },
+    "./agent/internal": {
+      "types": "./dist/agent-internal.d.ts",
+      "import": "./dist/agent-internal.js",
+      "require": "./dist/agent-internal.cjs"
+    },
     "./runtime": {
       "types": "./dist/runtime.d.ts",
       "import": "./dist/runtime.js",
@@ -57,6 +62,7 @@
   "typesVersions": {
     "*": {
       "agent": ["./dist/agent.d.ts"],
+      "agent/internal": ["./dist/agent-internal.d.ts"],
       "runtime": ["./dist/runtime.d.ts"],
       "application": ["./dist/application.d.ts"],
       "network": ["./dist/network.d.ts"],

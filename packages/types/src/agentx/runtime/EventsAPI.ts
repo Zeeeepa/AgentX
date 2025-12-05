@@ -19,7 +19,7 @@
  */
 
 import type { RuntimeEvent } from "~/runtime/event/runtime/RuntimeEvent";
-import type { Unsubscribe } from "~/agent/AgentEventHandler";
+import type { Unsubscribe } from "~/agent";
 
 /**
  * EventsAPI - Event subscription interface

@@ -11,13 +11,10 @@
 
 import type {
   Agent,
-  CreateAgentOptions,
   AgentLifecycle,
   AgentState,
   AgentEventHandler,
   Unsubscribe,
-  AgentMiddleware,
-  AgentInterceptor,
   UserMessage,
   MessageQueue,
   StateChange,
@@ -25,7 +22,12 @@ import type {
   EventHandlerMap,
   ReactHandlerMap,
   AgentOutput,
+  CreateAgentOptions,
 } from "@agentxjs/types/agent";
+import type {
+  AgentMiddleware,
+  AgentInterceptor,
+} from "@agentxjs/types/agent/internal";
 
 /**
  * Generate unique agent ID
