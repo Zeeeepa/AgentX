@@ -1,9 +1,30 @@
 /**
- * AgentX - Unified API for AI Agents
+ * AgentX - Unified High-Level API for AI Agents
  *
- * Simple, consistent API for both local and remote modes.
+ * AgentX provides a simple, consistent API for both local and remote modes.
+ * It wraps Runtime and provides the same interface regardless of deployment.
  *
- * @example
+ * ## Two Modes
+ *
+ * ```
+ * Local Mode                          Remote Mode
+ * ─────────────────────────────────────────────────────────
+ * AgentX                              AgentX
+ *   │                                   │
+ *   └── Runtime (embedded)              └── WebSocket ──→ Server
+ *         │                                                │
+ *         └── LLM, Storage                                 └── Runtime
+ * ```
+ *
+ * ## API Design
+ *
+ * All operations use CommandEvent pattern:
+ * - `request(type, data)` - Send request, wait for response
+ * - `on(type, handler)` - Subscribe to events
+ * - `onCommand(type, handler)` - Type-safe command subscription
+ *
+ * ## Usage
+ *
  * ```typescript
  * // Local mode (default)
  * const agentx = await createAgentX();

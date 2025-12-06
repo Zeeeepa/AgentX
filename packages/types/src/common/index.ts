@@ -1,16 +1,21 @@
 /**
- * Common module
+ * Common Module - Shared Infrastructure Types
  *
- * Internal infrastructure types for AgentX platform.
- * These are shared across internal packages (engine, agent, etc.)
+ * Infrastructure types shared across all AgentX packages.
+ *
+ * ## Why Types Here, Implementation in @agentxjs/common?
+ *
+ * - @agentxjs/types has zero dependencies (pure types)
+ * - @agentxjs/common has runtime dependencies (pino, etc.)
+ * - All packages depend on types, not all need common's implementation
  *
  * ## Module Structure
  *
  * | Module   | Purpose                           |
  * |----------|-----------------------------------|
- * | logger/  | Logging interfaces and types      |
+ * | logger/  | Logger interface (SLF4J-style)    |
  *
- * Types are defined here, implementations in agentx-common package.
+ * @packageDocumentation
  */
 
 export * from "./logger";

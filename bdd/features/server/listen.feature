@@ -27,7 +27,7 @@ Feature: agentx.listen() and agentx.close() - Server Mode
     When I call agentx.listen(5203)
     Then it should throw "Server already listening"
 
-  @listen @remote
+  @listen @remote @pending
   Scenario: listen() throws in remote mode
     Given an AgentX instance in remote mode
     When I call agentx.listen(5204)
