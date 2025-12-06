@@ -18,11 +18,7 @@
  * Note: This is a simplified proxy that returns MirrorAgent instead of full Agent.
  */
 
-import type {
-  AgentDefinition,
-  Peer,
-  EnvironmentEvent,
-} from "@agentxjs/types";
+import type { AgentDefinition, Peer } from "@agentxjs/types";
 import { createLogger } from "@agentxjs/common";
 import { MirrorAgent } from "./MirrorAgent";
 
@@ -60,13 +56,13 @@ export class MirrorContainer {
    *
    * Sends run_agent event to server and waits for agent_created response.
    */
-  async run(definition: AgentDefinition): Promise<Agent> {
+  async run(definition: AgentDefinition): Promise<MirrorAgent> {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
     logger.debug("Running agent", { containerId: this.containerId, definitionName: definition.name });
 
     // Create promise for response
-    const promise = new Promise<Agent>((resolve, reject) => {
+    const promise = new Promise<MirrorAgent>((resolve, reject) => {
       this.pendingRuns.set(requestId, { resolve, reject });
 
       // Timeout after 30 seconds
@@ -81,12 +77,13 @@ export class MirrorContainer {
     // Send run_agent event to server
     this.peer.sendUpstream({
       type: "run_agent",
+      timestamp: Date.now(),
       data: {
         requestId,
         containerId: this.containerId,
         definition,
       },
-    } as EnvironmentEvent);
+    } as any);
 
     return promise;
   }
@@ -94,7 +91,7 @@ export class MirrorContainer {
   /**
    * Get an Agent by ID
    */
-  getAgent(agentId: string): Agent | undefined {
+  getAgent(agentId: string): MirrorAgent | undefined {
     return this.agents.get(agentId);
   }
 
@@ -108,7 +105,7 @@ export class MirrorContainer {
   /**
    * List all Agents
    */
-  listAgents(): Agent[] {
+  listAgents(): MirrorAgent[] {
     return Array.from(this.agents.values());
   }
 
@@ -138,11 +135,12 @@ export class MirrorContainer {
     // Send destroy_agent event to server
     this.peer.sendUpstream({
       type: "destroy_agent",
+      timestamp: Date.now(),
       data: {
         containerId: this.containerId,
         agentId,
       },
-    } as EnvironmentEvent);
+    } as any);
 
     // Remove from local cache
     agent.dispose();
@@ -172,7 +170,7 @@ export class MirrorContainer {
   /**
    * Handle events from server
    */
-  private handleServerEvent(event: EnvironmentEvent): void {
+  private handleServerEvent(event: { type: string; data?: unknown }): void {
     switch (event.type) {
       case "agent_created":
         this.handleAgentCreated(event);
@@ -195,7 +193,7 @@ export class MirrorContainer {
   /**
    * Handle agent_created event
    */
-  private handleAgentCreated(event: EnvironmentEvent): void {
+  private handleAgentCreated(event: { type: string; data?: unknown }): void {
     const { requestId, agentId, containerId } = event.data as {
       requestId: string;
       agentId: string;
@@ -227,7 +225,7 @@ export class MirrorContainer {
   /**
    * Forward event to the appropriate agent
    */
-  private forwardToAgent(event: EnvironmentEvent): void {
+  private forwardToAgent(event: { type: string; data?: unknown }): void {
     const agentId = (event.data as { agentId?: string })?.agentId;
     if (!agentId) {
       return;
@@ -235,7 +233,7 @@ export class MirrorContainer {
 
     const agent = this.agents.get(agentId);
     if (agent) {
-      agent.handleEvent(event);
+      agent.handleEvent(event as any);
     }
   }
 }

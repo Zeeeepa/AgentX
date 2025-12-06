@@ -34,7 +34,7 @@
  * 5. Browser code handles events
  */
 
-import type { Environment, Peer, Receptor, Effector } from "@agentxjs/types";
+import type { Peer } from "@agentxjs/types";
 import { createLogger } from "@agentxjs/common";
 import { PeerReceptor } from "./PeerReceptor";
 import { PeerEffector } from "./PeerEffector";
@@ -60,10 +60,10 @@ export interface PeerEnvironmentConfig {
 /**
  * PeerEnvironment - Network-based Environment for browser clients
  */
-export class PeerEnvironment implements Environment {
+export class PeerEnvironment {
   readonly name: string;
-  readonly receptor: Receptor;
-  readonly effector: Effector;
+  readonly receptor: PeerReceptor;
+  readonly effector: PeerEffector;
 
   private readonly peerReceptor: PeerReceptor;
   private readonly peerEffector: PeerEffector;

@@ -27,6 +27,7 @@ import type {
   SessionRecord,
   ApplicationClient,
 } from "@agentxjs/types";
+import type { Message } from "@agentxjs/types/agent";
 import { createApplicationClient } from "@agentxjs/network";
 import { createLogger } from "@agentxjs/common";
 
@@ -203,6 +204,28 @@ class ClientSessionRepository implements SessionRepository {
 
   async sessionExists(sessionId: string): Promise<boolean> {
     return await this.client.sessions.exists(sessionId);
+  }
+
+  async findSessionByAgentId(_agentId: string): Promise<SessionRecord | null> {
+    // TODO: Implement when API supports this
+    logger.warn("findSessionByAgentId not implemented in MirrorPersistence");
+    return null;
+  }
+
+  async addMessage(sessionId: string, _message: Message): Promise<void> {
+    // TODO: Implement when API supports this
+    logger.warn("addMessage not implemented in MirrorPersistence", { sessionId });
+  }
+
+  async getMessages(sessionId: string): Promise<Message[]> {
+    // TODO: Implement when API supports this
+    logger.warn("getMessages not implemented in MirrorPersistence", { sessionId });
+    return [];
+  }
+
+  async clearMessages(sessionId: string): Promise<void> {
+    // TODO: Implement when API supports this
+    logger.warn("clearMessages not implemented in MirrorPersistence", { sessionId });
   }
 }
 

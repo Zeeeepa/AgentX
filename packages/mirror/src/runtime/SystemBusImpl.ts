@@ -5,17 +5,35 @@
  * Same pattern as node-ecosystem's SystemBusImpl.
  */
 
-import type {
-  SystemBus,
-  BusEvent,
-  BusEventHandler,
-  SubscribeOptions,
-  Unsubscribe,
-} from "@agentxjs/types";
+// Note: Simplified SystemBus for browser, doesn't strictly implement the full SystemBus interface
 import { Subject } from "rxjs";
 import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("mirror/SystemBusImpl");
+
+/**
+ * Base event type
+ */
+type BusEvent = { type: string; [key: string]: unknown };
+
+/**
+ * Event handler type
+ */
+type EventHandler = (event: BusEvent) => void;
+
+/**
+ * Unsubscribe function type
+ */
+type Unsubscribe = () => void;
+
+/**
+ * Subscribe options
+ */
+interface SubscribeOptions {
+  filter?: (event: BusEvent) => boolean;
+  priority?: number;
+  once?: boolean;
+}
 
 /**
  * Internal subscription record
@@ -23,7 +41,7 @@ const logger = createLogger("mirror/SystemBusImpl");
 interface Subscription {
   id: number;
   type: string | string[] | "*";
-  handler: BusEventHandler;
+  handler: EventHandler;
   filter?: (event: BusEvent) => boolean;
   priority: number;
   once: boolean;
@@ -32,7 +50,7 @@ interface Subscription {
 /**
  * SystemBus implementation using RxJS Subject
  */
-export class SystemBusImpl implements SystemBus {
+export class SystemBusImpl {
   private readonly subject = new Subject<BusEvent>();
   private subscriptions: Subscription[] = [];
   private nextId = 0;
@@ -74,8 +92,8 @@ export class SystemBusImpl implements SystemBus {
    */
   on<T extends string>(
     typeOrTypes: T | string[],
-    handler: BusEventHandler<BusEvent & { type: T }>,
-    options?: SubscribeOptions<BusEvent & { type: T }>
+    handler: EventHandler,
+    options?: SubscribeOptions
   ): Unsubscribe {
     if (this.isDestroyed) {
       return () => {};
@@ -84,7 +102,7 @@ export class SystemBusImpl implements SystemBus {
     const subscription: Subscription = {
       id: this.nextId++,
       type: typeOrTypes,
-      handler: handler as BusEventHandler,
+      handler,
       filter: options?.filter as ((event: BusEvent) => boolean) | undefined,
       priority: options?.priority ?? 0,
       once: options?.once ?? false,
@@ -99,7 +117,7 @@ export class SystemBusImpl implements SystemBus {
   /**
    * Subscribe to all events
    */
-  onAny(handler: BusEventHandler, options?: SubscribeOptions): Unsubscribe {
+  onAny(handler: EventHandler, options?: SubscribeOptions): Unsubscribe {
     if (this.isDestroyed) {
       return () => {};
     }
@@ -122,10 +140,7 @@ export class SystemBusImpl implements SystemBus {
   /**
    * Subscribe once (auto-unsubscribes after first trigger)
    */
-  once<T extends string>(
-    type: T,
-    handler: BusEventHandler<BusEvent & { type: T }>
-  ): Unsubscribe {
+  once<T extends string>(type: T, handler: EventHandler): Unsubscribe {
     return this.on(type, handler, { once: true });
   }
 

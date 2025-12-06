@@ -17,3 +17,8 @@ export const runtime = {
   ...common,
   import: ["steps/runtime/**/*.ts"],
 };
+
+export const mirror = {
+  ...common,
+  import: ["steps/mirror/**/*.ts"],
+};

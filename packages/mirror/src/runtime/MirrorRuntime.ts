@@ -45,7 +45,7 @@
  * ```
  */
 
-import type { Runtime, Unsubscribe, RuntimeEventHandler, Container, Peer, Environment } from "@agentxjs/types";
+import type { Peer } from "@agentxjs/types";
 import { createLogger } from "@agentxjs/common";
 import { SystemBusImpl } from "./SystemBusImpl";
 import { MirrorContainer } from "./MirrorContainer";
@@ -72,7 +72,7 @@ export interface MirrorRuntimeConfig {
    * Custom environment (for testing)
    * If not provided, PeerEnvironment is created from peer.
    */
-  environment?: Environment;
+  environment?: PeerEnvironment;
 }
 
 /**
@@ -80,12 +80,12 @@ export interface MirrorRuntimeConfig {
  *
  * Uses PeerEnvironment for bidirectional communication with server.
  */
-export class MirrorRuntime implements Runtime {
+export class MirrorRuntime {
   private readonly bus: SystemBusImpl;
   private readonly config: MirrorRuntimeConfig;
   private readonly containers = new Map<string, MirrorContainer>();
   private peer: Peer | null = null;
-  private environment: Environment | null = null;
+  private environment: PeerEnvironment | null = null;
   private peerEnvironment: PeerEnvironment | null = null;
 
   constructor(config: MirrorRuntimeConfig = {}) {
@@ -116,7 +116,7 @@ export class MirrorRuntime implements Runtime {
   /**
    * Connect environment to bus
    */
-  private connectEnvironment(env: Environment): void {
+  private connectEnvironment(env: PeerEnvironment): void {
     // Receptor emits events to bus
     env.receptor.emit(this.bus);
 
@@ -174,8 +174,8 @@ export class MirrorRuntime implements Runtime {
   /**
    * Subscribe to all runtime events
    */
-  on(handler: RuntimeEventHandler): Unsubscribe {
-    return this.bus.onAny((event) => {
+  on(handler: (event: unknown) => void): () => void {
+    return this.bus.onAny((event: { type: string }) => {
       handler(event);
     });
   }
@@ -199,7 +199,7 @@ export class MirrorRuntime implements Runtime {
    *
    * Returns a MirrorContainer that proxies operations to server.
    */
-  createContainer(containerId: string): Container {
+  createContainer(containerId: string): MirrorContainer {
     // Check cache
     const existing = this.containers.get(containerId);
     if (existing) {
@@ -272,7 +272,7 @@ export class MirrorRuntime implements Runtime {
   /**
    * Get the environment
    */
-  getEnvironment(): Environment | null {
+  getEnvironment(): PeerEnvironment | null {
     return this.environment;
   }
 

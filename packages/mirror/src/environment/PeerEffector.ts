@@ -24,7 +24,7 @@
  * ```
  */
 
-import type { Peer, Effector, SystemBus, PeerUnsubscribe, DownstreamConnection } from "@agentxjs/types";
+import type { Peer, PeerUnsubscribe, DownstreamConnection } from "@agentxjs/types";
 import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("mirror/PeerEffector");
@@ -32,7 +32,18 @@ const logger = createLogger("mirror/PeerEffector");
 /**
  * PeerEffector - Subscribes from SystemBus, sends to Peer
  */
-export class PeerEffector implements Effector {
+/**
+ * Bus interface for PeerEffector
+ */
+interface Bus {
+  emit(event: { type: string; [key: string]: unknown }): void;
+  onAny(handler: (event: { type: string }) => void): () => void;
+}
+
+/**
+ * PeerEffector - Subscribes from SystemBus, sends to Peer
+ */
+export class PeerEffector {
   private readonly peer: Peer;
   private unsubscribes: PeerUnsubscribe[] = [];
   private busUnsubscribe: (() => void) | null = null;
@@ -47,7 +58,7 @@ export class PeerEffector implements Effector {
    *
    * Starts forwarding bus events to peer connections.
    */
-  subscribe(bus: SystemBus): void {
+  subscribe(bus: Bus): void {
     logger.debug("PeerEffector subscribing to SystemBus");
 
     // Broadcast all bus events to downstream (if listening)
@@ -88,7 +99,7 @@ export class PeerEffector implements Effector {
   /**
    * Setup handlers for a downstream connection
    */
-  private setupDownstreamConnection(connection: DownstreamConnection, bus: SystemBus): void {
+  private setupDownstreamConnection(connection: DownstreamConnection, bus: Bus): void {
     logger.debug("Setting up downstream connection", { connectionId: connection.id });
 
     // Forward events from downstream to upstream (transparent relay)

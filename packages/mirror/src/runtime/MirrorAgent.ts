@@ -8,12 +8,9 @@
  * It focuses on the essential methods for browser-side usage.
  */
 
-import type {
-  AgentState,
-  Unsubscribe,
-  Peer,
-  EnvironmentEvent,
-} from "@agentxjs/types";
+import type { Peer, EnvironmentEvent } from "@agentxjs/types";
+import type { AgentState } from "@agentxjs/types/agent";
+import type { Unsubscribe } from "@agentxjs/types/runtime";
 import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("mirror/MirrorAgent");
@@ -177,7 +174,7 @@ export class MirrorAgent {
         this._state = "responding";
         break;
       case "tool_call":
-        this._state = "executing";
+        this._state = "awaiting_tool_result";
         break;
       case "message_stop":
         this._state = "idle";

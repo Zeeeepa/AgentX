@@ -150,6 +150,9 @@ importers:
       '@agentxjs/agent':
         specifier: workspace:*
         version: link:../packages/agent
+      '@agentxjs/mirror':
+        specifier: workspace:*
+        version: link:../packages/mirror
       '@agentxjs/runtime':
         specifier: workspace:*
         version: link:../packages/runtime

@@ -21,7 +21,7 @@
  * ```
  */
 
-import type { Peer, Receptor, SystemBus, PeerUnsubscribe } from "@agentxjs/types";
+import type { Peer, PeerUnsubscribe } from "@agentxjs/types";
 import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("mirror/PeerReceptor");
@@ -29,7 +29,17 @@ const logger = createLogger("mirror/PeerReceptor");
 /**
  * PeerReceptor - Receives from Peer upstream, emits to SystemBus
  */
-export class PeerReceptor implements Receptor {
+/**
+ * Bus interface for PeerReceptor
+ */
+interface Bus {
+  emit(event: { type: string; [key: string]: unknown }): void;
+}
+
+/**
+ * PeerReceptor - Receives from Peer upstream, emits to SystemBus
+ */
+export class PeerReceptor {
   private readonly peer: Peer;
   private unsubscribes: PeerUnsubscribe[] = [];
 
@@ -43,7 +53,7 @@ export class PeerReceptor implements Receptor {
    *
    * Starts forwarding upstream events to the bus.
    */
-  emit(bus: SystemBus): void {
+  emit(bus: Bus): void {
     logger.debug("PeerReceptor connecting to SystemBus");
 
     // Forward all upstream events to bus (transparent relay)
