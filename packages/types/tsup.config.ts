@@ -8,8 +8,6 @@ export default defineConfig({
     runtime: "src/runtime/index.ts",
     "runtime-internal": "src/runtime/internal/index.ts",
     event: "src/event/index.ts",
-    network: "src/network/index.ts",
-    persistence: "src/persistence/index.ts",
     common: "src/common/index.ts",
     agentx: "src/agentx/index.ts",
   },

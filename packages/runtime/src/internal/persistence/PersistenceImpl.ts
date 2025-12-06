@@ -35,7 +35,7 @@ import type {
   ImageRepository,
   ContainerRepository,
   SessionRepository,
-} from "@agentxjs/types";
+} from "@agentxjs/types/runtime/internal";
 import { createLogger } from "@agentxjs/common";
 import {
   StorageImageRepository,

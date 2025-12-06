@@ -38,19 +38,14 @@
     "ws": "^8.18.0"
   },
   "peerDependencies": {
-    "@agentxjs/persistence": "workspace:*",
     "@agentxjs/runtime": "workspace:*"
   },
   "peerDependenciesMeta": {
-    "@agentxjs/persistence": {
-      "optional": true
-    },
     "@agentxjs/runtime": {
       "optional": true
     }
   },
   "devDependencies": {
-    "@agentxjs/persistence": "workspace:*",
     "@agentxjs/runtime": "workspace:*",
     "@types/node": "^24.9.2",
     "@types/ws": "^8.5.10",

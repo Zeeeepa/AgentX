@@ -62,3 +62,9 @@ export type {
   SubscribeOptions,
   Unsubscribe,
 } from "./event/SystemBus";
+
+// ============================================================================
+// Persistence
+// ============================================================================
+
+export * from "./persistence";

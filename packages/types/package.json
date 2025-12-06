@@ -43,16 +43,6 @@
       "import": "./dist/event.js",
       "require": "./dist/event.cjs"
     },
-    "./network": {
-      "types": "./dist/network.d.ts",
-      "import": "./dist/network.js",
-      "require": "./dist/network.cjs"
-    },
-    "./persistence": {
-      "types": "./dist/persistence.d.ts",
-      "import": "./dist/persistence.js",
-      "require": "./dist/persistence.cjs"
-    },
     "./common": {
       "types": "./dist/common.d.ts",
       "import": "./dist/common.js",
@@ -71,8 +61,6 @@
       "runtime": ["./dist/runtime.d.ts"],
       "runtime/internal": ["./dist/runtime-internal.d.ts"],
       "event": ["./dist/event.d.ts"],
-      "network": ["./dist/network.d.ts"],
-      "persistence": ["./dist/persistence.d.ts"],
       "common": ["./dist/common.d.ts"],
       "agentx": ["./dist/agentx.d.ts"]
     }

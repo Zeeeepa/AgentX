@@ -212,9 +212,6 @@ importers:
         specifier: ^8.18.0
         version: 8.18.3
     devDependencies:
-      '@agentxjs/persistence':
-        specifier: workspace:*
-        version: link:../persistence
       '@agentxjs/runtime':
         specifier: workspace:*
         version: link:../runtime
@@ -250,31 +247,6 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/persistence:
-    dependencies:
-      '@agentxjs/common':
-        specifier: workspace:*
-        version: link:../common
-      '@agentxjs/types':
-        specifier: workspace:*
-        version: link:../types
-      unstorage:
-        specifier: ^1.14.4
-        version: 1.17.3
-    devDependencies:
-      '@types/node':
-        specifier: ^24.9.2
-        version: 24.9.2
-      tsup:
-        specifier: ^8.3.5
-        version: 8.5.1(@microsoft/api-extractor@7.55.0(@types/node@24.9.2))(jiti@2.6.1)(postcss@8.5.6)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
-      typescript:
-        specifier: ^5.7.2
-        version: 5.9.3
-      vitest:
-        specifier: ^3.2.4
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.2)(@vitest/ui@3.2.4)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
-
   packages/runtime:
     dependencies:
       '@agentxjs/agent':
@@ -295,6 +267,9 @@ importers:
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2
+      unstorage:
+        specifier: ^1.14.4
+        version: 1.17.3
     devDependencies:
       '@types/better-sqlite3':
         specifier: ^7.6.12

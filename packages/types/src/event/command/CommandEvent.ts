@@ -23,7 +23,7 @@
  */
 
 import type { SystemEvent } from "../base";
-import type { ImageRecord } from "~/persistence";
+import type { ImageRecord } from "~/runtime/internal/persistence";
 
 // ============================================================================
 // Base Types

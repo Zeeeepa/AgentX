@@ -3,21 +3,18 @@
  *
  * @example
  * ```typescript
- * import { createRuntime } from "@agentxjs/runtime";
- * import { createNodePersistence } from "@agentxjs/persistence";
+ * import { createRuntime, createPersistence } from "@agentxjs/runtime";
  *
  * const runtime = createRuntime({
- *   persistence: createNodePersistence(),
+ *   persistence: createPersistence(),
  * });
  *
- * await runtime.containers.create("my-container");
- * const agent = await runtime.agents.run("my-container", {
- *   name: "Assistant",
- *   systemPrompt: "You are helpful",
+ * // Use request/response pattern
+ * const res = await runtime.request("container_create_request", {
+ *   containerId: "my-container"
  * });
  *
- * runtime.events.on("text_delta", (e) => console.log(e.data.text));
- * await agent.receive("Hello!");
+ * runtime.on("text_delta", (e) => console.log(e.data.text));
  *
  * await runtime.dispose();
  * ```
@@ -26,3 +23,4 @@
  */
 
 export { createRuntime, type RuntimeConfig } from "./createRuntime";
+export { createPersistence, type PersistenceConfig, type StorageDriver } from "./internal/persistence";

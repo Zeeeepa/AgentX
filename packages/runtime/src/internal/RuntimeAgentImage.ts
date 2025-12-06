@@ -5,7 +5,7 @@
  */
 
 import type { Agent, AgentImage, ImageMessage } from "@agentxjs/types/runtime";
-import type { ImageRepository } from "@agentxjs/types/persistence";
+import type { ImageRepository } from "@agentxjs/types/runtime/internal";
 import type { Message } from "@agentxjs/types/agent";
 import { RuntimeAgent } from "./RuntimeAgent";
 

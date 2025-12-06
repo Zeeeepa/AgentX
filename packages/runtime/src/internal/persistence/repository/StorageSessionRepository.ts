@@ -5,7 +5,7 @@
  */
 
 import type { Storage } from "unstorage";
-import type { SessionRepository, SessionRecord } from "@agentxjs/types";
+import type { SessionRepository, SessionRecord } from "@agentxjs/types/runtime/internal";
 import type { Message } from "@agentxjs/types/agent";
 import { createLogger } from "@agentxjs/common";
 

@@ -5,7 +5,7 @@
  */
 
 import type { Storage } from "unstorage";
-import type { ImageRepository, ImageRecord } from "@agentxjs/types";
+import type { ImageRepository, ImageRecord } from "@agentxjs/types/runtime/internal";
 import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("persistence/ImageRepository");

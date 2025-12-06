@@ -32,8 +32,7 @@ export async function createAgentX(config?: AgentXConfig): Promise<AgentX> {
 
 async function createLocalAgentX(config: AgentXConfig): Promise<AgentX> {
   // Dynamic import to avoid bundling runtime in browser
-  const { createRuntime } = await import("@agentxjs/runtime");
-  const { createPersistence } = await import("@agentxjs/persistence");
+  const { createRuntime, createPersistence } = await import("@agentxjs/runtime");
 
   const persistence = config.persistence ?? createPersistence();
 

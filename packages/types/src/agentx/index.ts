@@ -28,7 +28,7 @@
  * @packageDocumentation
  */
 
-import type { Persistence } from "~/persistence";
+import type { Persistence } from "~/runtime/internal/persistence";
 import type { SystemEvent } from "~/event/base";
 import type {
   CommandEventMap,

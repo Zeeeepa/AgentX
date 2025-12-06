@@ -4,8 +4,7 @@
  * Collects messages from Agent and persists to storage.
  */
 
-import type { Session, SystemBus } from "@agentxjs/types/runtime/internal";
-import type { SessionRepository, SessionRecord } from "@agentxjs/types/persistence";
+import type { Session, SystemBus, SessionRepository, SessionRecord } from "@agentxjs/types/runtime/internal";
 import type { Message } from "@agentxjs/types/agent";
 
 /**
