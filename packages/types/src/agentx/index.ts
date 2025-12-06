@@ -1,54 +1,25 @@
 /**
  * AgentX - User-facing API Types
  *
- * ## Design Decision
- *
- * AgentX provides a unified API for both server (Source) and browser (Mirror) usage.
- * The configuration type determines which mode is used:
- *
- * - SourceConfig: Server-side, direct LLM access, data persistence
- * - MirrorConfig: Browser-side, connects to remote Source via WebSocket
- *
- * ## Usage Examples
- *
- * ```typescript
- * import { createAgentX } from "agentxjs";
- *
- * // Server - minimal (reads ANTHROPIC_API_KEY from env)
- * const agentx = createAgentX();
- *
- * // Server - with config
- * const agentx = createAgentX({
- *   apiKey: "sk-ant-...",
- *   model: "claude-sonnet-4-20250514",
- *   persistence: createPersistence({ driver: "sqlite", path: "./data.db" }),
- * });
- *
- * // Browser - connect to remote
- * const agentx = createAgentX({
- *   serverUrl: "ws://localhost:5200",
- *   token: "optional-auth-token",
- * });
- * ```
- *
- * ## API Structure
- *
- * ```typescript
- * agentx.run(config)              // Quick start - run agent in default container
- * agentx.containers.create(id)    // Create container
- * agentx.containers.get(id)       // Get container
- * agentx.agents.run(containerId, config)  // Run agent in container
- * agentx.agents.get(agentId)      // Get agent
- * agentx.images.snapshot(agent)   // Save agent state
- * agentx.images.list()            // List all images
- * agentx.dispose()                // Cleanup
- * ```
- *
  * @packageDocumentation
  */
 
 import type { Persistence } from "~/persistence";
-import type { Agent, Container, AgentImage } from "~/runtime";
+import type { EnvironmentEvent } from "~/event";
+
+// ============================================================================
+// Event Types
+// ============================================================================
+
+/**
+ * All possible event types from EnvironmentEvent
+ */
+export type AgentXEventType = EnvironmentEvent["type"];
+
+/**
+ * Extract specific event by type
+ */
+export type AgentXEvent<T extends AgentXEventType> = Extract<EnvironmentEvent, { type: T }>;
 
 // ============================================================================
 // Configuration Types
@@ -56,8 +27,6 @@ import type { Agent, Container, AgentImage } from "~/runtime";
 
 /**
  * SourceConfig - Server-side configuration
- *
- * Creates a local AgentX instance with direct LLM access.
  */
 export interface SourceConfig {
   /**
@@ -87,9 +56,6 @@ export interface SourceConfig {
 
 /**
  * MirrorConfig - Browser-side configuration
- *
- * Connects to a remote AgentX Source via WebSocket.
- * The `serverUrl` field distinguishes this from SourceConfig.
  */
 export interface MirrorConfig {
   /**
@@ -111,181 +77,154 @@ export interface MirrorConfig {
 
 /**
  * AgentXConfig - Union of Source and Mirror configurations
- *
- * Type discrimination: presence of `serverUrl` determines Mirror mode.
  */
 export type AgentXConfig = SourceConfig | MirrorConfig;
 
 /**
  * Type guard: is this a MirrorConfig?
  */
-export function isMirrorConfig(config: AgentXConfig): config is MirrorConfig {
-  return "serverUrl" in config && typeof config.serverUrl === "string";
-}
+export declare function isMirrorConfig(config: AgentXConfig): config is MirrorConfig;
 
 /**
  * Type guard: is this a SourceConfig?
  */
-export function isSourceConfig(config: AgentXConfig): config is SourceConfig {
-  return !isMirrorConfig(config);
-}
+export declare function isSourceConfig(config: AgentXConfig): config is SourceConfig;
 
 // ============================================================================
-// Agent Run Configuration
+// Agent Definition & Config
 // ============================================================================
 
 /**
- * AgentRunConfig - Configuration for running an agent
+ * AgentDefinition - User-defined agent template
  */
-export interface AgentRunConfig {
-  /**
-   * Agent name (for identification)
-   */
+export interface AgentDefinition {
   name: string;
-
-  /**
-   * System prompt for the agent
-   */
   systemPrompt?: string;
+  description?: string;
 }
 
+/**
+ * AgentConfig - Runtime configuration for running an agent
+ */
+export interface AgentConfig {
+  name: string;
+  systemPrompt?: string;
+  description?: string;
+}
+
+/**
+ * defineAgent - Convert AgentDefinition to AgentConfig
+ */
+export declare function defineAgent(definition: AgentDefinition): AgentConfig;
+
 // ============================================================================
-// AgentX API Interface
+// Unsubscribe
 // ============================================================================
+
+export type Unsubscribe = () => void;
+
+// ============================================================================
+// Container
+// ============================================================================
+
+/**
+ * Container - Isolated environment for agents
+ */
+export interface Container {
+  readonly id: string;
+}
 
 /**
  * ContainersAPI - Container management
  */
 export interface ContainersAPI {
-  /**
-   * Create a new container
-   */
-  create(containerId: string): Promise<Container>;
-
-  /**
-   * Get container by ID
-   */
+  create(): Promise<Container>;
   get(containerId: string): Container | undefined;
-
-  /**
-   * List all containers
-   */
   list(): Container[];
 }
 
+// ============================================================================
+// Agent
+// ============================================================================
+
 /**
- * AgentsAPI - Agent management (cross-container)
+ * Agent - Running AI agent instance
+ *
+ * Events are received via agentx.on(), not agent.on().
+ * Use event.context.agentId to filter by agent.
  */
-export interface AgentsAPI {
-  /**
-   * Run an agent in a container
-   */
-  run(containerId: string, config: AgentRunConfig): Promise<Agent>;
+export interface Agent {
+  readonly id: string;
+  readonly containerId: string;
 
-  /**
-   * Get agent by ID (searches all containers)
-   */
-  get(agentId: string): Agent | undefined;
-
-  /**
-   * List agents in a container
-   */
-  list(containerId: string): Agent[];
-
-  /**
-   * Destroy an agent
-   */
-  destroy(agentId: string): Promise<boolean>;
-
-  /**
-   * Destroy all agents in a container
-   */
-  destroyAll(containerId: string): Promise<void>;
+  receive(message: string): Promise<void>;
 }
 
 /**
- * ImagesAPI - Image (snapshot) management
+ * AgentsAPI - Agent management
+ */
+export interface AgentsAPI {
+  run(containerId: string, config: AgentConfig): Promise<Agent>;
+  get(agentId: string): Agent | undefined;
+  list(): Agent[];
+  list(containerId: string): Agent[];
+  destroy(agentId: string): Promise<boolean>;
+}
+
+// ============================================================================
+// Image
+// ============================================================================
+
+/**
+ * AgentImage - Snapshot of agent state
+ */
+export interface AgentImage {
+  readonly id: string;
+  readonly agentId: string;
+  readonly containerId: string;
+  readonly name: string;
+  readonly createdAt: number;
+
+  resume(): Promise<Agent>;
+}
+
+/**
+ * ImagesAPI - Image management
  */
 export interface ImagesAPI {
-  /**
-   * Snapshot an agent's current state
-   */
-  snapshot(agent: Agent): Promise<AgentImage>;
-
-  /**
-   * List all images
-   */
-  list(): Promise<AgentImage[]>;
-
-  /**
-   * Get image by ID
-   */
+  snapshot(agentId: string): Promise<AgentImage>;
   get(imageId: string): Promise<AgentImage | null>;
-
-  /**
-   * Delete an image
-   */
+  list(): Promise<AgentImage[]>;
   delete(imageId: string): Promise<void>;
 }
 
+// ============================================================================
+// AgentX
+// ============================================================================
+
 /**
  * AgentX - Main user-facing API
- *
- * Provides unified interface for both Source (server) and Mirror (browser) modes.
  */
 export interface AgentX {
-  /**
-   * Quick start - run an agent in the default container
-   *
-   * @example
-   * ```typescript
-   * const agent = await agentx.run({ name: "Assistant" });
-   * agent.on("text_delta", (e) => console.log(e.data.text));
-   * await agent.receive("Hello!");
-   * ```
-   */
-  run(config: AgentRunConfig): Promise<Agent>;
-
-  /**
-   * Container management API
-   */
   readonly containers: ContainersAPI;
-
-  /**
-   * Agent management API (cross-container operations)
-   */
   readonly agents: AgentsAPI;
-
-  /**
-   * Image (snapshot) management API
-   */
   readonly images: ImagesAPI;
 
-  /**
-   * Dispose and cleanup all resources
-   */
+  on<T extends AgentXEventType>(
+    type: T,
+    handler: (event: AgentXEvent<T>) => void
+  ): Unsubscribe;
+  onAll(handler: (event: EnvironmentEvent) => void): Unsubscribe;
+
   dispose(): Promise<void>;
 }
 
 // ============================================================================
-// Factory Function Types
+// Factory Function
 // ============================================================================
 
 /**
- * CreateAgentX - Factory function type
- *
- * Creates AgentX instance based on configuration:
- * - No config or SourceConfig → Local Source mode
- * - MirrorConfig (has serverUrl) → Remote Mirror mode
+ * createAgentX - Create AgentX instance
  */
-export type CreateAgentX = {
-  /**
-   * Create with default config (server-side, reads env)
-   */
-  (): AgentX;
-
-  /**
-   * Create with explicit config
-   */
-  (config: AgentXConfig): AgentX;
-};
+export declare function createAgentX(): AgentX;
+export declare function createAgentX(config: AgentXConfig): AgentX;

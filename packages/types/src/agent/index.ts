@@ -1,7 +1,57 @@
 /**
- * Public Agent Types
+ * Agent Module - AgentEngine Domain Types
  *
- * These are the types exposed to users of the agent package.
+ * AgentEngine is an independent event processing unit that can be tested
+ * in isolation without Runtime dependencies (Container, Session, Bus).
+ *
+ * ## Two-Domain Architecture
+ *
+ * ```
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │  Runtime Domain (@agentxjs/types/runtime)                   │
+ * │    - SystemEvent (source, category, intent, context)        │
+ * │    - Container, Session, Sandbox, Environment               │
+ * │    - Agent (complete runtime entity with lifecycle)         │
+ * │                                                             │
+ * │   ┌─────────────────────────────────────────────────────┐   │
+ * │   │  AgentEngine Domain (@agentxjs/types/agent)         │   │
+ * │   │    - AgentEvent (lightweight: type, timestamp, data) │   │
+ * │   │    - AgentEngine (event processing unit)            │   │
+ * │   │    - Independent, testable in isolation             │   │
+ * │   │                                                     │   │
+ * │   │  Driver ←── AgentEngine ──→ Presenter               │   │
+ * │   │    ↑            │               ↓                   │   │
+ * │   └────│────────────│───────────────│───────────────────┘   │
+ * │        │            │               │                       │
+ * │   DriveableEvent    │          SystemEvent                  │
+ * │   → StreamEvent     │          (add context)                │
+ * └─────────────────────│───────────────────────────────────────┘
+ *                       │
+ *                  MealyMachine
+ *                  (pure event processor)
+ * ```
+ *
+ * ## Core Components
+ *
+ * - **AgentEngine**: Event processing unit (Driver + MealyMachine + Presenter)
+ * - **AgentDriver**: Input adapter - converts external events to StreamEvent
+ * - **AgentPresenter**: Output adapter - emits AgentOutput to external systems
+ * - **MealyMachine**: Pure Mealy Machine that transforms StreamEvent → AgentOutput
+ *
+ * ## Event Layers (AgentOutput)
+ *
+ * 1. **StreamEvent**: Real-time incremental events (text_delta, tool_use_start...)
+ * 2. **AgentStateEvent**: Events that affect AgentState (conversation_*, tool_*, error_*)
+ * 3. **AgentMessageEvent**: Assembled messages (user_message, assistant_message...)
+ * 4. **AgentTurnEvent**: Turn analytics (turn_request, turn_response)
+ *
+ * ## Message Types (Three-Party Model)
+ *
+ * - **User**: Human participant (UserMessage)
+ * - **Assistant**: AI participant (AssistantMessage, ToolCallMessage)
+ * - **Tool**: Computer/execution environment (ToolResultMessage)
+ *
+ * @packageDocumentation
  */
 
 // Core types

@@ -11,6 +11,7 @@ export default defineConfig({
     network: "src/network/index.ts",
     persistence: "src/persistence/index.ts",
     common: "src/common/index.ts",
+    agentx: "src/agentx/index.ts",
   },
   format: ["cjs", "esm"],
   dts: true,

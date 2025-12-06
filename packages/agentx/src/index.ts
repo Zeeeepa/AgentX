@@ -1,38 +1,42 @@
 /**
- * AgentX - Unified AI Agent Platform
- *
- * "Define Once, Run Anywhere"
+ * agentxjs - Unified API for AI Agents
  *
  * @example
  * ```typescript
- * // Node.js - full control
- * import { createAgentX } from "agentxjs";
- * import { nodeRuntime, SQLiteRepository } from "@agentxjs/node-runtime";
+ * // Server (Source mode)
+ * import { createAgentX, defineAgent } from "agentxjs";
  *
- * const agentx = createAgentX(nodeRuntime(), new SQLiteRepository("./data.db"));
+ * const config = defineAgent({ name: "Assistant", systemPrompt: "You are helpful" });
+ * const agentx = createAgentX();
+ * const container = await agentx.containers.create();
+ * const agent = await agentx.agents.run(container.id, config);
  *
- * // Browser - mirror mode
- * import { createMirror } from "agentxjs";
+ * // Browser (Mirror mode)
+ * import { createAgentX, defineAgent } from "agentxjs";
  *
- * const agentx = createMirror({ serverUrl: "http://localhost:5200" });
+ * const agentx = createAgentX({ serverUrl: "ws://localhost:5200" });
  * ```
  *
  * @packageDocumentation
  */
 
-// Factory functions
 export { createAgentX } from "./createAgentX";
-export { createMirror } from "./createMirror";
+export { defineAgent } from "./defineAgent";
+export { isMirrorConfig, isSourceConfig } from "./typeGuards";
 
-// Re-export types from @agentxjs/types
+// Re-export types
 export type {
   AgentX,
-  DefinitionAPI,
-  ImageAPI,
-  RuntimeAPI,
-  MirrorOptions,
-  DefineAgentInput,
-} from "@agentxjs/types";
-
-// Re-export defineAgent
-export { defineAgent } from "./defineAgent";
+  AgentXConfig,
+  SourceConfig,
+  MirrorConfig,
+  AgentDefinition,
+  AgentConfig,
+  Agent,
+  AgentImage,
+  Container,
+  ContainersAPI,
+  AgentsAPI,
+  ImagesAPI,
+  Unsubscribe,
+} from "@agentxjs/types/agentx";

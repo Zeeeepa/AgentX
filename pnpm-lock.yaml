@@ -208,34 +208,25 @@ importers:
       '@agentxjs/common':
         specifier: workspace:*
         version: link:../common
-      '@agentxjs/types':
-        specifier: workspace:*
-        version: link:../types
-      ky:
-        specifier: ^1.14.0
-        version: 1.14.0
-      nanoid:
-        specifier: ^5.1.6
-        version: 5.1.6
-      rxjs:
-        specifier: ^7.8.2
-        version: 7.8.2
-    devDependencies:
-      '@agentxjs/agent':
-        specifier: workspace:*
-        version: link:../agent
       '@agentxjs/mirror':
         specifier: workspace:*
         version: link:../mirror
-      '@deepracticex/vitest-cucumber':
-        specifier: ^1.4.3
-        version: 1.4.3(vitest@3.2.4)
+      '@agentxjs/network':
+        specifier: workspace:*
+        version: link:../network
+      '@agentxjs/types':
+        specifier: workspace:*
+        version: link:../types
+    devDependencies:
+      '@agentxjs/persistence':
+        specifier: workspace:*
+        version: link:../persistence
+      '@agentxjs/runtime':
+        specifier: workspace:*
+        version: link:../runtime
       '@types/node':
         specifier: ^24.9.2
         version: 24.9.2
-      '@vitest/ui':
-        specifier: ^3.2.4
-        version: 3.2.4(vitest@3.2.4)
       tsup:
         specifier: ^8.3.5
         version: 8.5.1(@microsoft/api-extractor@7.55.0(@types/node@24.9.2))(jiti@2.6.1)(postcss@8.5.6)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
@@ -3314,10 +3305,6 @@ packages:
   kolorist@1.8.0:
     resolution: {integrity: sha512-Y+60/zizpJ3HRH8DCss+q95yr6145JXZo46OTpFvDZWLfRCE4qChOyk1b26nMaNpfHHgxagk9dXT5OP0Tfe+dQ==}
 
-  ky@1.14.0:
-    resolution: {integrity: sha512-Rczb6FMM6JT0lvrOlP5WUOCB7s9XKxzwgErzhKlKde1bEV90FXplV1o87fpt4PU/asJFiqjYJxAJyzJhcrxOsQ==}
-    engines: {node: '>=18'}
-
   lefthook-darwin-arm64@1.13.6:
     resolution: {integrity: sha512-m6Lb77VGc84/Qo21Lhq576pEvcgFCnvloEiP02HbAHcIXD0RTLy9u2yAInrixqZeaz13HYtdDaI7OBYAAdVt8A==}
     cpu: [arm64]
@@ -3816,11 +3803,6 @@ packages:
   nanoid@3.3.11:
     resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
-    hasBin: true
-
-  nanoid@5.1.6:
-    resolution: {integrity: sha512-c7+7RQ+dMB5dPwwCp4ee1/iV/q2P6aK1mTZcfr1BTuVlyW9hJYiMPybJCcnBlQtuSmTIWNeazm/zqNoZSSElBg==}
-    engines: {node: ^18 || >=20}
     hasBin: true
 
   napi-build-utils@2.0.0:
@@ -6017,7 +5999,8 @@ snapshots:
 
   '@pkgr/core@0.2.9': {}
 
-  '@polka/url@1.0.0-next.29': {}
+  '@polka/url@1.0.0-next.29':
+    optional: true
 
   '@rolldown/pluginutils@1.0.0-beta.27': {}
 
@@ -6811,6 +6794,7 @@ snapshots:
       tinyglobby: 0.2.15
       tinyrainbow: 2.0.0
       vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.2)(@vitest/ui@3.2.4)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
+    optional: true
 
   '@vitest/utils@2.0.5':
     dependencies:
@@ -7624,7 +7608,8 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.3
 
-  fflate@0.8.2: {}
+  fflate@0.8.2:
+    optional: true
 
   figures@3.2.0:
     dependencies:
@@ -8086,8 +8071,6 @@ snapshots:
       seed-random: 2.2.0
 
   kolorist@1.8.0: {}
-
-  ky@1.14.0: {}
 
   lefthook-darwin-arm64@1.13.6:
     optional: true
@@ -8713,7 +8696,8 @@ snapshots:
 
   mri@1.2.0: {}
 
-  mrmime@2.0.1: {}
+  mrmime@2.0.1:
+    optional: true
 
   ms@2.1.3: {}
 
@@ -8726,8 +8710,6 @@ snapshots:
       thenify-all: 1.6.0
 
   nanoid@3.3.11: {}
-
-  nanoid@5.1.6: {}
 
   napi-build-utils@2.0.0: {}
 
@@ -9266,6 +9248,7 @@ snapshots:
       '@polka/url': 1.0.0-next.29
       mrmime: 2.0.1
       totalist: 3.0.1
+    optional: true
 
   slash@3.0.0: {}
 
@@ -9468,7 +9451,8 @@ snapshots:
 
   toposort@2.0.2: {}
 
-  totalist@3.0.1: {}
+  totalist@3.0.1:
+    optional: true
 
   tree-kill@1.2.2: {}
 

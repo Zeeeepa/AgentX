@@ -1,7 +1,7 @@
 {
   "name": "agentxjs",
   "version": "0.1.0",
-  "description": "Define, Run, Scale AI Agents - The Open Source Agent Platform",
+  "description": "Unified API for AI Agents - Server and Browser",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -17,36 +17,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    },
-    "./client": {
-      "types": "./dist/runtime/sse/index.d.ts",
-      "import": "./dist/runtime/sse/index.js",
-      "require": "./dist/runtime/sse/index.cjs"
-    },
-    "./server": {
-      "types": "./dist/server/index.d.ts",
-      "import": "./dist/server/index.js",
-      "require": "./dist/server/index.cjs"
-    },
-    "./server/adapters": {
-      "types": "./dist/server/adapters/index.d.ts",
-      "import": "./dist/server/adapters/index.js",
-      "require": "./dist/server/adapters/index.cjs"
-    },
-    "./server/adapters/express": {
-      "types": "./dist/server/adapters/express.d.ts",
-      "import": "./dist/server/adapters/express.js",
-      "require": "./dist/server/adapters/express.cjs"
-    },
-    "./server/adapters/hono": {
-      "types": "./dist/server/adapters/hono.d.ts",
-      "import": "./dist/server/adapters/hono.js",
-      "require": "./dist/server/adapters/hono.cjs"
-    },
-    "./server/adapters/next": {
-      "types": "./dist/server/adapters/next.d.ts",
-      "import": "./dist/server/adapters/next.js",
-      "require": "./dist/server/adapters/next.cjs"
     }
   },
   "files": [
@@ -64,17 +34,26 @@
   },
   "dependencies": {
     "@agentxjs/common": "workspace:*",
-    "@agentxjs/types": "workspace:*",
-    "ky": "^1.14.0",
-    "nanoid": "^5.1.6",
-    "rxjs": "^7.8.2"
+    "@agentxjs/mirror": "workspace:*",
+    "@agentxjs/network": "workspace:*",
+    "@agentxjs/types": "workspace:*"
+  },
+  "peerDependencies": {
+    "@agentxjs/persistence": "workspace:*",
+    "@agentxjs/runtime": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "@agentxjs/persistence": {
+      "optional": true
+    },
+    "@agentxjs/runtime": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "@agentxjs/agent": "workspace:*",
-    "@agentxjs/mirror": "workspace:*",
-    "@deepracticex/vitest-cucumber": "^1.4.3",
+    "@agentxjs/persistence": "workspace:*",
+    "@agentxjs/runtime": "workspace:*",
     "@types/node": "^24.9.2",
-    "@vitest/ui": "^3.2.4",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
     "vitest": "^3.2.4"

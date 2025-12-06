@@ -57,6 +57,11 @@
       "types": "./dist/common.d.ts",
       "import": "./dist/common.js",
       "require": "./dist/common.cjs"
+    },
+    "./agentx": {
+      "types": "./dist/agentx.d.ts",
+      "import": "./dist/agentx.js",
+      "require": "./dist/agentx.cjs"
     }
   },
   "typesVersions": {
@@ -68,7 +73,8 @@
       "event": ["./dist/event.d.ts"],
       "network": ["./dist/network.d.ts"],
       "persistence": ["./dist/persistence.d.ts"],
-      "common": ["./dist/common.d.ts"]
+      "common": ["./dist/common.d.ts"],
+      "agentx": ["./dist/agentx.d.ts"]
     }
   },
   "files": [

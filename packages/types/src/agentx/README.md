@@ -47,8 +47,8 @@ function isSourceConfig(config: AgentXConfig): config is SourceConfig;
 
 ```typescript
 type CreateAgentX = {
-  (): AgentX;
-  (config: AgentXConfig): AgentX;
+  (): Promise<AgentX>;
+  (config: AgentXConfig): Promise<AgentX>;
 };
 ```
 
@@ -66,7 +66,7 @@ const config = defineAgent({
   systemPrompt: "You are helpful",
 });
 
-const agentx = createAgentX();
+const agentx = await createAgentX();
 const container = await agentx.containers.create();
 const agent = await agentx.agents.run(container.id, config);
 ```
@@ -104,7 +104,10 @@ interface AgentX {
   readonly agents: AgentsAPI;
   readonly images: ImagesAPI;
 
-  on(type: string, handler: (event: EnvironmentEvent) => void): Unsubscribe;
+  on<T extends AgentXEventType>(
+    type: T,
+    handler: (event: AgentXEvent<T>) => void
+  ): Unsubscribe;
   onAll(handler: (event: EnvironmentEvent) => void): Unsubscribe;
 
   dispose(): Promise<void>;
@@ -139,6 +142,22 @@ interface AgentsAPI {
 
 ---
 
+## Agent
+
+Agent 不再有 `on`/`onAll` 方法，所有事件通过 `agentx.on()` 统一订阅。
+使用 `event.context.agentId` 过滤特定 Agent 的事件。
+
+```typescript
+interface Agent {
+  readonly id: string;
+  readonly containerId: string;
+
+  receive(message: string): Promise<void>;
+}
+```
+
+---
+
 ## ImagesAPI
 
 ```typescript
@@ -152,9 +171,45 @@ interface ImagesAPI {
 interface AgentImage {
   readonly id: string;
   readonly agentId: string;
-  // ... 其他属性
+  readonly containerId: string;
+  readonly name: string;
+  readonly createdAt: number;
+
   resume(): Promise<Agent>;
 }
+```
+
+---
+
+## 事件系统
+
+### 类型安全的事件订阅
+
+```typescript
+// 类型定义
+type AgentXEventType = EnvironmentEvent["type"];
+type AgentXEvent<T extends AgentXEventType> = Extract<EnvironmentEvent, { type: T }>;
+```
+
+### 使用示例
+
+```typescript
+// 类型安全 - 自动补全，错误检查
+agentx.on("text_delta", (e) => {
+  console.log(e.data.text);  // e 类型是 TextDeltaEvent
+});
+
+// 过滤特定 Agent 的事件
+agentx.on("text_delta", (e) => {
+  if (e.context?.agentId === agent.id) {
+    console.log(e.data.text);
+  }
+});
+
+// 订阅所有事件
+agentx.onAll((e) => {
+  console.log(e.type, e.data);
+});
 ```
 
 ---
@@ -171,9 +226,9 @@ const config = defineAgent({
 });
 
 // 2. 创建 agentx
-const agentx = createAgentX();
+const agentx = await createAgentX();
 
-// 3. 监听事件
+// 3. 监听事件（统一入口）
 agentx.on("text_delta", (e) => console.log(e.data.text));
 
 // 4. 创建 container
