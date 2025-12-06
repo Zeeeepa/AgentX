@@ -2,11 +2,11 @@
  * PersistenceImpl - Multi-backend Persistence implementation
  *
  * Uses unstorage for backend-agnostic storage.
- * Supports: Memory, Redis, SQLite, FileSystem, and more.
+ * Supports: Memory, FileSystem, Redis, MongoDB, SQLite, MySQL, PostgreSQL
  *
  * @example
  * ```typescript
- * // Memory (default, for testing)
+ * // Memory (default)
  * const persistence = createPersistence();
  *
  * // SQLite
@@ -15,16 +15,16 @@
  *   path: "./data.db",
  * });
  *
+ * // PostgreSQL
+ * const persistence = createPersistence({
+ *   driver: "postgresql",
+ *   url: "postgres://user:pass@localhost:5432/agentx",
+ * });
+ *
  * // Redis
  * const persistence = createPersistence({
  *   driver: "redis",
  *   url: "redis://localhost:6379",
- * });
- *
- * // FileSystem
- * const persistence = createPersistence({
- *   driver: "fs",
- *   base: "./data",
  * });
  * ```
  */
@@ -48,7 +48,14 @@ const logger = createLogger("persistence/Persistence");
 /**
  * Storage driver type
  */
-export type StorageDriver = "memory" | "fs" | "redis" | "sqlite";
+export type StorageDriver =
+  | "memory"
+  | "fs"
+  | "redis"
+  | "mongodb"
+  | "sqlite"
+  | "mysql"
+  | "postgresql";
 
 /**
  * Persistence configuration
@@ -60,17 +67,18 @@ export interface PersistenceConfig {
   driver?: StorageDriver;
 
   /**
-   * File path for sqlite driver
+   * File path (for sqlite, fs drivers)
+   * @example "./data.db" for sqlite
+   * @example "./data" for fs
    */
   path?: string;
 
   /**
-   * Base directory for fs driver
-   */
-  base?: string;
-
-  /**
-   * Redis URL for redis driver
+   * Connection URL (for redis, mongodb, mysql, postgresql)
+   * @example "redis://localhost:6379"
+   * @example "mongodb://localhost:27017/agentx"
+   * @example "mysql://user:pass@localhost:3306/agentx"
+   * @example "postgres://user:pass@localhost:5432/agentx"
    */
   url?: string;
 
@@ -133,25 +141,54 @@ function createStorageFromConfig(config: PersistenceConfig): Storage {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const fsDriver = require("unstorage/drivers/fs").default;
       return createStorage({
-        driver: fsDriver({ base: config.base ?? "./data" }),
+        driver: fsDriver({ base: config.path ?? "./data" }),
       });
 
     case "redis":
-      // Lazy import
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const redisDriver = require("unstorage/drivers/redis").default;
       return createStorage({
         driver: redisDriver({ url: config.url ?? "redis://localhost:6379" }),
       });
 
-    case "sqlite":
-      // unstorage uses db0 for SQLite
+    case "mongodb":
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const db0Driver = require("unstorage/drivers/db0").default;
+      const mongoDriver = require("unstorage/drivers/mongodb").default;
       return createStorage({
-        driver: db0Driver({
+        driver: mongoDriver({
+          connectionString: config.url ?? "mongodb://localhost:27017",
+          databaseName: "agentx",
+          collectionName: "storage",
+        }),
+      });
+
+    case "sqlite":
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const sqliteDriver = require("unstorage/drivers/db0").default;
+      return createStorage({
+        driver: sqliteDriver({
           connector: "better-sqlite3",
           options: { path: config.path ?? "./data.db" },
+        }),
+      });
+
+    case "mysql":
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const mysqlDriver = require("unstorage/drivers/db0").default;
+      return createStorage({
+        driver: mysqlDriver({
+          connector: "mysql2",
+          options: { uri: config.url ?? "mysql://localhost:3306/agentx" },
+        }),
+      });
+
+    case "postgresql":
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const pgDriver = require("unstorage/drivers/db0").default;
+      return createStorage({
+        driver: pgDriver({
+          connector: "postgresql",
+          options: { connectionString: config.url ?? "postgres://localhost:5432/agentx" },
         }),
       });
 

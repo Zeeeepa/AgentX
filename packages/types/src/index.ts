@@ -17,7 +17,7 @@
  * │
  * ├── /event          SystemEvent and all runtime events
  * │   ├── SystemEvent (source, category, intent, context)
- * │   └── DriveableEvent, ConnectionEvent, MirrorEvent
+ * │   └── DriveableEvent, ConnectionEvent, CommandEvent
  * │
  * ├── /agentx         AgentX high-level API types
  * │   └── AgentX, DefinitionAPI, ImageAPI, RuntimeAPI

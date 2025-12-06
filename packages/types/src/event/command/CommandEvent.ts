@@ -2,8 +2,8 @@
  * CommandEvent - Request/Response events for Runtime operations
  *
  * These events enable unified operation API for both local and remote modes:
- * - Source mode: RuntimeImpl listens to requests, emits responses
- * - Mirror mode: WebSocket forwards requests/responses
+ * - Local mode: RuntimeImpl listens to requests, emits responses
+ * - Remote mode: WebSocket/SSE forwards requests/responses
  *
  * Pattern:
  * ```

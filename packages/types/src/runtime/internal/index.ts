@@ -2,7 +2,36 @@
  * Runtime Internal Types
  *
  * Internal implementation types for runtime layer.
- * These are not part of the public API.
+ * These are used by runtime implementers, not end users.
+ *
+ * ## Structure
+ *
+ * ```
+ * internal/
+ * ├── container/
+ * │   ├── Container      # Agent lifecycle management
+ * │   ├── llm/           # LLM connection (LLM, LLMConfig, TokenUsage...)
+ * │   └── sandbox/       # Isolated environment
+ * │       ├── Sandbox    # Workdir + MCP access
+ * │       ├── workdir/   # File system operations
+ * │       └── mcp/       # MCP tools, resources, prompts
+ * │
+ * ├── environment/
+ * │   ├── Environment    # External world abstraction
+ * │   ├── Receptor       # Event producer (LLM → DriveableEvent)
+ * │   └── Effector       # Action executor (ToolCall → ToolResult)
+ * │
+ * ├── session/
+ * │   └── Session        # Message persistence per Agent
+ * │
+ * ├── event/
+ * │   └── SystemBus      # Central event bus
+ * │
+ * └── persistence/
+ *     ├── Persistence    # Storage facade
+ *     ├── Repository     # Flat storage interface
+ *     └── record/        # Storage schema types
+ * ```
  *
  * @packageDocumentation
  */

@@ -7,9 +7,13 @@
  * │
  * │  All events have: type, timestamp, data, source, category, intent
  * │
+ * ├── source: "command"       ← API operations (request/response)
+ * │   ├── category: "request"   → container_create_request, agent_run_request...
+ * │   └── category: "response"  → container_create_response, agent_run_response...
+ * │
  * ├── source: "environment"   ← External world (Claude API, Network)
- * │   ├── category: "stream"  → message_start, text_delta, message_stop, tool_call...
- * │   └── category: "connection" → connected, disconnected, reconnecting
+ * │   ├── category: "stream"    → message_start, text_delta, message_stop, tool_call...
+ * │   └── category: "connection"→ connected, disconnected, reconnecting
  * │
  * ├── source: "container"     ← Container operations
  * │   └── category: "lifecycle" → container_created, container_destroyed, agent_registered...
@@ -78,9 +82,9 @@ export type EventCategory =
   // Sandbox categories
   | "workdir" // File operations
   | "mcp" // MCP tool operations
-  // Mirror categories (browser-server communication)
-  | "request" // Request from browser to server
-  | "response"; // Response from server to browser
+  // Command categories (API request/response)
+  | "request" // Request to perform action
+  | "response"; // Response with result
 
 // ============================================================================
 // Event Context

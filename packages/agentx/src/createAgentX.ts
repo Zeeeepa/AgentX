@@ -6,7 +6,13 @@
  * - Remote mode: Connects to AgentX server via WebSocket
  */
 
-import type { AgentX, AgentXConfig, Unsubscribe } from "@agentxjs/types/agentx";
+import type {
+  AgentX,
+  AgentXConfig,
+  LocalConfig,
+  Unsubscribe,
+} from "@agentxjs/types/agentx";
+import { isRemoteConfig } from "@agentxjs/types/agentx";
 import type {
   CommandEventMap,
   CommandRequestType,
@@ -20,7 +26,7 @@ import type { WebSocket as WS, WebSocketServer as WSS } from "ws";
  * Create AgentX instance
  */
 export async function createAgentX(config?: AgentXConfig): Promise<AgentX> {
-  if (config?.server) {
+  if (config && isRemoteConfig(config)) {
     return createRemoteAgentX(config.server);
   }
   return createLocalAgentX(config ?? {});
@@ -30,19 +36,22 @@ export async function createAgentX(config?: AgentXConfig): Promise<AgentX> {
 // Local Mode Implementation
 // ============================================================================
 
-async function createLocalAgentX(config: AgentXConfig): Promise<AgentX> {
+async function createLocalAgentX(config: LocalConfig): Promise<AgentX> {
   // Dynamic import to avoid bundling runtime in browser
   const { createRuntime, createPersistence } = await import("@agentxjs/runtime");
 
-  const persistence = config.persistence ?? createPersistence();
+  // Create persistence from storage config
+  const storageConfig = config.storage ?? {};
+  const persistence = createPersistence(storageConfig as Parameters<typeof createPersistence>[0]);
 
   const runtime = createRuntime({
     persistence,
     llmProvider: {
       name: "claude",
       provide: () => ({
-        apiKey: config.apiKey ?? process.env.ANTHROPIC_API_KEY ?? "",
-        model: config.model,
+        apiKey: config.llm?.apiKey ?? process.env.ANTHROPIC_API_KEY ?? "",
+        baseUrl: config.llm?.baseUrl,
+        model: config.llm?.model,
       }),
     },
   });
@@ -141,7 +150,11 @@ async function createRemoteAgentX(serverUrl: string): Promise<AgentX> {
   const handlers = new Map<string, Set<(event: SystemEvent) => void>>();
   const pendingRequests = new Map<
     string,
-    { resolve: (event: SystemEvent) => void; reject: (err: Error) => void; timer: ReturnType<typeof setTimeout> }
+    {
+      resolve: (event: SystemEvent) => void;
+      reject: (err: Error) => void;
+      timer: ReturnType<typeof setTimeout>;
+    }
   >();
 
   // Wait for connection
@@ -185,7 +198,10 @@ async function createRemoteAgentX(serverUrl: string): Promise<AgentX> {
     }
   });
 
-  function subscribe(type: string, handler: (event: SystemEvent) => void): Unsubscribe {
+  function subscribe(
+    type: string,
+    handler: (event: SystemEvent) => void
+  ): Unsubscribe {
     if (!handlers.has(type)) {
       handlers.set(type, new Set());
     }
@@ -228,15 +244,24 @@ async function createRemoteAgentX(serverUrl: string): Promise<AgentX> {
       });
     },
 
-    on<T extends string>(type: T, handler: (event: SystemEvent & { type: T }) => void): Unsubscribe {
+    on<T extends string>(
+      type: T,
+      handler: (event: SystemEvent & { type: T }) => void
+    ): Unsubscribe {
       return subscribe(type, handler as (event: SystemEvent) => void);
     },
 
-    onCommand<T extends keyof CommandEventMap>(type: T, handler: (event: CommandEventMap[T]) => void): Unsubscribe {
+    onCommand<T extends keyof CommandEventMap>(
+      type: T,
+      handler: (event: CommandEventMap[T]) => void
+    ): Unsubscribe {
       return subscribe(type, handler as (event: SystemEvent) => void);
     },
 
-    emitCommand<T extends keyof CommandEventMap>(type: T, data: CommandEventMap[T]["data"]): void {
+    emitCommand<T extends keyof CommandEventMap>(
+      type: T,
+      data: CommandEventMap[T]["data"]
+    ): void {
       const event: SystemEvent = {
         type,
         timestamp: Date.now(),

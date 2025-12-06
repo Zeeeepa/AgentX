@@ -8,9 +8,11 @@
  * // Local mode (default)
  * const agentx = await createAgentX();
  *
- * // Local mode with server
- * const agentx = await createAgentX({ apiKey: "sk-..." });
- * await agentx.listen(5200);
+ * // Local mode with custom LLM and storage
+ * const agentx = await createAgentX({
+ *   llm: { apiKey: "sk-...", model: "claude-opus-4-20250514" },
+ *   storage: { driver: "postgresql", url: "postgres://..." },
+ * });
  *
  * // Remote mode
  * const agentx = await createAgentX({ server: "ws://localhost:5200" });
@@ -28,7 +30,6 @@
  * @packageDocumentation
  */
 
-import type { Persistence } from "~/runtime/internal/persistence";
 import type { SystemEvent } from "~/event/base";
 import type {
   CommandEventMap,
@@ -38,40 +39,129 @@ import type {
 } from "~/event/command";
 
 // ============================================================================
-// Configuration
+// Configuration - Local Mode
 // ============================================================================
 
 /**
- * AgentX configuration
- *
- * - No `server`: Local mode (uses Claude API directly)
- * - With `server`: Remote mode (connects to AgentX server)
+ * LLM configuration
  */
-export interface AgentXConfig {
+export interface LLMConfig {
   /**
-   * Remote server URL (WebSocket)
-   * If provided, AgentX runs in remote mode.
-   * @example "ws://localhost:5200"
-   */
-  server?: string;
-
-  /**
-   * Anthropic API key (local mode only)
+   * API key
    * @default process.env.ANTHROPIC_API_KEY
    */
   apiKey?: string;
 
   /**
-   * Claude model to use (local mode only)
+   * API base URL
+   * @default "https://api.anthropic.com"
+   */
+  baseUrl?: string;
+
+  /**
+   * Model name
    * @default "claude-sonnet-4-20250514"
    */
   model?: string;
+}
+
+/**
+ * Storage driver type
+ */
+export type StorageDriver =
+  | "memory"
+  | "fs"
+  | "redis"
+  | "mongodb"
+  | "sqlite"
+  | "mysql"
+  | "postgresql";
+
+/**
+ * Storage configuration
+ */
+export interface StorageConfig {
+  /**
+   * Storage driver
+   * @default "memory"
+   */
+  driver?: StorageDriver;
 
   /**
-   * Persistence layer (local mode only)
-   * @default In-memory persistence
+   * File path (for sqlite, fs drivers)
+   * @example "./data.db" for sqlite
+   * @example "./data" for fs
    */
-  persistence?: Persistence;
+  path?: string;
+
+  /**
+   * Connection URL (for redis, mongodb, mysql, postgresql)
+   * @example "redis://localhost:6379"
+   * @example "mongodb://localhost:27017/agentx"
+   * @example "mysql://user:pass@localhost:3306/agentx"
+   * @example "postgres://user:pass@localhost:5432/agentx"
+   */
+  url?: string;
+}
+
+/**
+ * Local mode configuration
+ *
+ * Runs AgentX with local runtime, connecting directly to LLM API.
+ */
+export interface LocalConfig {
+  /**
+   * LLM configuration
+   */
+  llm?: LLMConfig;
+
+  /**
+   * Storage configuration
+   */
+  storage?: StorageConfig;
+}
+
+// ============================================================================
+// Configuration - Remote Mode
+// ============================================================================
+
+/**
+ * Remote mode configuration
+ *
+ * Connects to a remote AgentX server via WebSocket.
+ */
+export interface RemoteConfig {
+  /**
+   * Remote server URL (WebSocket)
+   * @example "ws://localhost:5200"
+   */
+  server: string;
+}
+
+// ============================================================================
+// Union Type
+// ============================================================================
+
+/**
+ * AgentX configuration
+ *
+ * - LocalConfig: Run with local runtime (default)
+ * - RemoteConfig: Connect to remote server
+ */
+export type AgentXConfig = LocalConfig | RemoteConfig;
+
+/**
+ * Type guard: is this a remote config?
+ */
+export function isRemoteConfig(config: AgentXConfig): config is RemoteConfig {
+  return "server" in config && typeof config.server === "string";
+}
+
+/**
+ * Type guard: is this a local config?
+ */
+export function isLocalConfig(config: AgentXConfig): config is LocalConfig {
+  return !isRemoteConfig(config);
 }
 
 // ============================================================================
@@ -189,8 +279,14 @@ export interface AgentX {
  *
  * @example
  * ```typescript
- * // Local mode
+ * // Local mode (default)
  * const agentx = await createAgentX();
+ *
+ * // Local mode with config
+ * const agentx = await createAgentX({
+ *   llm: { apiKey: "sk-..." },
+ *   storage: { driver: "sqlite", path: "./data.db" },
+ * });
  *
  * // Remote mode
  * const agentx = await createAgentX({ server: "ws://localhost:5200" });
