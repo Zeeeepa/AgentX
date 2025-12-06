@@ -8,7 +8,6 @@
  */
 
 import type { Logger, LoggerFactory, LogContext, LogLevel } from "@agentxjs/types";
-import { LogLevel as LogLevelEnum } from "@agentxjs/types";
 import { ConsoleLogger, type ConsoleLoggerOptions } from "./ConsoleLogger";
 
 // External factory injected via Runtime
@@ -28,7 +27,7 @@ export interface LoggerFactoryConfig {
 export class LoggerFactoryImpl {
   private static loggers: Map<string, Logger> = new Map();
   private static config: LoggerFactoryConfig = {
-    defaultLevel: LogLevelEnum.INFO,
+    defaultLevel: "info",
   };
 
   static getLogger(nameOrClass: string | (new (...args: unknown[]) => unknown)): Logger {
@@ -49,7 +48,7 @@ export class LoggerFactoryImpl {
 
   static reset(): void {
     this.loggers.clear();
-    this.config = { defaultLevel: LogLevelEnum.INFO };
+    this.config = { defaultLevel: "info" };
     externalFactory = null;
   }
 
@@ -65,7 +64,7 @@ export class LoggerFactoryImpl {
 
     return {
       name,
-      level: this.config.defaultLevel || LogLevelEnum.INFO,
+      level: this.config.defaultLevel || "info",
       debug: (message: string, context?: LogContext) => getRealLogger().debug(message, context),
       info: (message: string, context?: LogContext) => getRealLogger().info(message, context),
       warn: (message: string, context?: LogContext) => getRealLogger().warn(message, context),

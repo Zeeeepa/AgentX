@@ -58,6 +58,7 @@ import type {
   ResponseEventFor,
   RequestDataFor,
 } from "~/event/command";
+import type { LogLevel, LoggerFactory } from "~/common/logger";
 
 // ============================================================================
 // Configuration - Local Mode
@@ -125,6 +126,41 @@ export interface StorageConfig {
 }
 
 /**
+ * Logger configuration
+ */
+export interface LoggerConfig {
+  /**
+   * Log level
+   * @default LogLevel.INFO
+   */
+  level?: LogLevel;
+
+  /**
+   * Custom logger factory implementation
+   * If provided, this factory will be used to create all logger instances.
+   * If not provided, uses ConsoleLogger with console options.
+   */
+  factory?: LoggerFactory;
+
+  /**
+   * Console logger options (only used when factory is not provided)
+   */
+  console?: {
+    /**
+     * Enable colored output
+     * @default true (Node.js), false (browser)
+     */
+    colors?: boolean;
+
+    /**
+     * Include timestamps in log output
+     * @default true
+     */
+    timestamps?: boolean;
+  };
+}
+
+/**
  * Local mode configuration
  *
  * Runs AgentX with local runtime, connecting directly to LLM API.
@@ -139,6 +175,11 @@ export interface LocalConfig {
    * Storage configuration
    */
   storage?: StorageConfig;
+
+  /**
+   * Logger configuration
+   */
+  logger?: LoggerConfig;
 }
 
 // ============================================================================

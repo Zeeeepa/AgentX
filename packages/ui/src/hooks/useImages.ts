@@ -131,7 +131,7 @@ export function useImages(
       if (response.data.error) {
         throw new Error(response.data.error);
       }
-      const records = response.data.records;
+      const records = response.data.records ?? [];
       setImages(records);
       onImagesChange?.(records);
       logger.debug("Loaded images", { count: records.length });

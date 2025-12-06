@@ -119,13 +119,19 @@ export function AgentList({
 
   // Handle creating a new conversation
   const handleNew = React.useCallback(async () => {
-    if (!agentx) return;
+    console.log("[AgentList] handleNew called, agentx:", !!agentx);
+    if (!agentx) {
+      console.warn("[AgentList] agentx is null, cannot create new conversation");
+      return;
+    }
     try {
+      console.log("[AgentList] Creating new agent with containerId:", containerId);
       // Create a new agent
       const response = await agentx.request("agent_run_request", {
         containerId,
         config: { name: "New Conversation" },
       });
+      console.log("[AgentList] Response:", response);
 
       if (response.data.error) {
         throw new Error(response.data.error);
@@ -133,6 +139,7 @@ export function AgentList({
 
       const { agentId } = response.data;
       if (agentId) {
+        console.log("[AgentList] New agent created:", agentId);
         onNew?.(agentId);
       }
     } catch (error) {

@@ -13,7 +13,7 @@
  */
 
 import type { SystemBus } from "@agentxjs/types/runtime/internal";
-import type { SystemEvent } from "@agentxjs/types/event";
+import type { SystemEvent, SystemError } from "@agentxjs/types/event";
 import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("runtime/CommandHandler");
@@ -56,6 +56,30 @@ function createResponse<T extends string, D>(type: T, data: D): SystemEvent {
     category: "response",
     intent: "result",
   } as SystemEvent;
+}
+
+/**
+ * Helper to create an error event
+ */
+function createErrorEvent(
+  message: string,
+  requestId?: string,
+  severity: "info" | "warn" | "error" | "fatal" = "error",
+  details?: unknown
+): SystemError {
+  return {
+    type: "system_error",
+    timestamp: Date.now(),
+    data: {
+      message,
+      requestId,
+      severity,
+      details,
+    },
+    source: "command",
+    category: "error",
+    intent: "notification",
+  };
 }
 
 /**
@@ -155,20 +179,31 @@ export class CommandHandler {
 
   private async handleAgentRun(event: { data: { requestId: string; containerId: string; config: { name: string; systemPrompt?: string } } }): Promise<void> {
     const { requestId, containerId, config } = event.data;
-    logger.debug("Handling agent_run_request", { requestId, containerId, name: config.name });
+    logger.info("Handling agent_run_request", { requestId, containerId, name: config.name });
 
     try {
       const agent = await this.ops.runAgent(containerId, config);
+      logger.info("Agent created successfully", { requestId, containerId, agentId: agent.agentId });
       this.bus.emit(createResponse("agent_run_response", {
         requestId,
         containerId,
         agentId: agent.agentId,
       }));
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      logger.error("Failed to create agent", { requestId, containerId, error: errorMessage });
+
+      // Emit response with error field (for backward compatibility)
       this.bus.emit(createResponse("agent_run_response", {
         requestId,
         containerId,
-        error: err instanceof Error ? err.message : String(err),
+        error: errorMessage,
+      }));
+
+      // Emit error event (for UI notification)
+      this.bus.emit(createErrorEvent(errorMessage, requestId, "error", {
+        containerId,
+        operation: "agent_run",
       }));
     }
   }

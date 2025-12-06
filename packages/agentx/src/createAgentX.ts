@@ -21,6 +21,9 @@ import type {
   SystemEvent,
 } from "@agentxjs/types/event";
 import type { WebSocket as WS, WebSocketServer as WSS } from "ws";
+import { createLogger } from "@agentxjs/common";
+
+const logger = createLogger("agentx/createAgentX");
 
 /**
  * Create AgentX instance
@@ -37,6 +40,20 @@ export async function createAgentX(config?: AgentXConfig): Promise<AgentX> {
 // ============================================================================
 
 async function createLocalAgentX(config: LocalConfig): Promise<AgentX> {
+  // Apply logger configuration
+  if (config.logger) {
+    const { LoggerFactoryImpl, setLoggerFactory } = await import("@agentxjs/common");
+
+    LoggerFactoryImpl.configure({
+      defaultLevel: config.logger.level,
+      consoleOptions: config.logger.console,
+    });
+
+    if (config.logger.factory) {
+      setLoggerFactory(config.logger.factory);
+    }
+  }
+
   // Dynamic import to avoid bundling runtime in browser
   const { createRuntime, createPersistence } = await import("@agentxjs/runtime");
 
@@ -81,11 +98,13 @@ async function createLocalAgentX(config: LocalConfig): Promise<AgentX> {
 
       peer.on("connection", (ws: WS) => {
         connections.add(ws);
+        logger.info("Client connected", { totalConnections: connections.size });
 
         // Forward client commands to runtime
         ws.on("message", (data: Buffer) => {
           try {
             const event = JSON.parse(data.toString()) as SystemEvent;
+            logger.info("Received from client", { type: event.type, requestId: (event.data as { requestId?: string })?.requestId });
             runtime.emit(event);
           } catch {
             // Ignore parse errors
@@ -94,11 +113,13 @@ async function createLocalAgentX(config: LocalConfig): Promise<AgentX> {
 
         ws.on("close", () => {
           connections.delete(ws);
+          logger.info("Client disconnected", { totalConnections: connections.size });
         });
       });
 
       // Forward runtime events to all clients
       runtime.onAny((event) => {
+        logger.info("Broadcasting to clients", { type: event.type, category: event.category, requestId: (event.data as { requestId?: string })?.requestId });
         const message = JSON.stringify(event);
         for (const ws of connections) {
           if (ws.readyState === 1) {

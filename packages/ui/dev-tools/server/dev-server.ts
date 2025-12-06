@@ -8,6 +8,7 @@
 import { config } from "dotenv";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { FileLoggerFactory } from "./FileLogger.js";
 
 // Get __dirname equivalent in ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -32,6 +33,7 @@ async function startDevServer() {
   }
 
   const PORT = 5200;
+  const LOG_DIR = resolve(__dirname, "../../logs");
 
   console.log("Starting AgentX Development Server...\n");
   console.log("Configuration:");
@@ -40,6 +42,7 @@ async function startDevServer() {
     console.log(`  Base URL: ${baseUrl}`);
   }
   console.log(`  Port: ${PORT}`);
+  console.log(`  Log Directory: ${LOG_DIR}`);
   console.log();
 
   // Import and create AgentX instance
@@ -49,6 +52,10 @@ async function startDevServer() {
     llm: {
       apiKey,
       baseUrl,
+    },
+    logger: {
+      level: "debug",
+      factory: new FileLoggerFactory("debug", LOG_DIR),
     },
   });
 

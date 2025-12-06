@@ -6,7 +6,6 @@
  */
 
 import type { Logger, LogContext, LogLevel } from "@agentxjs/types";
-import { LogLevel as LogLevelEnum } from "@agentxjs/types";
 
 export interface ConsoleLoggerOptions {
   level?: LogLevel;
@@ -30,7 +29,7 @@ export class ConsoleLogger implements Logger {
 
   constructor(name: string, options: ConsoleLoggerOptions = {}) {
     this.name = name;
-    this.level = options.level ?? LogLevelEnum.INFO;
+    this.level = options.level ?? "info";
     this.colors = options.colors ?? this.isNodeEnvironment();
     this.timestamps = options.timestamps ?? true;
   }
@@ -64,19 +63,30 @@ export class ConsoleLogger implements Logger {
   }
 
   isDebugEnabled(): boolean {
-    return this.level <= LogLevelEnum.DEBUG;
+    return this.getLevelValue(this.level) <= this.getLevelValue("debug");
   }
 
   isInfoEnabled(): boolean {
-    return this.level <= LogLevelEnum.INFO;
+    return this.getLevelValue(this.level) <= this.getLevelValue("info");
   }
 
   isWarnEnabled(): boolean {
-    return this.level <= LogLevelEnum.WARN;
+    return this.getLevelValue(this.level) <= this.getLevelValue("warn");
   }
 
   isErrorEnabled(): boolean {
-    return this.level <= LogLevelEnum.ERROR;
+    return this.getLevelValue(this.level) <= this.getLevelValue("error");
+  }
+
+  private getLevelValue(level: LogLevel): number {
+    const levels: Record<LogLevel, number> = {
+      debug: 0,
+      info: 1,
+      warn: 2,
+      error: 3,
+      silent: 4,
+    };
+    return levels[level];
   }
 
   private log(level: string, message: string, context?: LogContext): void {

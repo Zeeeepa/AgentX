@@ -1,13 +1,8 @@
 /**
- * LogLevel - Standard log level enumeration
+ * LogLevel - Standard log level type
  *
  * Defines the severity levels for logging.
+ * Uses string literal types for better readability and type safety.
  */
 
-export enum LogLevel {
-  DEBUG = 0,
-  INFO = 1,
-  WARN = 2,
-  ERROR = 3,
-  SILENT = 4,
-}
+export type LogLevel = "debug" | "info" | "warn" | "error" | "silent";

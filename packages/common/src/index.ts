@@ -28,8 +28,7 @@
  */
 
 // Re-export types from agentx-types for convenience
-export { LogLevel } from "@agentxjs/types";
-export type { Logger, LogContext, LoggerFactory } from "@agentxjs/types";
+export type { LogLevel, Logger, LogContext, LoggerFactory } from "@agentxjs/types";
 
 // Logger implementation
 export {

@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Guidance for Claude Code when working with this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
@@ -15,25 +15,29 @@ Guidance for Claude Code when working with this repository.
 └── packages/
     ├── types/            # @agentxjs/types - Type definitions (zero deps)
     ├── common/           # @agentxjs/common - Logger facade
-    ├── engine/           # @agentxjs/engine - Mealy Machine processor
-    ├── agent/            # @agentxjs/agent - Agent runtime
-    ├── agentx/           # agentxjs - Platform API (local/remote)
-    ├── node-runtime/     # @agentxjs/node-runtime - Claude driver, SQLite
+    ├── agent/            # @agentxjs/agent - Agent lifecycle and event management
+    ├── agentx/           # agentxjs - Platform API (unified entry point)
+    ├── runtime/          # @agentxjs/runtime - Claude driver, SQLite, SystemBus
     └── ui/               # @agentxjs/ui - React components (Storybook)
 ```
 
-**Package Dependency**: `types → common → engine → agent → agentx → node-runtime → ui`
+**Package Dependency**: `types → common → agent → agentx → runtime → ui`
 
 ## Commands
 
 ```bash
 pnpm install          # Install dependencies
-pnpm dev              # Start development
+pnpm dev              # Start development (portagent app)
 pnpm build            # Build all packages
 pnpm typecheck        # Type checking
 pnpm lint             # Lint code
 pnpm test             # Run tests
 pnpm clean            # Clean artifacts
+
+# Single package commands
+pnpm --filter @agentxjs/agent test           # Run tests for one package
+pnpm --filter @agentxjs/agent test:watch     # Watch mode
+pnpm --filter @agentxjs/ui storybook         # Start Storybook (port 6006)
 ```
 
 ## Core Architecture
@@ -73,18 +77,19 @@ pnpm clean            # Clean artifacts
 
 ```typescript
 import { defineAgent, createAgentX } from "agentxjs";
-import { nodeRuntime } from "@agentxjs/node-runtime";
+import { runtime } from "@agentxjs/runtime";
 
 const MyAgent = defineAgent({
   name: "Assistant",
   systemPrompt: "You are helpful",
 });
 
-const agentx = createAgentX(nodeRuntime());
+const agentx = createAgentX(runtime);
 agentx.definitions.register(MyAgent);
 
-const metaImage = agentx.images.getMetaImage(MyAgent.name);
-const agent = await agentx.images.run(metaImage.id);
+const image = await agentx.images.getMetaImage("Assistant");
+const session = await agentx.sessions.create(image.imageId, "user-1");
+const agent = await session.resume();
 
 agent.react({
   onTextDelta: (e) => process.stdout.write(e.data.text),
