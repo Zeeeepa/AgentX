@@ -12,7 +12,10 @@ import type { Agent as RuntimeAgentInterface, AgentLifecycle, AgentConfig, Syste
 import type { AgentEngine, AgentPresenter, AgentOutput, Message } from "@agentxjs/types/agent";
 import type { SystemBus, SystemBusProducer, Sandbox, Session } from "@agentxjs/types/runtime/internal";
 import { createAgent } from "@agentxjs/agent";
+import { createLogger } from "@agentxjs/common";
 import { BusDriver } from "./BusDriver";
+
+const logger = createLogger("runtime/RuntimeAgent");
 
 /**
  * RuntimeAgent configuration
@@ -63,9 +66,12 @@ class BusPresenter implements AgentPresenter {
 
     this.producer.emit(systemEvent);
 
-    // Collect message events to session
+    // Collect message events to session (fire-and-forget with error logging)
     if (this.isMessageEvent(output)) {
-      this.session.addMessage(output.data as Message);
+      this.session.addMessage(output.data as Message).catch((err) => {
+        // Log error but don't block - persistence failure shouldn't stop the agent
+        logger.error("Failed to persist message", { error: err, messageType: output.type });
+      });
     }
   }
 
@@ -172,13 +178,13 @@ export class RuntimeAgent implements RuntimeAgentInterface {
   }
 
   async receive(message: string): Promise<void> {
-    console.log("[RuntimeAgent.receive] CALLED with message:", message, "agentId:", this.agentId);
+    logger.debug("RuntimeAgent.receive called", { agentId: this.agentId, messagePreview: message.substring(0, 50) });
     if (this._lifecycle !== "running") {
       throw new Error(`Cannot send message to ${this._lifecycle} agent`);
     }
-    console.log("[RuntimeAgent.receive] Calling engine.receive");
+    logger.debug("Calling engine.receive", { agentId: this.agentId });
     await this.engine.receive(message);
-    console.log("[RuntimeAgent.receive] engine.receive completed");
+    logger.debug("engine.receive completed", { agentId: this.agentId });
   }
 
   interrupt(): void {
