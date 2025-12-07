@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@agentxjs/types", "@agentxjs/common", "@agentxjs/agent"]
+  "ignore": []
 }
