@@ -26,21 +26,53 @@ import { existsSync, readFileSync } from "fs";
 import { createAgentX } from "agentxjs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { mkdirSync } from "node:fs";
 
 import { createAuthMiddleware, authRoutes } from "./auth";
 import { SQLiteUserRepository } from "./database";
+import { PinoLoggerFactory } from "./logger";
+
+/**
+ * Get data directory paths
+ * Uses PORTAGENT_DATA_DIR env var, or defaults to ~/.agentx
+ *
+ * Directory structure:
+ *   data-dir/
+ *   ├── data/           # Database files
+ *   │   ├── agentx.db
+ *   │   └── portagent.db
+ *   └── logs/           # Log files
+ *       └── portagent.log
+ */
+function getDataPaths() {
+  const dataDir = process.env.PORTAGENT_DATA_DIR || join(homedir(), ".agentx");
+  const dataDirPath = join(dataDir, "data");
+  const logsDirPath = join(dataDir, "logs");
+
+  // Ensure directories exist
+  mkdirSync(dataDirPath, { recursive: true });
+  mkdirSync(logsDirPath, { recursive: true });
+
+  return {
+    dataDir,
+    dataDirPath,
+    logsDirPath,
+    userDbPath: join(dataDirPath, "portagent.db"),
+    agentxDbPath: join(dataDirPath, "agentx.db"),
+    logFilePath: join(logsDirPath, "portagent.log"),
+  };
+}
 
 // Configuration from environment
 const PORT = parseInt(process.env.PORT || "5200", 10);
 const JWT_SECRET = process.env.JWT_SECRET || crypto.randomUUID();
-const USER_DB_PATH = process.env.USER_DB_PATH || join(homedir(), ".agentx/data/portagent.db");
-const AGENTX_DB_PATH = process.env.AGENTX_DB_PATH || join(homedir(), ".agentx/data/agentx.db");
 const INVITE_CODE_REQUIRED = process.env.INVITE_CODE_REQUIRED !== "false"; // default: true
 
 /**
  * Create and configure the Hono app
  */
 async function createApp() {
+  const paths = getDataPaths();
   const app = new Hono();
 
   // CORS
@@ -68,6 +100,14 @@ async function createApp() {
   const listener = getRequestListener(app.fetch);
   const server = createServer(listener);
 
+  // Create logger factory
+  const logLevel = (process.env.LOG_LEVEL || "info") as "debug" | "info" | "warn" | "error";
+  const loggerFactory = new PinoLoggerFactory({
+    level: logLevel,
+    logDir: paths.logsDirPath,
+    pretty: process.env.NODE_ENV !== "production",
+  });
+
   // Create AgentX instance attached to HTTP server
   // WebSocket upgrade will be handled on /ws path
   const agentx = await createAgentX({
@@ -77,13 +117,17 @@ async function createApp() {
     },
     storage: {
       driver: "sqlite",
-      path: AGENTX_DB_PATH,
+      path: paths.agentxDbPath,
+    },
+    logger: {
+      level: logLevel,
+      factory: loggerFactory,
     },
     server, // Attach to existing HTTP server
   });
 
   // Initialize user repository (separate database)
-  const userRepository = new SQLiteUserRepository(USER_DB_PATH);
+  const userRepository = new SQLiteUserRepository(paths.userDbPath);
 
   // Auth middleware
   const authMiddleware = createAuthMiddleware(JWT_SECRET);
@@ -136,14 +180,14 @@ async function createApp() {
     });
   }
 
-  return { app, server, agentx, userRepository };
+  return { app, server, agentx, userRepository, paths };
 }
 
 /**
  * Start the server
  */
 async function startServer() {
-  const { server, agentx, userRepository } = await createApp();
+  const { server, agentx, userRepository, paths } = await createApp();
 
   console.log(`
   ____            _                         _
@@ -158,9 +202,11 @@ async function startServer() {
 
   console.log("Configuration:");
   console.log(`  Port: ${PORT}`);
+  console.log(`  Data Dir: ${paths.dataDir}`);
   console.log(`  API Key: ${process.env.LLM_PROVIDER_KEY!.substring(0, 15)}...`);
-  console.log(`  User DB: ${USER_DB_PATH}`);
-  console.log(`  AgentX DB: ${AGENTX_DB_PATH}`);
+  console.log(`  User DB: ${paths.userDbPath}`);
+  console.log(`  AgentX DB: ${paths.agentxDbPath}`);
+  console.log(`  Logs: ${paths.logsDirPath}`);
   console.log(`  Invite Code: ${INVITE_CODE_REQUIRED ? "required" : "disabled"}`);
 
   console.log(`\nEndpoints:`);

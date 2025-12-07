@@ -9,9 +9,15 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Project root for dev mode
+const projectRoot = resolve(__dirname, "../..");
+
 // Load .env files for dev
-config({ path: resolve(__dirname, "../../.env.local") });
-config({ path: resolve(__dirname, "../../.env") });
+config({ path: resolve(projectRoot, ".env.local") });
+config({ path: resolve(projectRoot, ".env") });
+
+// Set data directory to project root/.agentx for dev
+process.env.PORTAGENT_DATA_DIR = resolve(projectRoot, ".agentx");
 
 import { startServer } from "./index.js";
 

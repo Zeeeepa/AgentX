@@ -26,3 +26,6 @@ Thumbs.db
 # Database
 *.db
 *.sqlite
+
+# Data directory (dev mode)
+.agentx/

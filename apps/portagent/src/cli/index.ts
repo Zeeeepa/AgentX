@@ -8,12 +8,22 @@
  *   portagent                       # Start with defaults
  *   portagent -p 3000               # Custom port
  *   portagent --env-file .env.prod  # Load custom env file
+ *   portagent --data-dir /path/to   # Custom data directory
+ *
+ * Directory structure (default: ~/.agentx):
+ *   data-dir/
+ *   ├── data/           # Database files
+ *   │   ├── agentx.db   # AgentX data (containers, images, sessions)
+ *   │   └── portagent.db # User authentication data
+ *   └── logs/           # Log files
+ *       └── portagent.log
  */
 
 import { Command } from "commander";
 import { config } from "dotenv";
-import { existsSync } from "fs";
+import { existsSync, mkdirSync } from "fs";
 import { resolve } from "path";
+import { homedir } from "os";
 
 const program = new Command();
 
@@ -22,6 +32,7 @@ program
   .description("Portagent - AgentX Portal Application")
   .version("0.0.1")
   .option("-p, --port <port>", "Port to listen on", "5200")
+  .option("-d, --data-dir <path>", "Data directory (default: ~/.agentx)")
   .option("-e, --env-file <path>", "Path to environment file")
   .option("--password <password>", "Set login password (or use PORTAGENT_PASSWORD env var)")
   .option("--jwt-secret <secret>", "JWT secret for token signing (or use JWT_SECRET env var)")
@@ -42,6 +53,16 @@ program
       config({ path: resolve(process.cwd(), ".env") });
       config({ path: resolve(process.cwd(), ".env.local") });
     }
+
+    // Set data directory (CLI > env > default)
+    const dataDir = options.dataDir || process.env.PORTAGENT_DATA_DIR || resolve(homedir(), ".agentx");
+    process.env.PORTAGENT_DATA_DIR = dataDir;
+
+    // Ensure directories exist
+    const dataDirPath = resolve(dataDir, "data");
+    const logsDirPath = resolve(dataDir, "logs");
+    mkdirSync(dataDirPath, { recursive: true });
+    mkdirSync(logsDirPath, { recursive: true });
 
     // Set environment variables from CLI options (override env file)
     if (options.port) {

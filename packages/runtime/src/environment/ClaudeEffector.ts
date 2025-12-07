@@ -248,6 +248,10 @@ export class ClaudeEffector implements Effector {
           // Handle result
           if (sdkMsg.type === "result") {
             const resultMsg = sdkMsg as { subtype: string; is_error?: boolean; errors?: string[] };
+            // Log full result object for debugging
+            logger.info("SDK result received (full)", {
+              fullResult: JSON.stringify(sdkMsg, null, 2),
+            });
             logger.info("SDK result received", {
               subtype: resultMsg.subtype,
               isError: resultMsg.is_error,
