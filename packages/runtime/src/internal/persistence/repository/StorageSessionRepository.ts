@@ -17,8 +17,8 @@ const PREFIX = "sessions";
 /** Key prefix for messages */
 const MESSAGES_PREFIX = "messages";
 
-/** Index prefix for agent lookup */
-const INDEX_BY_AGENT = "idx:sessions:agent";
+/** Index prefix for image lookup */
+const INDEX_BY_IMAGE = "idx:sessions:image";
 
 /** Index prefix for container lookup */
 const INDEX_BY_CONTAINER = "idx:sessions:container";
@@ -37,8 +37,8 @@ export class StorageSessionRepository implements SessionRepository {
     return `${MESSAGES_PREFIX}:${sessionId}`;
   }
 
-  private agentIndexKey(agentId: string, sessionId: string): string {
-    return `${INDEX_BY_AGENT}:${agentId}:${sessionId}`;
+  private imageIndexKey(imageId: string, sessionId: string): string {
+    return `${INDEX_BY_IMAGE}:${imageId}:${sessionId}`;
   }
 
   private containerIndexKey(containerId: string, sessionId: string): string {
@@ -49,9 +49,9 @@ export class StorageSessionRepository implements SessionRepository {
     // Save main record
     await this.storage.setItem(this.key(record.sessionId), record);
 
-    // Save index for agent lookup
+    // Save index for image lookup
     await this.storage.setItem(
-      this.agentIndexKey(record.agentId, record.sessionId),
+      this.imageIndexKey(record.imageId, record.sessionId),
       record.sessionId
     );
 
@@ -69,13 +69,13 @@ export class StorageSessionRepository implements SessionRepository {
     return record ?? null;
   }
 
-  async findSessionByAgentId(agentId: string): Promise<SessionRecord | null> {
-    const indexPrefix = `${INDEX_BY_AGENT}:${agentId}`;
+  async findSessionByImageId(imageId: string): Promise<SessionRecord | null> {
+    const indexPrefix = `${INDEX_BY_IMAGE}:${imageId}`;
     const keys = await this.storage.getKeys(indexPrefix);
 
     if (keys.length === 0) return null;
 
-    // Return the first (most recent) session for this agent
+    // Return the first (most recent) session for this image
     const sessionId = await this.storage.getItem<string>(keys[0]);
     if (!sessionId) return null;
 
@@ -130,7 +130,7 @@ export class StorageSessionRepository implements SessionRepository {
     // Delete indexes
     if (record) {
       await this.storage.removeItem(
-        this.agentIndexKey(record.agentId, sessionId)
+        this.imageIndexKey(record.imageId, sessionId)
       );
       await this.storage.removeItem(
         this.containerIndexKey(record.containerId, sessionId)

@@ -2,18 +2,23 @@
  * AgentList - Conversation list component
  *
  * Business component that combines ListPane with useImages hook.
- * Displays saved conversations (Images) and handles CRUD operations.
+ * Displays conversations (Images) with online/offline status.
+ *
+ * In the Image-First model:
+ * - Image is the persistent conversation entity
+ * - Agent is a transient runtime instance
+ * - Online (🟢) = Agent is running for this Image
+ * - Offline (⚫) = Image exists but no Agent running
  *
  * @example
  * ```tsx
  * <AgentList
  *   agentx={agentx}
  *   selectedId={currentImageId}
- *   onSelect={(agentId, imageId) => {
- *     setCurrentAgentId(agentId);
+ *   onSelect={(imageId, agentId) => {
  *     setCurrentImageId(imageId);
  *   }}
- *   onNew={(agentId) => setCurrentAgentId(agentId)}
+ *   onNew={(imageId) => setCurrentImageId(imageId)}
  * />
  * ```
  */
@@ -22,7 +27,7 @@ import * as React from "react";
 import type { AgentX } from "agentxjs";
 import { MessageSquare } from "lucide-react";
 import { ListPane, type ListPaneItem } from "~/components/pane";
-import { useImages, useAgents } from "~/hooks";
+import { useImages } from "~/hooks";
 import { AgentLogo } from "~/components/element/AgentLogo";
 import { Badge } from "~/components/element/Badge";
 
@@ -32,7 +37,7 @@ export interface AgentListProps {
    */
   agentx: AgentX | null;
   /**
-   * Container ID for creating new agents
+   * Container ID for creating new images
    * @default "default"
    */
   containerId?: string;
@@ -42,15 +47,15 @@ export interface AgentListProps {
   selectedId?: string | null;
   /**
    * Callback when a conversation is selected
-   * @param agentId - The agent ID (either active agent or from resume)
-   * @param imageId - The selected image ID (null for active agents)
+   * @param imageId - The selected image ID
+   * @param agentId - The agent ID (if online)
    */
-  onSelect?: (agentId: string, imageId: string | null) => void;
+  onSelect?: (imageId: string, agentId: string | null) => void;
   /**
    * Callback when a new conversation is created
-   * @param agentId - The new agent ID
+   * @param imageId - The new image ID
    */
-  onNew?: (agentId: string) => void;
+  onNew?: (imageId: string) => void;
   /**
    * Title displayed in header
    * @default "Conversations"
@@ -82,81 +87,53 @@ export function AgentList({
 }: AgentListProps) {
   const {
     images,
-    isLoading: isLoadingImages,
-    resumeImage,
+    isLoading,
+    createImage,
+    runImage,
     deleteImage,
-  } = useImages(agentx);
+    refresh,
+  } = useImages(agentx, { containerId });
 
-  const {
-    agents,
-    isLoading: isLoadingAgents,
-    refresh: refreshAgents,
-  } = useAgents(agentx, containerId);
-
-  const isLoading = isLoadingImages || isLoadingAgents;
-
-  // Map both active agents and saved images to ListPaneItem[]
+  // Map images to ListPaneItem[]
   const items: ListPaneItem[] = React.useMemo(() => {
-    const result: ListPaneItem[] = [];
+    return images.map((img) => ({
+      id: img.imageId,
+      title: img.name || "Untitled",
+      leading: <AgentLogo className="w-3 h-3" />,
+      trailing: (
+        <Badge
+          variant={img.online ? "default" : "secondary"}
+          className="text-xs px-1 py-0"
+        >
+          {img.online ? "Online" : "Offline"}
+        </Badge>
+      ),
+      timestamp: img.updatedAt || img.createdAt,
+    }));
+  }, [images]);
 
-    // Add active agents (not yet saved)
-    // Filter out agents that are already saved as images
-    const imageAgentIds = new Set(images.map((img) => img.agentId).filter(Boolean));
-    const activeAgents = agents.filter((agent) => !imageAgentIds.has(agent.agentId));
-
-    activeAgents.forEach((agent) => {
-      result.push({
-        id: agent.agentId,
-        title: "New Conversation",
-        leading: <AgentLogo className="w-3 h-3" />,
-        trailing: (
-          <Badge variant="default" className="text-xs px-1 py-0">
-            Active
-          </Badge>
-        ),
-        timestamp: Date.now(), // Active agents show at the top
-      });
-    });
-
-    // Add saved images
-    images.forEach((img) => {
-      result.push({
-        id: img.imageId,
-        title: img.name || "Untitled",
-        leading: <AgentLogo className="w-3 h-3" />,
-        trailing: img.messages?.length > 0 ? (
-          <Badge variant="secondary" className="text-xs px-1 py-0">
-            {img.messages.length}
-          </Badge>
-        ) : undefined,
-        timestamp: img.createdAt,
-      });
-    });
-
-    return result;
-  }, [agents, images]);
-
-  // Handle selecting an item (either active agent or saved image)
+  // Handle selecting an image
   const handleSelect = React.useCallback(
-    async (id: string) => {
+    async (imageId: string) => {
       if (!agentx) return;
       try {
-        // Check if id is an active agent
-        const isAgent = agents.some((agent) => agent.agentId === id);
+        // Find the image
+        const image = images.find((img) => img.imageId === imageId);
+        if (!image) return;
 
-        if (isAgent) {
-          // Select active agent directly
-          onSelect?.(id, null);
+        // If offline, run the image first
+        if (!image.online) {
+          const { agentId } = await runImage(imageId);
+          onSelect?.(imageId, agentId);
         } else {
-          // Resume saved image
-          const { agentId } = await resumeImage(id);
-          onSelect?.(agentId, id);
+          // Already online, just select
+          onSelect?.(imageId, image.agentId ?? null);
         }
       } catch (error) {
         console.error("Failed to select conversation:", error);
       }
     },
-    [agentx, agents, resumeImage, onSelect]
+    [agentx, images, runImage, onSelect]
   );
 
   // Handle creating a new conversation
@@ -167,29 +144,18 @@ export function AgentList({
       return;
     }
     try {
-      console.log("[AgentList] Creating new agent with containerId:", containerId);
-      // Create a new agent
-      const response = await agentx.request("agent_run_request", {
-        containerId,
-        config: { name: "New Conversation" },
-      });
-      console.log("[AgentList] Response:", response);
+      console.log("[AgentList] Creating new image with containerId:", containerId);
+      // Create a new image
+      const image = await createImage({ name: "New Conversation" });
+      console.log("[AgentList] New image created:", image.imageId);
 
-      if (response.data.error) {
-        throw new Error(response.data.error);
-      }
-
-      const { agentId } = response.data;
-      if (agentId) {
-        console.log("[AgentList] New agent created:", agentId);
-        // Refresh agent list to show the new agent
-        await refreshAgents();
-        onNew?.(agentId);
-      }
+      // Refresh list
+      await refresh();
+      onNew?.(image.imageId);
     } catch (error) {
       console.error("Failed to create new conversation:", error);
     }
-  }, [agentx, containerId, refreshAgents, onNew]);
+  }, [agentx, containerId, createImage, refresh, onNew]);
 
   // Handle deleting an image
   const handleDelete = React.useCallback(

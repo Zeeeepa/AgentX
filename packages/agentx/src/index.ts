@@ -85,8 +85,6 @@ export type {
   ContainerListRequest,
   ContainerListResponse,
   // Agent commands
-  AgentRunRequest,
-  AgentRunResponse,
   AgentGetRequest,
   AgentGetResponse,
   AgentListRequest,
@@ -98,16 +96,21 @@ export type {
   AgentInterruptRequest,
   AgentInterruptResponse,
   // Image commands
-  ImageSnapshotRequest,
-  ImageSnapshotResponse,
+  ImageCreateRequest,
+  ImageCreateResponse,
+  ImageRunRequest,
+  ImageRunResponse,
+  ImageStopRequest,
+  ImageStopResponse,
+  ImageUpdateRequest,
+  ImageUpdateResponse,
   ImageListRequest,
   ImageListResponse,
+  ImageListItem,
   ImageGetRequest,
   ImageGetResponse,
   ImageDeleteRequest,
   ImageDeleteResponse,
-  ImageResumeRequest,
-  ImageResumeResponse,
 } from "@agentxjs/types/event";
 
 export { isCommandEvent, isCommandRequest, isCommandResponse } from "@agentxjs/types/event";

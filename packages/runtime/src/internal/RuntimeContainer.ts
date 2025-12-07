@@ -2,12 +2,14 @@
  * RuntimeContainer - Container implementation with agent management
  *
  * Container is an object with behavior. It manages agents internally.
- * API layer (ContainersAPI) is just a thin routing layer.
+ * In the new Image-First model:
+ * - Image is the persistent entity (conversation)
+ * - Agent is a transient runtime instance of an Image
+ * - Container tracks imageId → agentId mapping
  */
 
-import type { Container, Agent, AgentConfig } from "@agentxjs/types/runtime";
-import type { Persistence, ContainerRecord } from "@agentxjs/types";
-import type { Message } from "@agentxjs/types/agent";
+import type { Container, Agent } from "@agentxjs/types/runtime";
+import type { Persistence, ContainerRecord, ImageRecord } from "@agentxjs/types";
 import type { SystemBus, Environment } from "@agentxjs/types/runtime/internal";
 import { RuntimeAgent } from "./RuntimeAgent";
 import { RuntimeSession } from "./RuntimeSession";
@@ -35,7 +37,10 @@ export class RuntimeContainer implements Container {
   readonly containerId: string;
   readonly createdAt: number;
 
+  /** Map of agentId → RuntimeAgent */
   private readonly agents = new Map<string, RuntimeAgent>();
+  /** Map of imageId → agentId (for quick lookup) */
+  private readonly imageToAgent = new Map<string, string>();
   private readonly context: RuntimeContainerContext;
 
   private constructor(
@@ -101,11 +106,31 @@ export class RuntimeContainer implements Container {
     return new RuntimeContainer(containerId, record.createdAt, context);
   }
 
-  // ==================== Agent Lifecycle ====================
+  // ==================== Image → Agent Lifecycle ====================
 
-  async runAgent(config: AgentConfig): Promise<Agent> {
-    const agentId = this.generateId();
-    const sessionId = this.generateId();
+  /**
+   * Run an image - create or reuse an Agent for the given Image
+   * @returns { agent, reused } - the agent and whether it was reused
+   */
+  async runImage(image: ImageRecord): Promise<{ agent: Agent; reused: boolean }> {
+    // Check if agent already exists for this image
+    const existingAgentId = this.imageToAgent.get(image.imageId);
+    if (existingAgentId) {
+      const existingAgent = this.agents.get(existingAgentId);
+      if (existingAgent) {
+        logger.info("Reusing existing agent for image", {
+          containerId: this.containerId,
+          imageId: image.imageId,
+          agentId: existingAgentId,
+        });
+        return { agent: existingAgent, reused: true };
+      }
+      // Agent was destroyed but mapping still exists, clean up
+      this.imageToAgent.delete(image.imageId);
+    }
+
+    // Create new agent for this image
+    const agentId = this.generateAgentId();
 
     // Create and initialize Sandbox
     const sandbox = new RuntimeSandbox({
@@ -115,28 +140,33 @@ export class RuntimeContainer implements Container {
     });
     await sandbox.initialize();
 
-    // Create Session
+    // Create Session wrapper (uses existing sessionId from Image)
     const session = new RuntimeSession({
-      sessionId,
-      agentId,
+      sessionId: image.sessionId,
+      imageId: image.imageId,
       containerId: this.containerId,
       repository: this.context.persistence.sessions,
       producer: this.context.bus.asProducer(),
     });
-    await session.initialize();
+    // Note: Don't call initialize() - session already exists in storage
 
     // Create RuntimeAgent
     const agent = new RuntimeAgent({
       agentId,
       containerId: this.containerId,
-      config,
+      config: {
+        name: image.name,
+        description: image.description,
+        systemPrompt: image.systemPrompt,
+      },
       bus: this.context.bus,
       sandbox,
       session,
     });
 
-    // Register agent
+    // Register agent and mapping
     this.agents.set(agentId, agent);
+    this.imageToAgent.set(image.imageId, agentId);
 
     // Emit agent_registered event
     this.context.bus.emit({
@@ -148,7 +178,7 @@ export class RuntimeContainer implements Container {
       data: {
         containerId: this.containerId,
         agentId,
-        definitionName: config.name,
+        definitionName: image.name,
         registeredAt: Date.now(),
       },
       context: {
@@ -157,75 +187,58 @@ export class RuntimeContainer implements Container {
       },
     });
 
-    logger.info("Agent created in container", { containerId: this.containerId, agentId });
-    return agent;
+    logger.info("Agent created for image", {
+      containerId: this.containerId,
+      imageId: image.imageId,
+      agentId,
+    });
+    return { agent, reused: false };
   }
 
   /**
-   * Run agent with pre-loaded messages (used by image resume)
+   * Stop an image - destroy the Agent but keep the Image
    */
-  async runAgentWithMessages(config: AgentConfig, messages: Message[]): Promise<Agent> {
-    const agentId = this.generateId();
-    const sessionId = this.generateId();
-
-    // Create and initialize Sandbox
-    const sandbox = new RuntimeSandbox({
-      agentId,
-      containerId: this.containerId,
-      basePath: this.context.basePath,
-    });
-    await sandbox.initialize();
-
-    // Create Session
-    const session = new RuntimeSession({
-      sessionId,
-      agentId,
-      containerId: this.containerId,
-      repository: this.context.persistence.sessions,
-      producer: this.context.bus.asProducer(),
-    });
-    await session.initialize();
-
-    // Pre-load messages into session
-    for (const message of messages) {
-      await session.addMessage(message);
+  async stopImage(imageId: string): Promise<boolean> {
+    const agentId = this.imageToAgent.get(imageId);
+    if (!agentId) {
+      logger.debug("Image not running, nothing to stop", { imageId, containerId: this.containerId });
+      return false;
     }
 
-    // Create RuntimeAgent
-    const agent = new RuntimeAgent({
-      agentId,
-      containerId: this.containerId,
-      config,
-      bus: this.context.bus,
-      sandbox,
-      session,
-    });
+    logger.info("Stopping image", { imageId, agentId, containerId: this.containerId });
+    const success = await this.destroyAgent(agentId);
+    if (success) {
+      this.imageToAgent.delete(imageId);
+      logger.info("Image stopped", { imageId, agentId, containerId: this.containerId });
+    }
+    return success;
+  }
 
-    // Register agent
-    this.agents.set(agentId, agent);
+  /**
+   * Get agent ID for an image (if running)
+   */
+  getAgentIdForImage(imageId: string): string | undefined {
+    return this.imageToAgent.get(imageId);
+  }
 
-    // Emit agent_registered event
-    this.context.bus.emit({
-      type: "agent_registered",
-      timestamp: Date.now(),
-      source: "container",
-      category: "lifecycle",
-      intent: "notification",
-      data: {
-        containerId: this.containerId,
-        agentId,
-        definitionName: config.name,
-        registeredAt: Date.now(),
-        resumedFromImage: true,
-      },
-      context: {
-        containerId: this.containerId,
-        agentId,
-      },
-    });
+  /**
+   * Check if an image has a running agent
+   */
+  isImageOnline(imageId: string): boolean {
+    const agentId = this.imageToAgent.get(imageId);
+    return agentId !== undefined && this.agents.has(agentId);
+  }
 
-    logger.info("Agent resumed in container", { containerId: this.containerId, agentId });
-    return agent;
+  /**
+   * Get imageId for an agent (reverse lookup)
+   */
+  getImageIdForAgent(agentId: string): string | undefined {
+    for (const [imageId, mappedAgentId] of this.imageToAgent.entries()) {
+      if (mappedAgentId === agentId) {
+        return imageId;
+      }
+    }
+    return undefined;
   }
 
   getAgent(agentId: string): Agent | undefined {
@@ -311,9 +324,9 @@ export class RuntimeContainer implements Container {
 
   // ==================== Private Helpers ====================
 
-  private generateId(): string {
+  private generateAgentId(): string {
     const timestamp = Date.now().toString(36);
     const random = Math.random().toString(36).substring(2, 8);
-    return `${timestamp}_${random}`;
+    return `agent_${timestamp}_${random}`;
   }
 }

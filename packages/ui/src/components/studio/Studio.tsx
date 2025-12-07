@@ -4,6 +4,11 @@
  * Top-level component that provides a ready-to-use chat interface.
  * Combines AgentList and Chat with coordinated state management.
  *
+ * In the Image-First model:
+ * - Image is the persistent conversation entity
+ * - Agent is auto-activated on first message
+ * - Messages are auto-saved (no manual save needed)
+ *
  * Layout (WeChat style):
  * ```
  * ┌──────────────┬─────────────────────────────────────┐
@@ -12,8 +17,8 @@
  * │  (sidebar)   │                                     │
  * │              │  ┌─────────────────────────────────┐│
  * │  [Images]    │  │      MessagePane                ││
- * │              │  └─────────────────────────────────┘│
- * │              │  ┌─────────────────────────────────┐│
+ * │  🟢 Online   │  └─────────────────────────────────┘│
+ * │  ⚫ Offline  │  ┌─────────────────────────────────┐│
  * │  [+ New]     │  │      InputPane                  ││
  * │              │  └─────────────────────────────────┘│
  * └──────────────┴─────────────────────────────────────┘
@@ -55,8 +60,8 @@ export interface StudioProps {
    */
   searchable?: boolean;
   /**
-   * Show save button in Chat
-   * @default true
+   * Show save button in Chat (not needed in Image-First model)
+   * @default false
    */
   showSaveButton?: boolean;
   /**
@@ -77,63 +82,40 @@ export function Studio({
   agentx,
   sidebarWidth = 280,
   searchable = true,
-  showSaveButton = true,
+  showSaveButton = false, // Default to false in Image-First model
   inputHeightRatio = 0.25,
   className,
 }: StudioProps) {
-  // State
-  const [currentAgentId, setCurrentAgentId] = React.useState<string | null>(null);
+  // State - only track imageId now (agentId is managed by useAgent)
   const [currentImageId, setCurrentImageId] = React.useState<string | null>(null);
-  const [currentAgentName, setCurrentAgentName] = React.useState<string | undefined>(undefined);
+  const [currentImageName, setCurrentImageName] = React.useState<string | undefined>(undefined);
 
   // Toast state
   const { toasts, showToast, dismissToast } = useToast();
 
-  // Images hook for snapshotting
-  const { images, snapshotAgent, refresh: refreshImages } = useImages(agentx, {
-    autoLoad: false,
-  });
+  // Images hook
+  const { images } = useImages(agentx, { autoLoad: true });
 
   // Handle selecting a conversation
   const handleSelect = React.useCallback(
-    (agentId: string, imageId: string | null) => {
-      setCurrentAgentId(agentId);
+    (imageId: string, _agentId: string | null) => {
       setCurrentImageId(imageId);
 
-      // Set agent name based on image
-      if (imageId) {
-        const image = images.find((img) => img.imageId === imageId);
-        setCurrentAgentName(image?.name || "Conversation");
-      } else {
-        setCurrentAgentName("New Conversation");
-      }
+      // Set name from image
+      const image = images.find((img) => img.imageId === imageId);
+      setCurrentImageName(image?.name || "Conversation");
     },
     [images]
   );
 
   // Handle creating a new conversation
-  const handleNew = React.useCallback((agentId: string) => {
-    setCurrentAgentId(agentId);
-    setCurrentImageId(null);
-    setCurrentAgentName("New Conversation");
-  }, []);
-
-  // Handle saving current conversation
-  const handleSave = React.useCallback(async () => {
-    if (!currentAgentId) return;
-    try {
-      const record = await snapshotAgent(currentAgentId);
-      setCurrentImageId(record.imageId);
-      await refreshImages();
-      showToast("Conversation saved successfully", "info");
-    } catch (error) {
-      console.error("Failed to save conversation:", error);
-      showToast(
-        error instanceof Error ? error.message : "Failed to save conversation",
-        "error"
-      );
-    }
-  }, [currentAgentId, snapshotAgent, refreshImages, showToast]);
+  const handleNew = React.useCallback(
+    (imageId: string) => {
+      setCurrentImageId(imageId);
+      setCurrentImageName("New Conversation");
+    },
+    []
+  );
 
   // Listen to agentx system_error events
   React.useEffect(() => {
@@ -173,9 +155,8 @@ export function Studio({
       <div className="flex-1 min-w-0">
         <Chat
           agentx={agentx}
-          agentId={currentAgentId}
-          agentName={currentAgentName}
-          onSave={handleSave}
+          imageId={currentImageId}
+          agentName={currentImageName}
           showSaveButton={showSaveButton}
           inputHeightRatio={inputHeightRatio}
         />

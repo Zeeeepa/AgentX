@@ -5,7 +5,8 @@
  * - Listening to messages from Agent/Bus
  * - Persisting messages to storage
  *
- * Session is created per Agent and stores the conversation history.
+ * Session is created per Image and stores the conversation history.
+ * In the Image-First model, Session persists across Agent restarts.
  */
 
 import type { Message } from "~/agent/message/Message";
@@ -20,9 +21,9 @@ export interface Session {
   readonly sessionId: string;
 
   /**
-   * Associated agent ID
+   * Associated image ID (persistent conversation entity)
    */
-  readonly agentId: string;
+  readonly imageId: string;
 
   /**
    * Associated container ID

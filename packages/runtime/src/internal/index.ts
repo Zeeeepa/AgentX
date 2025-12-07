@@ -8,10 +8,10 @@ export { RuntimeAgent, type RuntimeAgentConfig } from "./RuntimeAgent";
 export { RuntimeSession, type RuntimeSessionConfig } from "./RuntimeSession";
 export { RuntimeSandbox, type RuntimeSandboxConfig } from "./RuntimeSandbox";
 export {
-  RuntimeAgentImage,
+  RuntimeImage,
   type RuntimeImageContext,
-  type RuntimeAgentImageData,
-} from "./RuntimeAgentImage";
+  type ImageCreateConfig,
+} from "./RuntimeImage";
 export {
   RuntimeContainer,
   type RuntimeContainerContext,

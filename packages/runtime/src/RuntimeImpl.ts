@@ -17,9 +17,8 @@
  */
 
 import type { Persistence } from "@agentxjs/types";
-import type { Runtime, ClaudeLLMConfig, LLMProvider, ImageMessage } from "@agentxjs/types/runtime";
+import type { Runtime, ClaudeLLMConfig, LLMProvider } from "@agentxjs/types/runtime";
 import type { Agent } from "@agentxjs/types/runtime";
-import type { Message } from "@agentxjs/types/agent";
 import type {
   Environment,
   BusEventHandler,
@@ -29,10 +28,10 @@ import type {
 import type { SystemEvent, CommandEventMap, CommandRequestType, ResponseEventFor, RequestDataFor } from "@agentxjs/types/event";
 import type { RuntimeConfig } from "./createRuntime";
 import type { RuntimeImageContext, RuntimeContainerContext } from "./internal";
+import type { ImageListItemResult } from "./internal/CommandHandler";
 import {
   SystemBusImpl,
-  RuntimeAgent,
-  RuntimeAgentImage,
+  RuntimeImage,
   RuntimeContainer,
   CommandHandler,
   type RuntimeOperations,
@@ -174,20 +173,21 @@ export class RuntimeImpl implements Runtime {
         return Array.from(this.containerRegistry.values()).map(c => ({ containerId: c.containerId }));
       },
 
-      // Agent operations
-      runAgent: async (containerId: string, config: { name: string; systemPrompt?: string }) => {
-        const container = this.containerRegistry.get(containerId);
-        if (!container) throw new Error(`Container not found: ${containerId}`);
-        const agent = await container.runAgent(config);
-        return { agentId: agent.agentId, containerId };
-      },
+      // Agent operations (by agentId)
       getAgent: (agentId: string) => {
         const agent = this.findAgent(agentId);
-        return agent ? { agentId: agent.agentId, containerId: agent.containerId } : undefined;
+        if (!agent) return undefined;
+        // Find imageId for this agent
+        const imageId = this.findImageIdForAgent(agentId);
+        return { agentId: agent.agentId, containerId: agent.containerId, imageId: imageId ?? "" };
       },
       listAgents: (containerId: string) => {
         const container = this.containerRegistry.get(containerId);
-        return container?.listAgents().map(a => ({ agentId: a.agentId, containerId: a.containerId })) ?? [];
+        if (!container) return [];
+        return container.listAgents().map(a => {
+          const imageId = this.findImageIdForAgent(a.agentId);
+          return { agentId: a.agentId, containerId: a.containerId, imageId: imageId ?? "" };
+        });
       },
       destroyAgent: async (agentId: string) => {
         for (const container of this.containerRegistry.values()) {
@@ -201,68 +201,144 @@ export class RuntimeImpl implements Runtime {
         const container = this.containerRegistry.get(containerId);
         await container?.destroyAllAgents();
       },
-      receiveMessage: async (agentId: string, content: string) => {
-        const agent = this.findAgent(agentId);
-        if (!agent) throw new Error(`Agent not found: ${agentId}`);
-        await agent.receive(content);
+
+      // Agent operations (by imageId - with auto-activation)
+      receiveMessage: async (imageId: string | undefined, agentId: string | undefined, content: string) => {
+        // If imageId provided, auto-activate the image
+        if (imageId) {
+          logger.debug("Receiving message by imageId", { imageId, contentLength: content.length });
+          const record = await this.persistence.images.findImageById(imageId);
+          if (!record) throw new Error(`Image not found: ${imageId}`);
+
+          const container = await this.getOrCreateContainer(record.containerId);
+          const { agent, reused } = await container.runImage(record);
+          logger.info("Message routed to agent", { imageId, agentId: agent.agentId, reused });
+          await agent.receive(content);
+          return { agentId: agent.agentId, imageId };
+        }
+
+        // Fallback to agentId (legacy)
+        if (agentId) {
+          logger.debug("Receiving message by agentId (legacy)", { agentId, contentLength: content.length });
+          const agent = this.findAgent(agentId);
+          if (!agent) throw new Error(`Agent not found: ${agentId}`);
+          await agent.receive(content);
+          const foundImageId = this.findImageIdForAgent(agentId);
+          return { agentId, imageId: foundImageId };
+        }
+
+        throw new Error("Either imageId or agentId must be provided");
       },
-      interruptAgent: (agentId: string) => {
-        const agent = this.findAgent(agentId);
-        if (!agent) throw new Error(`Agent not found: ${agentId}`);
-        agent.interrupt();
+      interruptAgent: (imageId: string | undefined, agentId: string | undefined) => {
+        // If imageId provided, find agent for that image
+        if (imageId) {
+          const foundAgentId = this.findAgentIdForImage(imageId);
+          if (!foundAgentId) {
+            logger.debug("Image is offline, nothing to interrupt", { imageId });
+            return { imageId, agentId: undefined };
+          }
+          const agent = this.findAgent(foundAgentId);
+          if (agent) {
+            logger.info("Interrupting agent by imageId", { imageId, agentId: foundAgentId });
+            agent.interrupt();
+          }
+          return { imageId, agentId: foundAgentId };
+        }
+
+        // Fallback to agentId (legacy)
+        if (agentId) {
+          const agent = this.findAgent(agentId);
+          if (!agent) throw new Error(`Agent not found: ${agentId}`);
+          logger.info("Interrupting agent by agentId (legacy)", { agentId });
+          agent.interrupt();
+          const foundImageId = this.findImageIdForAgent(agentId);
+          return { agentId, imageId: foundImageId };
+        }
+
+        throw new Error("Either imageId or agentId must be provided");
       },
 
-      // Image operations
-      snapshotAgent: async (agentId: string) => {
-        const agent = this.findAgent(agentId);
-        if (!agent) throw new Error(`Agent not found: ${agentId}`);
-        if (!(agent instanceof RuntimeAgent)) {
-          throw new Error("Agent must be a RuntimeAgent instance");
-        }
-        const image = await RuntimeAgentImage.snapshot(agent, this.createImageContext());
-        return { imageId: image.imageId, containerId: image.containerId, agentId: image.agentId };
+      // Image operations (new model)
+      createImage: async (containerId: string, config: { name?: string; description?: string; systemPrompt?: string }) => {
+        logger.debug("Creating image", { containerId, name: config.name });
+        // Ensure container exists
+        await this.getOrCreateContainer(containerId);
+
+        // Create image
+        const image = await RuntimeImage.create(
+          { containerId, ...config },
+          this.createImageContext()
+        );
+
+        logger.info("Image created via RuntimeOps", { imageId: image.imageId, containerId });
+        return this.toImageListItemResult(image.toRecord(), false);
       },
-      listImages: async () => {
-        const records = await this.persistence.images.findAllImages();
-        return records.map(r => ({
-          imageId: r.imageId,
-          containerId: r.containerId,
-          agentId: r.agentId,
-          name: r.name,
-        }));
+      runImage: async (imageId: string) => {
+        logger.debug("Running image", { imageId });
+        const record = await this.persistence.images.findImageById(imageId);
+        if (!record) throw new Error(`Image not found: ${imageId}`);
+
+        const container = await this.getOrCreateContainer(record.containerId);
+        const { agent, reused } = await container.runImage(record);
+        logger.info("Image running", { imageId, agentId: agent.agentId, reused });
+        return { imageId, agentId: agent.agentId, reused };
+      },
+      stopImage: async (imageId: string) => {
+        logger.debug("Stopping image", { imageId });
+        const record = await this.persistence.images.findImageById(imageId);
+        if (!record) throw new Error(`Image not found: ${imageId}`);
+
+        const container = this.containerRegistry.get(record.containerId);
+        if (container) {
+          await container.stopImage(imageId);
+          logger.info("Image stopped via RuntimeOps", { imageId });
+        }
+      },
+      updateImage: async (imageId: string, updates: { name?: string; description?: string }) => {
+        const image = await RuntimeImage.load(imageId, this.createImageContext());
+        if (!image) throw new Error(`Image not found: ${imageId}`);
+
+        const updatedImage = await image.update(updates);
+        const online = this.isImageOnline(imageId);
+        return this.toImageListItemResult(updatedImage.toRecord(), online);
+      },
+      listImages: async (containerId?: string) => {
+        const records = containerId
+          ? await RuntimeImage.listByContainer(containerId, this.createImageContext())
+          : await RuntimeImage.listAll(this.createImageContext());
+
+        return records.map(r => {
+          const online = this.isImageOnline(r.imageId);
+          return this.toImageListItemResult(r, online);
+        });
       },
       getImage: async (imageId: string) => {
         const record = await this.persistence.images.findImageById(imageId);
         if (!record) return null;
-        return {
-          imageId: record.imageId,
-          containerId: record.containerId,
-          agentId: record.agentId,
-          name: record.name,
-        };
-      },
-      deleteImage: (imageId: string) => this.persistence.images.deleteImage(imageId),
-      resumeImage: async (imageId: string) => {
-        const record = await this.persistence.images.findImageById(imageId);
-        if (!record) throw new Error(`Image not found: ${imageId}`);
 
-        const imageContext = this.createImageContext();
-        const image = new RuntimeAgentImage(
-          {
-            imageId: record.imageId,
-            containerId: record.containerId,
-            agentId: record.agentId,
-            name: record.name,
-            description: record.description,
-            systemPrompt: record.systemPrompt,
-            messages: record.messages as unknown as ImageMessage[],
-            parentImageId: record.parentImageId,
-            createdAt: record.createdAt,
-          },
-          imageContext
-        );
-        const agent = await image.resume();
-        return { agentId: agent.agentId, containerId: agent.containerId };
+        const online = this.isImageOnline(imageId);
+        return this.toImageListItemResult(record, online);
+      },
+      deleteImage: async (imageId: string) => {
+        logger.debug("Deleting image", { imageId });
+        // Stop agent if running
+        const agentId = this.findAgentIdForImage(imageId);
+        if (agentId) {
+          logger.debug("Stopping running agent before delete", { imageId, agentId });
+          for (const container of this.containerRegistry.values()) {
+            if (container.getAgent(agentId)) {
+              await container.destroyAgent(agentId);
+              break;
+            }
+          }
+        }
+
+        // Delete image (and session)
+        const image = await RuntimeImage.load(imageId, this.createImageContext());
+        if (image) {
+          await image.delete();
+          logger.info("Image deleted via RuntimeOps", { imageId });
+        }
       },
     };
   }
@@ -295,6 +371,59 @@ export class RuntimeImpl implements Runtime {
     return undefined;
   }
 
+  /**
+   * Find imageId for a given agentId (reverse lookup)
+   */
+  private findImageIdForAgent(agentId: string): string | undefined {
+    for (const container of this.containerRegistry.values()) {
+      const imageId = container.getImageIdForAgent(agentId);
+      if (imageId) return imageId;
+    }
+    return undefined;
+  }
+
+  /**
+   * Find agentId for a given imageId
+   */
+  private findAgentIdForImage(imageId: string): string | undefined {
+    for (const container of this.containerRegistry.values()) {
+      const agentId = container.getAgentIdForImage(imageId);
+      if (agentId) return agentId;
+    }
+    return undefined;
+  }
+
+  /**
+   * Check if an image has a running agent
+   */
+  private isImageOnline(imageId: string): boolean {
+    for (const container of this.containerRegistry.values()) {
+      if (container.isImageOnline(imageId)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Convert ImageRecord to ImageListItemResult
+   */
+  private toImageListItemResult(record: import("@agentxjs/types").ImageRecord, online: boolean): ImageListItemResult {
+    const agentId = online ? this.findAgentIdForImage(record.imageId) : undefined;
+    return {
+      imageId: record.imageId,
+      containerId: record.containerId,
+      sessionId: record.sessionId,
+      name: record.name,
+      description: record.description,
+      systemPrompt: record.systemPrompt,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt,
+      online,
+      agentId,
+    };
+  }
+
   private createContainerContext(): RuntimeContainerContext {
     return {
       persistence: this.persistence,
@@ -309,18 +438,8 @@ export class RuntimeImpl implements Runtime {
 
   private createImageContext(): RuntimeImageContext {
     return {
-      createAgentWithMessages: async (
-        containerId: string,
-        config: { name: string; description?: string; systemPrompt?: string },
-        messages: Message[]
-      ): Promise<Agent> => {
-        const container = this.containerRegistry.get(containerId);
-        if (!container) {
-          throw new Error(`Container not found: ${containerId}`);
-        }
-        return container.runAgentWithMessages(config, messages);
-      },
       imageRepository: this.persistence.images,
+      sessionRepository: this.persistence.sessions,
     };
   }
 

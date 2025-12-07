@@ -1,7 +1,7 @@
 import * as React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Chat } from "./Chat";
-import { useAgentX } from "~/hooks";
+import { useAgentX, useImages } from "~/hooks";
 
 const meta: Meta<typeof Chat> = {
   title: "Container/Chat",
@@ -11,7 +11,7 @@ const meta: Meta<typeof Chat> = {
     docs: {
       description: {
         component:
-          "Business component that provides a complete chat interface. Combines MessagePane + InputPane with useAgent hook.",
+          "Business component that provides a complete chat interface. Combines MessagePane + InputPane with useAgent hook. Supports Image-First model where imageId is used for conversation identity.",
       },
     },
   },
@@ -22,36 +22,33 @@ type Story = StoryObj<typeof Chat>;
 
 /**
  * Connected story - requires dev-server running on ws://localhost:5200
+ * Uses Image-First model: creates an Image first, then uses imageId for chat
  */
 const ConnectedWrapper = () => {
   const agentx = useAgentX({ server: "ws://localhost:5200" });
-  const [agentId, setAgentId] = React.useState<string | null>(null);
+  const [imageId, setImageId] = React.useState<string | null>(null);
   const [status, setStatus] = React.useState<string>("disconnected");
+  const { createImage } = useImages(agentx, { autoLoad: false });
 
-  // Create a new agent on mount
+  // Create a new image on mount
   React.useEffect(() => {
     if (!agentx) return;
     setStatus("connected");
 
-    const createAgent = async () => {
+    const createConversation = async () => {
       try {
-        setStatus("creating agent...");
-        const response = await agentx.request("agent_run_request", {
-          containerId: "default",
-          config: { name: "Test Agent" },
-        });
-        if (response.data.agentId) {
-          setAgentId(response.data.agentId);
-          setStatus("ready");
-        }
+        setStatus("creating conversation...");
+        const image = await createImage({ name: "Test Conversation" });
+        setImageId(image.imageId);
+        setStatus("ready");
       } catch (error) {
-        console.error("Failed to create agent:", error);
+        console.error("Failed to create conversation:", error);
         setStatus("error");
       }
     };
 
-    createAgent();
-  }, [agentx]);
+    createConversation();
+  }, [agentx, createImage]);
 
   if (!agentx) {
     return (
@@ -70,13 +67,12 @@ const ConnectedWrapper = () => {
   return (
     <div className="space-y-2">
       <div className="text-xs text-muted-foreground">
-        Status: {status} | Agent: {agentId || "none"}
+        Status: {status} | Image: {imageId || "none"}
       </div>
       <div className="h-[500px] w-full max-w-2xl border border-border rounded-lg overflow-hidden">
         <Chat
           agentx={agentx}
-          agentId={agentId}
-          onSave={() => console.log("Save clicked")}
+          imageId={imageId}
         />
       </div>
     </div>
@@ -89,28 +85,28 @@ export const Connected: Story = {
     docs: {
       description: {
         story:
-          "Live connection to dev-server. Start the server with `pnpm dev:server` before viewing this story.",
+          "Live connection to dev-server using Image-First model. Start the server with `pnpm dev:server` before viewing this story.",
       },
     },
   },
 };
 
 /**
- * No agent selected state
+ * No conversation selected state
  */
-export const NoAgentSelected: Story = {
+export const NoConversationSelected: Story = {
   render: () => (
     <div className="h-[500px] w-full max-w-2xl border border-border rounded-lg overflow-hidden">
       <Chat
         agentx={null}
-        agentId={null}
+        imageId={null}
       />
     </div>
   ),
   parameters: {
     docs: {
       description: {
-        story: "Empty state when no agent is selected",
+        story: "Empty state when no conversation is selected",
       },
     },
   },
@@ -121,27 +117,23 @@ export const NoAgentSelected: Story = {
  */
 const CustomHeightWrapper = () => {
   const agentx = useAgentX({ server: "ws://localhost:5200" });
-  const [agentId, setAgentId] = React.useState<string | null>(null);
+  const [imageId, setImageId] = React.useState<string | null>(null);
+  const { createImage } = useImages(agentx, { autoLoad: false });
 
   React.useEffect(() => {
     if (!agentx) return;
-    const createAgent = async () => {
-      const response = await agentx.request("agent_run_request", {
-        containerId: "default",
-        config: { name: "Test Agent" },
-      });
-      if (response.data.agentId) {
-        setAgentId(response.data.agentId);
-      }
+    const createConversation = async () => {
+      const image = await createImage({ name: "Test Conversation" });
+      setImageId(image.imageId);
     };
-    createAgent();
-  }, [agentx]);
+    createConversation();
+  }, [agentx, createImage]);
 
   return (
     <div className="h-[500px] w-full max-w-2xl border border-border rounded-lg overflow-hidden">
       <Chat
         agentx={agentx}
-        agentId={agentId}
+        imageId={imageId}
         inputHeightRatio={0.35}
         placeholder="Type your message here..."
       />
@@ -161,31 +153,27 @@ export const CustomInputHeight: Story = {
 };
 
 /**
- * Without save button
+ * Without save button (not needed in Image-First model - auto-saved)
  */
 const NoSaveWrapper = () => {
   const agentx = useAgentX({ server: "ws://localhost:5200" });
-  const [agentId, setAgentId] = React.useState<string | null>(null);
+  const [imageId, setImageId] = React.useState<string | null>(null);
+  const { createImage } = useImages(agentx, { autoLoad: false });
 
   React.useEffect(() => {
     if (!agentx) return;
-    const createAgent = async () => {
-      const response = await agentx.request("agent_run_request", {
-        containerId: "default",
-        config: { name: "Test Agent" },
-      });
-      if (response.data.agentId) {
-        setAgentId(response.data.agentId);
-      }
+    const createConversation = async () => {
+      const image = await createImage({ name: "Test Conversation" });
+      setImageId(image.imageId);
     };
-    createAgent();
-  }, [agentx]);
+    createConversation();
+  }, [agentx, createImage]);
 
   return (
     <div className="h-[500px] w-full max-w-2xl border border-border rounded-lg overflow-hidden">
       <Chat
         agentx={agentx}
-        agentId={agentId}
+        imageId={imageId}
         showSaveButton={false}
       />
     </div>
@@ -197,7 +185,7 @@ export const WithoutSaveButton: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Chat without the save button in toolbar",
+        story: "Chat without the save button in toolbar (messages are auto-saved in Image-First model)",
       },
     },
   },

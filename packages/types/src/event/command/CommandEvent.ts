@@ -101,28 +101,6 @@ export interface ContainerListResponse extends BaseCommandResponse<"container_li
 // ============================================================================
 
 /**
- * Request to run an agent
- */
-export interface AgentRunRequest extends BaseCommandRequest<"agent_run_request", {
-  requestId: string;
-  containerId: string;
-  config: {
-    name: string;
-    systemPrompt?: string;
-  };
-}> {}
-
-/**
- * Response to agent run
- */
-export interface AgentRunResponse extends BaseCommandResponse<"agent_run_response", {
-  requestId: string;
-  containerId: string;
-  agentId?: string;
-  error?: string;
-}> {}
-
-/**
  * Request to get an agent
  */
 export interface AgentGetRequest extends BaseCommandRequest<"agent_get_request", {
@@ -154,7 +132,7 @@ export interface AgentListRequest extends BaseCommandRequest<"agent_list_request
  */
 export interface AgentListResponse extends BaseCommandResponse<"agent_list_response", {
   requestId: string;
-  agents: Array<{ agentId: string; containerId: string }>;
+  agents: Array<{ agentId: string; containerId: string; imageId: string }>;
   error?: string;
 }> {}
 
@@ -195,10 +173,15 @@ export interface AgentDestroyAllResponse extends BaseCommandResponse<"agent_dest
 
 /**
  * Request to send a message to an agent
+ * Can use either imageId (preferred) or agentId
+ * If using imageId and agent is not running, it will be auto-activated
  */
 export interface AgentReceiveRequest extends BaseCommandRequest<"agent_receive_request", {
   requestId: string;
-  agentId: string;
+  /** Image ID (preferred) - will auto-activate if offline */
+  imageId?: string;
+  /** Agent ID (legacy) - must be already running */
+  agentId?: string;
   content: string;
 }> {}
 
@@ -207,16 +190,21 @@ export interface AgentReceiveRequest extends BaseCommandRequest<"agent_receive_r
  */
 export interface AgentReceiveResponse extends BaseCommandResponse<"agent_receive_response", {
   requestId: string;
+  imageId?: string;
   agentId: string;
   error?: string;
 }> {}
 
 /**
  * Request to interrupt an agent
+ * Can use either imageId or agentId
  */
 export interface AgentInterruptRequest extends BaseCommandRequest<"agent_interrupt_request", {
   requestId: string;
-  agentId: string;
+  /** Image ID (preferred) */
+  imageId?: string;
+  /** Agent ID (legacy) */
+  agentId?: string;
 }> {}
 
 /**
@@ -224,7 +212,8 @@ export interface AgentInterruptRequest extends BaseCommandRequest<"agent_interru
  */
 export interface AgentInterruptResponse extends BaseCommandResponse<"agent_interrupt_response", {
   requestId: string;
-  agentId: string;
+  imageId?: string;
+  agentId?: string;
   error?: string;
 }> {}
 
@@ -233,19 +222,82 @@ export interface AgentInterruptResponse extends BaseCommandResponse<"agent_inter
 // ============================================================================
 
 /**
- * Request to snapshot an agent
+ * Request to create a new image (conversation)
  */
-export interface ImageSnapshotRequest extends BaseCommandRequest<"image_snapshot_request", {
+export interface ImageCreateRequest extends BaseCommandRequest<"image_create_request", {
   requestId: string;
-  agentId: string;
+  containerId: string;
+  config: {
+    name?: string;
+    description?: string;
+    systemPrompt?: string;
+  };
 }> {}
 
 /**
- * Response to image snapshot
+ * Response to image creation
  */
-export interface ImageSnapshotResponse extends BaseCommandResponse<"image_snapshot_response", {
+export interface ImageCreateResponse extends BaseCommandResponse<"image_create_response", {
   requestId: string;
-  record?: ImageRecord;
+  record: ImageRecord;
+  error?: string;
+}> {}
+
+/**
+ * Request to run an image (create or reuse agent)
+ */
+export interface ImageRunRequest extends BaseCommandRequest<"image_run_request", {
+  requestId: string;
+  imageId: string;
+}> {}
+
+/**
+ * Response to image run
+ */
+export interface ImageRunResponse extends BaseCommandResponse<"image_run_response", {
+  requestId: string;
+  imageId: string;
+  agentId: string;
+  /** true if reusing existing agent, false if newly created */
+  reused: boolean;
+  error?: string;
+}> {}
+
+/**
+ * Request to stop an image (destroy agent, keep image)
+ */
+export interface ImageStopRequest extends BaseCommandRequest<"image_stop_request", {
+  requestId: string;
+  imageId: string;
+}> {}
+
+/**
+ * Response to image stop
+ */
+export interface ImageStopResponse extends BaseCommandResponse<"image_stop_response", {
+  requestId: string;
+  imageId: string;
+  error?: string;
+}> {}
+
+/**
+ * Request to update an image (name, description, etc.)
+ */
+export interface ImageUpdateRequest extends BaseCommandRequest<"image_update_request", {
+  requestId: string;
+  imageId: string;
+  updates: {
+    name?: string;
+    description?: string;
+  };
+}> {}
+
+/**
+ * Response to image update
+ */
+export interface ImageUpdateResponse extends BaseCommandResponse<"image_update_response", {
+  requestId: string;
+  record: ImageRecord;
   error?: string;
 }> {}
 
@@ -254,14 +306,25 @@ export interface ImageSnapshotResponse extends BaseCommandResponse<"image_snapsh
  */
 export interface ImageListRequest extends BaseCommandRequest<"image_list_request", {
   requestId: string;
+  containerId?: string;
 }> {}
+
+/**
+ * Image list item with online status
+ */
+export interface ImageListItem extends ImageRecord {
+  /** Whether an agent is currently running for this image */
+  online: boolean;
+  /** Current agent ID if online */
+  agentId?: string;
+}
 
 /**
  * Response to image list
  */
 export interface ImageListResponse extends BaseCommandResponse<"image_list_response", {
   requestId: string;
-  records: ImageRecord[];
+  records: ImageListItem[];
   error?: string;
 }> {}
 
@@ -278,7 +341,7 @@ export interface ImageGetRequest extends BaseCommandRequest<"image_get_request",
  */
 export interface ImageGetResponse extends BaseCommandResponse<"image_get_response", {
   requestId: string;
-  record?: ImageRecord | null;
+  record?: ImageListItem | null;
   error?: string;
 }> {}
 
@@ -299,25 +362,6 @@ export interface ImageDeleteResponse extends BaseCommandResponse<"image_delete_r
   error?: string;
 }> {}
 
-/**
- * Request to resume an image
- */
-export interface ImageResumeRequest extends BaseCommandRequest<"image_resume_request", {
-  requestId: string;
-  imageId: string;
-}> {}
-
-/**
- * Response to image resume
- */
-export interface ImageResumeResponse extends BaseCommandResponse<"image_resume_response", {
-  requestId: string;
-  imageId: string;
-  containerId?: string;
-  agentId?: string;
-  error?: string;
-}> {}
-
 // ============================================================================
 // Union Types
 // ============================================================================
@@ -331,7 +375,6 @@ export type CommandRequest =
   | ContainerGetRequest
   | ContainerListRequest
   // Agent
-  | AgentRunRequest
   | AgentGetRequest
   | AgentListRequest
   | AgentDestroyRequest
@@ -339,11 +382,13 @@ export type CommandRequest =
   | AgentReceiveRequest
   | AgentInterruptRequest
   // Image
-  | ImageSnapshotRequest
+  | ImageCreateRequest
+  | ImageRunRequest
+  | ImageStopRequest
+  | ImageUpdateRequest
   | ImageListRequest
   | ImageGetRequest
-  | ImageDeleteRequest
-  | ImageResumeRequest;
+  | ImageDeleteRequest;
 
 /**
  * All Command response events
@@ -354,7 +399,6 @@ export type CommandResponse =
   | ContainerGetResponse
   | ContainerListResponse
   // Agent
-  | AgentRunResponse
   | AgentGetResponse
   | AgentListResponse
   | AgentDestroyResponse
@@ -362,11 +406,13 @@ export type CommandResponse =
   | AgentReceiveResponse
   | AgentInterruptResponse
   // Image
-  | ImageSnapshotResponse
+  | ImageCreateResponse
+  | ImageRunResponse
+  | ImageStopResponse
+  | ImageUpdateResponse
   | ImageListResponse
   | ImageGetResponse
-  | ImageDeleteResponse
-  | ImageResumeResponse;
+  | ImageDeleteResponse;
 
 /**
  * All Command events (requests + responses)
@@ -423,8 +469,6 @@ export interface CommandEventMap {
   "container_list_request": ContainerListRequest;
   "container_list_response": ContainerListResponse;
   // Agent
-  "agent_run_request": AgentRunRequest;
-  "agent_run_response": AgentRunResponse;
   "agent_get_request": AgentGetRequest;
   "agent_get_response": AgentGetResponse;
   "agent_list_request": AgentListRequest;
@@ -438,16 +482,20 @@ export interface CommandEventMap {
   "agent_interrupt_request": AgentInterruptRequest;
   "agent_interrupt_response": AgentInterruptResponse;
   // Image
-  "image_snapshot_request": ImageSnapshotRequest;
-  "image_snapshot_response": ImageSnapshotResponse;
+  "image_create_request": ImageCreateRequest;
+  "image_create_response": ImageCreateResponse;
+  "image_run_request": ImageRunRequest;
+  "image_run_response": ImageRunResponse;
+  "image_stop_request": ImageStopRequest;
+  "image_stop_response": ImageStopResponse;
+  "image_update_request": ImageUpdateRequest;
+  "image_update_response": ImageUpdateResponse;
   "image_list_request": ImageListRequest;
   "image_list_response": ImageListResponse;
   "image_get_request": ImageGetRequest;
   "image_get_response": ImageGetResponse;
   "image_delete_request": ImageDeleteRequest;
   "image_delete_response": ImageDeleteResponse;
-  "image_resume_request": ImageResumeRequest;
-  "image_resume_response": ImageResumeResponse;
 }
 
 /**
@@ -457,18 +505,19 @@ export interface CommandRequestResponseMap {
   "container_create_request": "container_create_response";
   "container_get_request": "container_get_response";
   "container_list_request": "container_list_response";
-  "agent_run_request": "agent_run_response";
   "agent_get_request": "agent_get_response";
   "agent_list_request": "agent_list_response";
   "agent_destroy_request": "agent_destroy_response";
   "agent_destroy_all_request": "agent_destroy_all_response";
   "agent_receive_request": "agent_receive_response";
   "agent_interrupt_request": "agent_interrupt_response";
-  "image_snapshot_request": "image_snapshot_response";
+  "image_create_request": "image_create_response";
+  "image_run_request": "image_run_response";
+  "image_stop_request": "image_stop_response";
+  "image_update_request": "image_update_response";
   "image_list_request": "image_list_response";
   "image_get_request": "image_get_response";
   "image_delete_request": "image_delete_response";
-  "image_resume_request": "image_resume_response";
 }
 
 /**

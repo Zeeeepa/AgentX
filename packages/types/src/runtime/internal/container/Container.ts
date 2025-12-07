@@ -4,16 +4,21 @@
  * Container is a runtime isolation boundary where Agents live and work.
  * Each Container manages multiple Agents, each with its own Sandbox.
  *
+ * In the Image-First model:
+ * - Image is the persistent entity (conversation)
+ * - Agent is a transient runtime instance of an Image
+ * - Container tracks imageId → agentId mapping
+ *
  * Architecture:
  * ```
  * Container
- *   └── Agent 1 ─── Sandbox 1
- *   └── Agent 2 ─── Sandbox 2
- *   └── Agent 3 ─── Sandbox 3
+ *   └── Image 1 ──→ Agent 1 ─── Sandbox 1
+ *   └── Image 2 ──→ (offline)
+ *   └── Image 3 ──→ Agent 3 ─── Sandbox 3
  * ```
  *
  * Container provides:
- * - Agent lifecycle management (run, destroy)
+ * - Image → Agent lifecycle management (runImage, stopImage)
  * - Sandbox creation per Agent (encapsulated)
  * - Runtime isolation between Containers
  * - Foundation for multi-agent collaboration
@@ -23,14 +28,14 @@
  * // Create container via Runtime
  * const container = await runtime.containers.create("container-1");
  *
- * // Run an agent from config
- * const agent = await container.runAgent(config);
+ * // Run an agent from an image
+ * const { agent, reused } = await container.runImage(imageRecord);
  *
  * // Use the agent
  * await agent.receive("Hello!");
  *
- * // Destroy agent when done
- * await container.destroyAgent(agent.agentId);
+ * // Stop the image (destroys agent, keeps image)
+ * await container.stopImage(imageId);
  *
  * // Dispose container
  * await container.dispose();
@@ -38,7 +43,7 @@
  */
 
 import type { Agent } from "../../Agent";
-import type { AgentConfig } from "../../AgentConfig";
+import type { ImageRecord } from "../persistence/record/ImageRecord";
 
 /**
  * Container interface for managing Agent instances at runtime
@@ -54,20 +59,35 @@ export interface Container {
    */
   readonly createdAt: number;
 
-  // ==================== Agent Lifecycle ====================
+  // ==================== Image → Agent Lifecycle ====================
 
   /**
-   * Run an Agent from a config.
+   * Run an Image - create or reuse an Agent for the given Image
    *
-   * Internally creates:
-   * - Sandbox (isolated per Agent)
-   * - Session (message persistence)
-   * - AgentInstance
-   *
-   * @param config - Agent config (name, systemPrompt, etc.)
-   * @returns Running Agent instance
+   * @param image - ImageRecord to run
+   * @returns { agent, reused } - the agent and whether it was reused
    */
-  runAgent(config: AgentConfig): Promise<Agent>;
+  runImage(image: ImageRecord): Promise<{ agent: Agent; reused: boolean }>;
+
+  /**
+   * Stop an Image - destroy the Agent but keep the Image
+   *
+   * @param imageId - Image to stop
+   * @returns true if agent was found and destroyed
+   */
+  stopImage(imageId: string): Promise<boolean>;
+
+  /**
+   * Get agent ID for an image (if running)
+   */
+  getAgentIdForImage(imageId: string): string | undefined;
+
+  /**
+   * Check if an image has a running agent
+   */
+  isImageOnline(imageId: string): boolean;
+
+  // ==================== Agent Operations ====================
 
   /**
    * Get an Agent by ID

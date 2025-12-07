@@ -12,7 +12,7 @@ import type { Message } from "@agentxjs/types/agent";
  */
 export interface RuntimeSessionConfig {
   sessionId: string;
-  agentId: string;
+  imageId: string;
   containerId: string;
   repository: SessionRepository;
   /** Producer for emitting session lifecycle events */
@@ -24,7 +24,7 @@ export interface RuntimeSessionConfig {
  */
 export class RuntimeSession implements Session {
   readonly sessionId: string;
-  readonly agentId: string;
+  readonly imageId: string;
   readonly containerId: string;
   readonly createdAt: number;
 
@@ -33,7 +33,7 @@ export class RuntimeSession implements Session {
 
   constructor(config: RuntimeSessionConfig) {
     this.sessionId = config.sessionId;
-    this.agentId = config.agentId;
+    this.imageId = config.imageId;
     this.containerId = config.containerId;
     this.createdAt = Date.now();
     this.repository = config.repository;
@@ -46,7 +46,7 @@ export class RuntimeSession implements Session {
   async initialize(): Promise<void> {
     const record: SessionRecord = {
       sessionId: this.sessionId,
-      agentId: this.agentId,
+      imageId: this.imageId,
       containerId: this.containerId,
       createdAt: this.createdAt,
       updatedAt: this.createdAt,
@@ -62,13 +62,12 @@ export class RuntimeSession implements Session {
       intent: "notification",
       data: {
         sessionId: this.sessionId,
-        imageId: "", // Not applicable for runtime-created sessions
+        imageId: this.imageId,
         containerId: this.containerId,
         createdAt: this.createdAt,
       },
       context: {
         containerId: this.containerId,
-        agentId: this.agentId,
         sessionId: this.sessionId,
       },
     });
@@ -91,7 +90,6 @@ export class RuntimeSession implements Session {
       },
       context: {
         containerId: this.containerId,
-        agentId: this.agentId,
         sessionId: this.sessionId,
       },
     });

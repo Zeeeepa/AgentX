@@ -20,9 +20,9 @@ export interface SessionRepository {
   findSessionById(sessionId: string): Promise<SessionRecord | null>;
 
   /**
-   * Find session by agent ID
+   * Find session by image ID
    */
-  findSessionByAgentId(agentId: string): Promise<SessionRecord | null>;
+  findSessionByImageId(imageId: string): Promise<SessionRecord | null>;
 
   /**
    * Find all sessions for a container

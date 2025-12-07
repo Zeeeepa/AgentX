@@ -4,12 +4,16 @@
  * Business component that combines MessagePane + InputPane with useAgent hook.
  * Displays messages and handles sending/receiving.
  *
+ * In the Image-First model:
+ * - Use imageId for conversation identity (preferred)
+ * - Agent is auto-activated on first message
+ * - Messages are auto-saved
+ *
  * @example
  * ```tsx
  * <Chat
  *   agentx={agentx}
- *   agentId={currentAgentId}
- *   onSave={() => snapshotAgent(currentAgentId)}
+ *   imageId={currentImageId}
  * />
  * ```
  */
@@ -28,15 +32,21 @@ export interface ChatProps {
    */
   agentx: AgentX | null;
   /**
-   * Current agent ID to chat with
+   * Image ID for the conversation (preferred in Image-First model)
    */
-  agentId: string | null;
+  imageId?: string | null;
+  /**
+   * Agent ID to chat with (legacy, use imageId instead)
+   * @deprecated Use imageId instead
+   */
+  agentId?: string | null;
   /**
    * Agent name to display in header
    */
   agentName?: string;
   /**
    * Callback when save button is clicked
+   * Note: In Image-First model, messages are auto-saved
    */
   onSave?: () => void;
   /**
@@ -79,7 +89,8 @@ function toMessagePaneItem(msg: UIMessage): MessagePaneItem {
  */
 export function Chat({
   agentx,
-  agentId,
+  imageId,
+  agentId: legacyAgentId,
   agentName,
   onSave,
   showSaveButton = true,
@@ -87,13 +98,20 @@ export function Chat({
   inputHeightRatio = 0.25,
   className,
 }: ChatProps) {
+  // Use imageId if provided, otherwise fall back to agentId
+  const identifier = imageId
+    ? { imageId }
+    : legacyAgentId
+    ? legacyAgentId
+    : null;
+
   const {
     messages,
     streaming,
     status,
     send,
     interrupt,
-  } = useAgent(agentx, agentId);
+  } = useAgent(agentx, identifier);
 
   // Map UIMessage[] to MessagePaneItem[]
   const items: MessagePaneItem[] = React.useMemo(() => {
@@ -134,8 +152,8 @@ export function Chat({
   const inputHeight = `${Math.round(inputHeightRatio * 100)}%`;
   const messageHeight = `${Math.round((1 - inputHeightRatio) * 100)}%`;
 
-  // Show empty state if no agent selected
-  if (!agentId) {
+  // Show empty state if no conversation selected
+  if (!imageId && !legacyAgentId) {
     return (
       <div className={cn("flex flex-col h-full bg-background", className)}>
         <div className="flex-1 flex items-center justify-center">

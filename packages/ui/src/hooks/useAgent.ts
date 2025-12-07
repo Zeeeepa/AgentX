@@ -1,14 +1,16 @@
 /**
  * useAgent - React hook for Agent event binding
  *
- * Binds to AgentX events for a specific agent and provides reactive state
- * for messages, streaming text, errors, and agent status.
+ * In the Image-First model:
+ * - Use imageId to interact with conversations (preferred)
+ * - Agent is auto-activated when sending messages
+ * - agentId is used for event filtering (obtained after runImage or receiveMessage)
  *
  * @example
  * ```tsx
  * import { useAgent } from "@agentxjs/ui";
  *
- * function ChatPage({ agentx, agentId }) {
+ * function ChatPage({ agentx, imageId }) {
  *   const {
  *     messages,
  *     streaming,
@@ -16,7 +18,8 @@
  *     errors,
  *     send,
  *     isLoading,
- *   } = useAgent(agentx, agentId);
+ *     agentId, // Current agent ID (if running)
+ *   } = useAgent(agentx, { imageId });
  *
  *   return (
  *     <div>
@@ -113,6 +116,27 @@ export interface UseAgentResult {
    * Clear all errors
    */
   clearErrors: () => void;
+
+  /**
+   * Current agent ID (if running)
+   */
+  agentId: string | null;
+}
+
+/**
+ * Agent identifier - either by imageId (preferred) or agentId (legacy)
+ */
+export interface AgentIdentifier {
+  /**
+   * Image ID - preferred for Image-First model
+   * Agent will be auto-activated on first message
+   */
+  imageId?: string;
+
+  /**
+   * Agent ID - for direct agent binding (legacy)
+   */
+  agentId?: string;
 }
 
 /**
@@ -144,22 +168,27 @@ export interface UseAgentOptions {
  * React hook for binding to Agent events via AgentX
  *
  * @param agentx - The AgentX instance
- * @param agentId - The agent ID to bind to
+ * @param identifier - Agent identifier (imageId or agentId)
  * @param options - Optional configuration
  * @returns Reactive state and control functions
  */
 export function useAgent(
   agentx: AgentX | null,
-  agentId: string | null,
+  identifier: AgentIdentifier | string | null,
   options: UseAgentOptions = {}
 ): UseAgentResult {
   const { initialMessages = [], onSend, onError, onStatusChange } = options;
+
+  // Normalize identifier
+  const imageId = typeof identifier === "string" ? undefined : identifier?.imageId;
+  const initialAgentId = typeof identifier === "string" ? identifier : identifier?.agentId;
 
   // State
   const [messages, setMessages] = useState<UIMessage[]>(initialMessages);
   const [streaming, setStreaming] = useState("");
   const [status, setStatus] = useState<AgentStatus>("idle");
   const [errors, setErrors] = useState<UIError[]>([]);
+  const [currentAgentId, setCurrentAgentId] = useState<string | null>(initialAgentId ?? null);
 
   // Track if component is mounted
   const mountedRef = useRef(true);
@@ -171,25 +200,33 @@ export function useAgent(
     status === "responding" ||
     status === "tool_executing";
 
-  // Reset state when agentId changes
+  // Reset state when identifier changes
   useEffect(() => {
     setMessages(initialMessages);
     setStreaming("");
     setErrors([]);
     setStatus("idle");
+    setCurrentAgentId(initialAgentId ?? null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [agentId]);
+  }, [imageId, initialAgentId]);
 
   // Subscribe to agent events
   useEffect(() => {
-    if (!agentx || !agentId) return;
+    // Need either currentAgentId or imageId to subscribe
+    if (!agentx || (!currentAgentId && !imageId)) return;
 
     mountedRef.current = true;
     const unsubscribes: Array<() => void> = [];
 
-    // Helper to check if event is for this agent
+    // Helper to check if event is for this agent/image
     const isForThisAgent = (event: SystemEvent): boolean => {
-      return event.context?.agentId === agentId;
+      // Match by agentId if we have one
+      if (currentAgentId && event.context?.agentId === currentAgentId) {
+        return true;
+      }
+      // For imageId mode before agent is activated, we can't filter yet
+      // Events will be filtered once we get agentId from receive response
+      return false;
     };
 
     // Stream events - text_delta
@@ -326,19 +363,19 @@ export function useAgent(
       })
     );
 
-    logger.debug("Subscribed to agent events", { agentId });
+    logger.debug("Subscribed to agent events", { agentId: currentAgentId, imageId });
 
     return () => {
       mountedRef.current = false;
       unsubscribes.forEach((unsub) => unsub());
-      logger.debug("Unsubscribed from agent events", { agentId });
+      logger.debug("Unsubscribed from agent events", { agentId: currentAgentId, imageId });
     };
-  }, [agentx, agentId, onError, onStatusChange]);
+  }, [agentx, currentAgentId, imageId, onError, onStatusChange]);
 
   // Send message
   const send = useCallback(
     (text: string) => {
-      if (!agentx || !agentId) return;
+      if (!agentx || (!currentAgentId && !imageId)) return;
 
       // Clear errors on new message
       setErrors([]);
@@ -355,28 +392,42 @@ export function useAgent(
       setStatus("queued");
       onStatusChange?.("queued");
 
-      // Send to agent via request
+      // Send to agent via request - prefer imageId (auto-activates agent)
       agentx
-        .request("agent_receive_request", { agentId, content: text })
+        .request("agent_receive_request", {
+          imageId,
+          agentId: currentAgentId ?? undefined,
+          content: text,
+        })
+        .then((response) => {
+          // Update agentId from response (for event filtering)
+          if (response.data.agentId && !currentAgentId) {
+            setCurrentAgentId(response.data.agentId);
+            logger.debug("Agent activated", { imageId, agentId: response.data.agentId });
+          }
+        })
         .catch((error) => {
-          logger.error("Failed to send message", { agentId, error });
+          logger.error("Failed to send message", { imageId, agentId: currentAgentId, error });
           setStatus("error");
           onStatusChange?.("error");
         });
     },
-    [agentx, agentId, onSend, onStatusChange]
+    [agentx, currentAgentId, imageId, onSend, onStatusChange]
   );
 
   // Interrupt
   const interrupt = useCallback(() => {
-    if (!agentx || !agentId) return;
+    if (!agentx || (!currentAgentId && !imageId)) return;
 
     agentx
-      .request("agent_interrupt_request", { agentId })
+      .request("agent_interrupt_request", {
+        imageId,
+        agentId: currentAgentId ?? undefined,
+      })
       .catch((error) => {
-        logger.error("Failed to interrupt agent", { agentId, error });
+        logger.error("Failed to interrupt agent", { imageId, agentId: currentAgentId, error });
       });
-  }, [agentx, agentId]);
+  }, [agentx, currentAgentId, imageId]);
 
   // Clear messages
   const clearMessages = useCallback(() => {
@@ -399,5 +450,6 @@ export function useAgent(
     isLoading,
     clearMessages,
     clearErrors,
+    agentId: currentAgentId,
   };
 }

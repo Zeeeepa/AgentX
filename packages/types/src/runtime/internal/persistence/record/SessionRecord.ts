@@ -1,7 +1,8 @@
 /**
  * SessionRecord - Storage schema for Session persistence
  *
- * Session stores conversation history for an Agent.
+ * Session stores conversation messages for an Image.
+ * Each Image has exactly one Session.
  */
 
 /**
@@ -14,9 +15,9 @@ export interface SessionRecord {
   sessionId: string;
 
   /**
-   * Associated agent ID
+   * Associated image ID (owner of this session)
    */
-  agentId: string;
+  imageId: string;
 
   /**
    * Container this session belongs to

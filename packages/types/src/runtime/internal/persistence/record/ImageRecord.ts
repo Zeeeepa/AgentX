@@ -1,20 +1,21 @@
 /**
- * ImageRecord - Storage schema for AgentImage persistence
+ * ImageRecord - Persistent representation of a conversation
  *
- * Pure data type representing an Agent snapshot in storage.
- * Contains all information needed to fully restore an Agent:
- * - Runtime context (containerId, agentId)
- * - Configuration (name, systemPrompt)
- * - Conversation history (messages)
+ * Image is the primary entity users interact with (displayed as "conversation").
+ * Agent is a transient runtime instance created from Image.
  *
- * Workflow:
- * Agent.commit() → ImageRecord (storage) → runtime.images.resume() → Agent
+ * Lifecycle:
+ * - image_create → ImageRecord (persistent)
+ * - image_run → Agent (runtime, in-memory)
+ * - image_stop / server restart → Agent destroyed, Image remains
+ *
+ * Messages are stored separately in Session (via sessionId).
  */
 
 /**
  * Image storage record
  *
- * Stores the complete frozen snapshot of an Agent's state.
+ * Represents a conversation that persists across server restarts.
  */
 export interface ImageRecord {
   /**
@@ -24,22 +25,23 @@ export interface ImageRecord {
   imageId: string;
 
   /**
-   * Container ID where this agent was running
+   * Container ID (user isolation boundary)
    */
   containerId: string;
 
   /**
-   * Original agent ID (for traceability)
+   * Session ID for message storage
+   * Messages are stored in Session, not duplicated here
    */
-  agentId: string;
+  sessionId: string;
 
   /**
-   * Agent name
+   * Conversation name (displayed to user)
    */
   name: string;
 
   /**
-   * Agent description (optional)
+   * Conversation description (optional)
    */
   description?: string;
 
@@ -49,13 +51,7 @@ export interface ImageRecord {
   systemPrompt?: string;
 
   /**
-   * Serialized messages (JSON array)
-   * Frozen conversation history
-   */
-  messages: Record<string, unknown>[];
-
-  /**
-   * Parent image ID (if derived from another image)
+   * Parent image ID (for fork/branch feature)
    */
   parentImageId?: string;
 
@@ -63,4 +59,9 @@ export interface ImageRecord {
    * Creation timestamp (Unix milliseconds)
    */
   createdAt: number;
+
+  /**
+   * Last update timestamp (Unix milliseconds)
+   */
+  updatedAt: number;
 }

@@ -1,8 +1,10 @@
 /**
- * useImages - React hook for Image (conversation snapshot) management
+ * useImages - React hook for Image (conversation) management
  *
- * Images are saved conversation states that can be resumed.
- * Each Image can be resumed to create a new Agent instance.
+ * In the Image-First model:
+ * - Image is the persistent entity (conversation)
+ * - Agent is a transient runtime instance
+ * - Images can be online (🟢 has running Agent) or offline (⚫)
  *
  * @example
  * ```tsx
@@ -13,7 +15,9 @@
  *     images,
  *     isLoading,
  *     refresh,
- *     resumeImage,
+ *     createImage,
+ *     runImage,
+ *     stopImage,
  *     deleteImage,
  *   } = useImages(agentx);
  *
@@ -23,7 +27,9 @@
  *         <ConversationItem
  *           key={img.imageId}
  *           image={img}
- *           onResume={() => resumeImage(img.imageId)}
+ *           online={img.online}
+ *           onRun={() => runImage(img.imageId)}
+ *           onStop={() => stopImage(img.imageId)}
  *           onDelete={() => deleteImage(img.imageId)}
  *         />
  *       ))}
@@ -34,7 +40,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import type { AgentX, ImageRecord } from "agentxjs";
+import type { AgentX, ImageListItem } from "agentxjs";
 import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("ui/useImages");
@@ -44,9 +50,9 @@ const logger = createLogger("ui/useImages");
  */
 export interface UseImagesResult {
   /**
-   * All saved images (conversation snapshots)
+   * All images (conversations) with online status
    */
-  images: ImageRecord[];
+  images: ImageListItem[];
 
   /**
    * Loading state
@@ -64,20 +70,31 @@ export interface UseImagesResult {
   refresh: () => Promise<void>;
 
   /**
-   * Resume an image (creates a new Agent instance)
-   * @returns The new agent ID and container ID
+   * Create a new image (conversation)
+   * @returns The new image record
    */
-  resumeImage: (imageId: string) => Promise<{ agentId: string; containerId: string }>;
+  createImage: (config?: { name?: string; description?: string; systemPrompt?: string }) => Promise<ImageListItem>;
+
+  /**
+   * Run an image - create or reuse an Agent
+   * @returns The agent ID and whether it was reused
+   */
+  runImage: (imageId: string) => Promise<{ agentId: string; reused: boolean }>;
+
+  /**
+   * Stop an image - destroy the Agent but keep the Image
+   */
+  stopImage: (imageId: string) => Promise<void>;
+
+  /**
+   * Update image metadata
+   */
+  updateImage: (imageId: string, updates: { name?: string; description?: string }) => Promise<ImageListItem>;
 
   /**
    * Delete an image
    */
   deleteImage: (imageId: string) => Promise<void>;
-
-  /**
-   * Save current agent as a new image
-   */
-  snapshotAgent: (agentId: string) => Promise<ImageRecord>;
 }
 
 /**
@@ -85,20 +102,25 @@ export interface UseImagesResult {
  */
 export interface UseImagesOptions {
   /**
+   * Container ID to filter images (optional)
+   */
+  containerId?: string;
+
+  /**
    * Auto-load images on mount
    * @default true
    */
   autoLoad?: boolean;
 
   /**
-   * Callback when an image is resumed
+   * Callback when an image is run
    */
-  onResume?: (agentId: string, containerId: string) => void;
+  onRun?: (imageId: string, agentId: string, reused: boolean) => void;
 
   /**
    * Callback when images list changes
    */
-  onImagesChange?: (images: ImageRecord[]) => void;
+  onImagesChange?: (images: ImageListItem[]) => void;
 }
 
 /**
@@ -112,10 +134,10 @@ export function useImages(
   agentx: AgentX | null,
   options: UseImagesOptions = {}
 ): UseImagesResult {
-  const { autoLoad = true, onResume, onImagesChange } = options;
+  const { containerId, autoLoad = true, onRun, onImagesChange } = options;
 
   // State
-  const [images, setImages] = useState<ImageRecord[]>([]);
+  const [images, setImages] = useState<ImageListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -127,14 +149,14 @@ export function useImages(
     setError(null);
 
     try {
-      const response = await agentx.request("image_list_request", {});
+      const response = await agentx.request("image_list_request", { containerId });
       if (response.data.error) {
         throw new Error(response.data.error);
       }
       const records = response.data.records ?? [];
       setImages(records);
       onImagesChange?.(records);
-      logger.debug("Loaded images", { count: records.length });
+      logger.debug("Loaded images", { count: records.length, containerId });
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error);
@@ -142,7 +164,7 @@ export function useImages(
     } finally {
       setIsLoading(false);
     }
-  }, [agentx, onImagesChange]);
+  }, [agentx, containerId, onImagesChange]);
 
   // Auto-load on mount
   useEffect(() => {
@@ -151,9 +173,9 @@ export function useImages(
     }
   }, [autoLoad, agentx, loadImages]);
 
-  // Resume an image
-  const resumeImage = useCallback(
-    async (imageId: string): Promise<{ agentId: string; containerId: string }> => {
+  // Create a new image
+  const createImage = useCallback(
+    async (config: { name?: string; description?: string; systemPrompt?: string } = {}): Promise<ImageListItem> => {
       if (!agentx) {
         throw new Error("AgentX not available");
       }
@@ -162,30 +184,157 @@ export function useImages(
       setError(null);
 
       try {
-        const response = await agentx.request("image_resume_request", { imageId });
+        // Use default container if not specified
+        const targetContainerId = containerId ?? "default";
+        const response = await agentx.request("image_create_request", {
+          containerId: targetContainerId,
+          config,
+        });
         if (response.data.error) {
           throw new Error(response.data.error);
         }
 
-        const { agentId, containerId } = response.data;
-        if (!agentId || !containerId) {
-          throw new Error("Invalid resume response");
+        const record = response.data.record as ImageListItem;
+        if (!record) {
+          throw new Error("No image record returned");
         }
 
-        logger.info("Resumed image", { imageId, agentId, containerId });
-        onResume?.(agentId, containerId);
+        // Add to list (record already has online: false from server)
+        setImages((prev) => [record, ...prev]);
+        onImagesChange?.([record, ...images]);
+        logger.info("Created image", { imageId: record.imageId, name: record.name });
 
-        return { agentId, containerId };
+        return record;
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
         setError(error);
-        logger.error("Failed to resume image", { imageId, error });
+        logger.error("Failed to create image", { error });
         throw error;
       } finally {
         setIsLoading(false);
       }
     },
-    [agentx, onResume]
+    [agentx, containerId, images, onImagesChange]
+  );
+
+  // Run an image
+  const runImage = useCallback(
+    async (imageId: string): Promise<{ agentId: string; reused: boolean }> => {
+      if (!agentx) {
+        throw new Error("AgentX not available");
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await agentx.request("image_run_request", { imageId });
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+
+        const { agentId, reused } = response.data;
+        if (!agentId) {
+          throw new Error("Invalid run response");
+        }
+
+        // Update image in list to show online
+        setImages((prev) =>
+          prev.map((img) =>
+            img.imageId === imageId ? { ...img, online: true, agentId } : img
+          )
+        );
+
+        logger.info("Image running", { imageId, agentId, reused });
+        onRun?.(imageId, agentId, reused);
+
+        return { agentId, reused };
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        setError(error);
+        logger.error("Failed to run image", { imageId, error });
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [agentx, onRun]
+  );
+
+  // Stop an image
+  const stopImage = useCallback(
+    async (imageId: string): Promise<void> => {
+      if (!agentx) {
+        throw new Error("AgentX not available");
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await agentx.request("image_stop_request", { imageId });
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+
+        // Update image in list to show offline
+        setImages((prev) =>
+          prev.map((img) =>
+            img.imageId === imageId ? { ...img, online: false, agentId: undefined } : img
+          )
+        );
+
+        logger.info("Image stopped", { imageId });
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        setError(error);
+        logger.error("Failed to stop image", { imageId, error });
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [agentx]
+  );
+
+  // Update image metadata
+  const updateImage = useCallback(
+    async (imageId: string, updates: { name?: string; description?: string }): Promise<ImageListItem> => {
+      if (!agentx) {
+        throw new Error("AgentX not available");
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await agentx.request("image_update_request", { imageId, updates });
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+
+        const record = response.data.record as ImageListItem;
+        if (!record) {
+          throw new Error("No image record returned");
+        }
+
+        // Update in list
+        setImages((prev) =>
+          prev.map((img) => (img.imageId === imageId ? record : img))
+        );
+
+        logger.info("Image updated", { imageId, updates });
+        return record;
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        setError(error);
+        logger.error("Failed to update image", { imageId, error });
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [agentx]
   );
 
   // Delete an image
@@ -220,52 +369,15 @@ export function useImages(
     [agentx, images, onImagesChange]
   );
 
-  // Snapshot current agent
-  const snapshotAgent = useCallback(
-    async (agentId: string): Promise<ImageRecord> => {
-      if (!agentx) {
-        throw new Error("AgentX not available");
-      }
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const response = await agentx.request("image_snapshot_request", { agentId });
-        if (response.data.error) {
-          throw new Error(response.data.error);
-        }
-
-        const record = response.data.record;
-        if (!record) {
-          throw new Error("No image record returned");
-        }
-
-        // Add to list
-        setImages((prev) => [record, ...prev]);
-        onImagesChange?.([record, ...images]);
-        logger.info("Created snapshot", { agentId, imageId: record.imageId });
-
-        return record;
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error(String(err));
-        setError(error);
-        logger.error("Failed to snapshot agent", { agentId, error });
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [agentx, images, onImagesChange]
-  );
-
   return {
     images,
     isLoading,
     error,
     refresh: loadImages,
-    resumeImage,
+    createImage,
+    runImage,
+    stopImage,
+    updateImage,
     deleteImage,
-    snapshotAgent,
   };
 }
