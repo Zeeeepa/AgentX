@@ -2,19 +2,10 @@
   "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [
-    [
-      "agentxjs",
-      "@agentxjs/common",
-      "@agentxjs/types",
-      "@agentxjs/node-runtime",
-      "@agentxjs/ui",
-      "@agentxjs/portagent"
-    ]
-  ],
+  "fixed": [["agentxjs", "@agentxjs/runtime", "@agentxjs/ui", "@agentxjs/portagent"]],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": []
+  "ignore": ["@agentxjs/types", "@agentxjs/common", "@agentxjs/agent"]
 }
