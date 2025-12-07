@@ -9,10 +9,18 @@ WORKDIR /app
 # Install portagent from npm
 RUN npm install -g @agentxjs/portagent
 
+# Create non-root user for security
+# Claude Agent SDK requires non-root user for bypassPermissions mode
+RUN addgroup -g 1001 -S agentx && \
+    adduser -u 1001 -S agentx -G agentx && \
+    mkdir -p /home/agentx/.agentx && \
+    chown -R agentx:agentx /home/agentx /app
+
 # Environment - Defaults
 ENV NODE_ENV=production
 ENV PORT=5200
 ENV LOG_LEVEL=info
+ENV AGENTX_DATA_DIR=/home/agentx/.agentx
 
 # Environment - Required (must be provided at runtime)
 # LLM_PROVIDER_KEY=sk-ant-xxxxx    # Anthropic API key
@@ -21,6 +29,9 @@ ENV LOG_LEVEL=info
 # LLM_PROVIDER_URL=https://api.anthropic.com
 # JWT_SECRET=your-jwt-secret       # Auto-generated if not set
 # INVITE_CODE_REQUIRED=true        # Set to "false" to disable
+
+# Switch to non-root user
+USER agentx
 
 # Expose port
 EXPOSE 5200
