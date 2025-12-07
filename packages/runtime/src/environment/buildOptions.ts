@@ -50,8 +50,8 @@ export function buildOptions(
   }
   options.env = env;
 
-  // Executable
-  options.executable = process.execPath as any;
+  // Note: We don't set options.executable - SDK defaults to 'node' or 'bun'
+  // The SDK will automatically find the claude-code CLI
 
   // Model configuration
   if (context.model) options.model = context.model;
@@ -65,9 +65,14 @@ export function buildOptions(
   // Permission system
   if (context.permissionMode) {
     options.permissionMode = context.permissionMode;
+    // Required when using bypassPermissions mode
+    if (context.permissionMode === "bypassPermissions") {
+      options.allowDangerouslySkipPermissions = true;
+    }
   } else {
     // Default to bypass permissions (agent runs autonomously)
     options.permissionMode = "bypassPermissions";
+    options.allowDangerouslySkipPermissions = true;
   }
 
   return options;
