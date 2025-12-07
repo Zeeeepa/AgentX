@@ -1,4 +1,4 @@
-import type { ToolResultMessage as ToolResultMessageType } from "@agentxjs/types/agent";
+import type { ToolResultMessage as ToolResultMessageType } from "agentxjs";
 import { MessageAvatar } from "~/components/element/MessageAvatar";
 import { CheckCircle } from "lucide-react";
 import { ToolResultContent } from "../parts/ToolResultContent";

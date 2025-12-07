@@ -2,7 +2,7 @@ import { useState } from "react";
 import { MarkdownText } from "~/components/typography/MarkdownText";
 import { ImageContent } from "./ImageContent";
 import { FileContent } from "./FileContent";
-import type { ToolResultOutput } from "@agentxjs/types/agent";
+import type { ToolResultOutput } from "agentxjs";
 
 export interface ToolResultContentProps {
   /**

@@ -106,7 +106,7 @@ export class CommandHandler extends BaseEventHandler {
     this.subscribe(this.bus.onCommand("agent_list_request", (event) => this.handleAgentList(event)));
     this.subscribe(this.bus.onCommand("agent_destroy_request", (event) => this.handleAgentDestroy(event)));
     this.subscribe(this.bus.onCommand("agent_destroy_all_request", (event) => this.handleAgentDestroyAll(event)));
-    this.subscribe(this.bus.onCommand("agent_receive_request", (event) => this.handleAgentReceive(event)));
+    this.subscribe(this.bus.onCommand("message_send_request", (event) => this.handleMessageSend(event)));
     this.subscribe(this.bus.onCommand("agent_interrupt_request", (event) => this.handleAgentInterrupt(event)));
 
     // Image commands
@@ -232,19 +232,19 @@ export class CommandHandler extends BaseEventHandler {
     }
   }
 
-  private async handleAgentReceive(event: { data: { requestId: string; imageId?: string; agentId?: string; content: string } }): Promise<void> {
+  private async handleMessageSend(event: { data: { requestId: string; imageId?: string; agentId?: string; content: string } }): Promise<void> {
     const { requestId, imageId, agentId, content } = event.data;
-    logger.debug("Handling agent_receive_request", { requestId, imageId, agentId });
+    logger.debug("Handling message_send_request", { requestId, imageId, agentId });
 
     try {
       const result = await this.ops.receiveMessage(imageId, agentId, content);
-      this.bus.emit(createResponse("agent_receive_response", {
+      this.bus.emit(createResponse("message_send_response", {
         requestId,
         imageId: result.imageId,
         agentId: result.agentId,
       }));
     } catch (err) {
-      this.bus.emit(createResponse("agent_receive_response", {
+      this.bus.emit(createResponse("message_send_response", {
         requestId,
         imageId,
         agentId: agentId ?? "",

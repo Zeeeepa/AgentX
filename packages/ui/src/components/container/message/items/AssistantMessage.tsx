@@ -1,4 +1,4 @@
-import type { AssistantMessage as AssistantMessageType } from "@agentxjs/types/agent";
+import type { AssistantMessage as AssistantMessageType } from "agentxjs";
 import { MessageAvatar } from "~/components/element/MessageAvatar";
 import { Bot } from "lucide-react";
 import { TextContent } from "../parts/TextContent";

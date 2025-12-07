@@ -26,11 +26,10 @@
  *
  * @example
  * ```tsx
- * import { Studio } from "@agentxjs/ui";
- * import { useAgentX } from "@agentxjs/ui";
+ * import { Studio, useAgentX } from "@agentxjs/ui";
  *
  * function App() {
- *   const agentx = useAgentX({ server: "ws://localhost:5200" });
+ *   const agentx = useAgentX("ws://localhost:5200");
  *   return <Studio agentx={agentx} />;
  * }
  * ```

@@ -24,7 +24,7 @@ type Story = StoryObj<typeof Studio>;
  * Full workspace - requires dev-server running
  */
 const ConnectedWrapper = () => {
-  const agentx = useAgentX({ server: "ws://localhost:5200" });
+  const agentx = useAgentX("ws://localhost:5200");
 
   if (!agentx) {
     return (
@@ -63,7 +63,7 @@ export const FullWorkspace: Story = {
  * Custom sidebar width
  */
 const CustomSidebarWrapper = () => {
-  const agentx = useAgentX({ server: "ws://localhost:5200" });
+  const agentx = useAgentX("ws://localhost:5200");
 
   if (!agentx) {
     return (
@@ -97,7 +97,7 @@ export const WideSidebar: Story = {
  * Narrow sidebar
  */
 const NarrowSidebarWrapper = () => {
-  const agentx = useAgentX({ server: "ws://localhost:5200" });
+  const agentx = useAgentX("ws://localhost:5200");
 
   if (!agentx) {
     return (
@@ -135,7 +135,7 @@ export const NarrowSidebar: Story = {
  * Large input area
  */
 const LargeInputWrapper = () => {
-  const agentx = useAgentX({ server: "ws://localhost:5200" });
+  const agentx = useAgentX("ws://localhost:5200");
 
   if (!agentx) {
     return (
@@ -172,7 +172,7 @@ export const LargeInputArea: Story = {
  * Embedded in container
  */
 const EmbeddedWrapper = () => {
-  const agentx = useAgentX({ server: "ws://localhost:5200" });
+  const agentx = useAgentX("ws://localhost:5200");
 
   return (
     <div className="p-8 bg-muted min-h-screen">

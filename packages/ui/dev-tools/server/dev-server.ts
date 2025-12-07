@@ -43,6 +43,7 @@ async function startDevServer() {
   }
   console.log(`  Port: ${PORT}`);
   console.log(`  Log Directory: ${LOG_DIR}`);
+  console.log(`  Storage: fs (${LOG_DIR})`);
   console.log();
 
   // Import and create AgentX instance
@@ -52,6 +53,10 @@ async function startDevServer() {
     llm: {
       apiKey,
       baseUrl,
+    },
+    storage: {
+      driver: "fs",
+      path: LOG_DIR,
     },
     logger: {
       level: "debug",

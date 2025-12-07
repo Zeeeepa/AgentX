@@ -24,7 +24,7 @@ type Story = StoryObj<typeof AgentList>;
  * Connected story - requires dev-server running on ws://localhost:5200
  */
 const ConnectedWrapper = () => {
-  const agentx = useAgentX({ server: "ws://localhost:5200" });
+  const agentx = useAgentX("ws://localhost:5200");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [currentAgentId, setCurrentAgentId] = React.useState<string | null>(null);
 
@@ -119,7 +119,7 @@ export const MockedEmpty: Story = {
  */
 export const CustomTitle: Story = {
   render: () => {
-    const agentx = useAgentX({ server: "ws://localhost:5200" });
+    const agentx = useAgentX("ws://localhost:5200");
 
     return (
       <div className="h-96 w-72 border border-border rounded-lg overflow-hidden">

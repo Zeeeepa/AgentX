@@ -1,40 +1,14 @@
 /**
- * agentxjs - Unified API for AI Agents
+ * agentxjs - Browser Entry Point
  *
- * All public types and functions are exported from this single entry point.
- * Users only need: `import { ... } from "agentxjs"`
+ * This entry is automatically selected by bundlers (Vite, Webpack, etc.)
+ * when building for browser environments.
  *
- * @example
- * ```typescript
- * import { createAgentX, type AgentX, type SystemEvent } from "agentxjs";
- *
- * // Local mode
- * const agentx = await createAgentX();
- *
- * // Remote mode
- * const agentx = await createAgentX({ server: "ws://localhost:5200" });
- *
- * // Same API for both modes!
- * const res = await agentx.request("container_create_request", {
- *   containerId: "my-container"
- * });
- *
- * agentx.on("text_delta", (e) => console.log(e.data.text));
- * ```
- *
- * @packageDocumentation
+ * Only includes remote mode (WebSocket client).
+ * Does not include Node.js specific code (runtime, fs, sqlite, etc.)
  */
 
-// ============================================================================
-// Factory
-// ============================================================================
-
-export { createAgentX, createRemoteAgentX } from "./createAgentX";
-
-// ============================================================================
-// Core Types - AgentX API
-// ============================================================================
-
+// Re-export everything from index except createAgentX
 export type {
   AgentX,
   AgentXConfig,
@@ -48,11 +22,7 @@ export type {
 
 export { isLocalConfig, isRemoteConfig } from "@agentxjs/types/agentx";
 
-// ============================================================================
-// Event Types - SystemEvent and all event categories
-// ============================================================================
-
-// Base event
+// Event types
 export type {
   SystemEvent,
   EventSource,
@@ -69,7 +39,7 @@ export {
   isNotification,
 } from "@agentxjs/types/event";
 
-// Command events (request/response)
+// Command events
 export type {
   CommandEvent,
   CommandRequest,
@@ -77,14 +47,12 @@ export type {
   CommandEventType,
   CommandRequestType,
   CommandEventMap,
-  // Container commands
   ContainerCreateRequest,
   ContainerCreateResponse,
   ContainerGetRequest,
   ContainerGetResponse,
   ContainerListRequest,
   ContainerListResponse,
-  // Agent commands
   AgentGetRequest,
   AgentGetResponse,
   AgentListRequest,
@@ -95,7 +63,6 @@ export type {
   MessageSendResponse,
   AgentInterruptRequest,
   AgentInterruptResponse,
-  // Image commands
   ImageCreateRequest,
   ImageCreateResponse,
   ImageRunRequest,
@@ -115,11 +82,10 @@ export type {
 
 export { isCommandEvent, isCommandRequest, isCommandResponse } from "@agentxjs/types/event";
 
-// Agent events (stream/state/message/turn)
+// Agent events
 export type {
   AgentEvent,
   AgentEventCategory,
-  // Stream events
   AgentStreamEvent,
   AgentTextDeltaEvent,
   AgentMessageStartEvent,
@@ -127,7 +93,6 @@ export type {
   AgentToolUseStartEvent,
   AgentToolUseStopEvent,
   AgentToolResultEvent,
-  // State events
   AgentStateEvent,
   ConversationStartEvent,
   ConversationEndEvent,
@@ -136,13 +101,11 @@ export type {
   ToolExecutingEvent,
   ToolCompletedEvent,
   ErrorOccurredEvent,
-  // Message events
   AgentMessageEvent,
   UserMessageEvent,
   AssistantMessageEvent,
   ToolCallMessageEvent,
   ToolResultMessageEvent,
-  // Turn events
   AgentTurnEvent,
   TurnRequestEvent,
   TurnResponseEvent,
@@ -157,14 +120,9 @@ export {
   isAgentTurnEvent,
 } from "@agentxjs/types/event";
 
-// ============================================================================
-// Data Types - Records and Messages
-// ============================================================================
-
-// Image record (for persistence)
+// Data types
 export type { ImageRecord } from "@agentxjs/types";
 
-// Message types (for UI components)
 export type {
   Message,
   UserMessage,
@@ -178,3 +136,32 @@ export type {
   ToolResultPart,
   ToolResultOutput,
 } from "@agentxjs/types/agent";
+
+// Browser-only createAgentX (remote mode only)
+import type { AgentX, AgentXConfig } from "@agentxjs/types/agentx";
+import { isRemoteConfig } from "@agentxjs/types/agentx";
+import { createRemoteAgentX } from "./createAgentX";
+
+/**
+ * Create AgentX instance (Browser version - remote mode only)
+ *
+ * @param config - Must be RemoteConfig with server URL
+ * @returns AgentX instance
+ *
+ * @example
+ * ```typescript
+ * const agentx = await createAgentX({ server: "ws://localhost:5200" });
+ * ```
+ */
+export async function createAgentX(config: AgentXConfig): Promise<AgentX> {
+  if (!config || !isRemoteConfig(config)) {
+    throw new Error(
+      "Browser environment only supports remote mode. " +
+      "Please provide { server: \"ws://...\" } configuration."
+    );
+  }
+  return createRemoteAgentX(config.server);
+}
+
+// Also export createRemoteAgentX for explicit usage
+export { createRemoteAgentX } from "./createAgentX";

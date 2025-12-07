@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ToolCallMessage, ToolResultMessage } from "@agentxjs/types/agent";
+import type { ToolCallMessage, ToolResultMessage } from "agentxjs";
 import { MessageAvatar } from "~/components/element/MessageAvatar";
 import { Wrench, ChevronDown, Loader2 } from "lucide-react";
 import { ToolCallContent } from "../parts/ToolCallContent";

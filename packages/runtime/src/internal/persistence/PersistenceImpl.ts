@@ -7,22 +7,22 @@
  * @example
  * ```typescript
  * // Memory (default)
- * const persistence = createPersistence();
+ * const persistence = await createPersistence();
  *
  * // SQLite
- * const persistence = createPersistence({
+ * const persistence = await createPersistence({
  *   driver: "sqlite",
  *   path: "./data.db",
  * });
  *
  * // PostgreSQL
- * const persistence = createPersistence({
+ * const persistence = await createPersistence({
  *   driver: "postgresql",
  *   url: "postgres://user:pass@localhost:5432/agentx",
  * });
  *
  * // Redis
- * const persistence = createPersistence({
+ * const persistence = await createPersistence({
  *   driver: "redis",
  *   url: "redis://localhost:6379",
  * });
@@ -98,16 +98,27 @@ export class PersistenceImpl implements Persistence {
 
   private readonly storage: Storage;
 
-  constructor(config: PersistenceConfig = {}) {
-    // Use custom storage or create one based on driver
-    this.storage = config.storage ?? createStorageFromConfig(config);
+  /**
+   * Private constructor - use createPersistence() factory function
+   */
+  private constructor(storage: Storage, driverName: string) {
+    this.storage = storage;
 
     // Create repositories
     this.images = new StorageImageRepository(this.storage);
     this.containers = new StorageContainerRepository(this.storage);
     this.sessions = new StorageSessionRepository(this.storage);
 
-    logger.info("Persistence created", { driver: config.driver ?? "memory" });
+    logger.info("Persistence created", { driver: driverName });
+  }
+
+  /**
+   * Create a PersistenceImpl instance (async factory)
+   */
+  static async create(config: PersistenceConfig = {}): Promise<PersistenceImpl> {
+    const driverName = config.driver ?? "memory";
+    const storage = config.storage ?? await createStorageFromConfig(config);
+    return new PersistenceImpl(storage, driverName);
   }
 
   /**
@@ -127,33 +138,31 @@ export class PersistenceImpl implements Persistence {
 }
 
 /**
- * Create storage instance from config
+ * Create storage instance from config (async for ESM dynamic imports)
  */
-function createStorageFromConfig(config: PersistenceConfig): Storage {
+async function createStorageFromConfig(config: PersistenceConfig): Promise<Storage> {
   const driver = config.driver ?? "memory";
 
   switch (driver) {
     case "memory":
       return createStorage();
 
-    case "fs":
-      // Lazy import to avoid bundling fs driver in browser
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const fsDriver = require("unstorage/drivers/fs").default;
+    case "fs": {
+      const { default: fsDriver } = await import("unstorage/drivers/fs");
       return createStorage({
         driver: fsDriver({ base: config.path ?? "./data" }),
       });
+    }
 
-    case "redis":
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const redisDriver = require("unstorage/drivers/redis").default;
+    case "redis": {
+      const { default: redisDriver } = await import("unstorage/drivers/redis");
       return createStorage({
         driver: redisDriver({ url: config.url ?? "redis://localhost:6379" }),
       });
+    }
 
-    case "mongodb":
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const mongoDriver = require("unstorage/drivers/mongodb").default;
+    case "mongodb": {
+      const { default: mongoDriver } = await import("unstorage/drivers/mongodb");
       return createStorage({
         driver: mongoDriver({
           connectionString: config.url ?? "mongodb://localhost:27017",
@@ -161,36 +170,40 @@ function createStorageFromConfig(config: PersistenceConfig): Storage {
           collectionName: "storage",
         }),
       });
+    }
 
-    case "sqlite":
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const sqliteDriver = require("unstorage/drivers/db0").default;
+    case "sqlite": {
+      const { default: db0Driver } = await import("unstorage/drivers/db0");
+      const { createDatabase } = await import("db0");
+      // @ts-expect-error - db0 connectors use .mts exports, not compatible with moduleResolution: node
+      const { default: sqliteConnector } = await import("db0/connectors/better-sqlite3");
+      const database = createDatabase(sqliteConnector({ path: config.path ?? "./data.db" }));
       return createStorage({
-        driver: sqliteDriver({
-          connector: "better-sqlite3",
-          options: { path: config.path ?? "./data.db" },
-        }),
+        driver: db0Driver({ database }),
       });
+    }
 
-    case "mysql":
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const mysqlDriver = require("unstorage/drivers/db0").default;
+    case "mysql": {
+      const { default: db0Driver } = await import("unstorage/drivers/db0");
+      const { createDatabase } = await import("db0");
+      // @ts-expect-error - db0 connectors use .mts exports, not compatible with moduleResolution: node
+      const { default: mysqlConnector } = await import("db0/connectors/mysql2");
+      const database = createDatabase(mysqlConnector({ uri: config.url ?? "mysql://localhost:3306/agentx" }));
       return createStorage({
-        driver: mysqlDriver({
-          connector: "mysql2",
-          options: { uri: config.url ?? "mysql://localhost:3306/agentx" },
-        }),
+        driver: db0Driver({ database }),
       });
+    }
 
-    case "postgresql":
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pgDriver = require("unstorage/drivers/db0").default;
+    case "postgresql": {
+      const { default: db0Driver } = await import("unstorage/drivers/db0");
+      const { createDatabase } = await import("db0");
+      // @ts-expect-error - db0 connectors use .mts exports, not compatible with moduleResolution: node
+      const { default: pgConnector } = await import("db0/connectors/postgresql");
+      const database = createDatabase(pgConnector({ connectionString: config.url ?? "postgres://localhost:5432/agentx" }));
       return createStorage({
-        driver: pgDriver({
-          connector: "postgresql",
-          options: { connectionString: config.url ?? "postgres://localhost:5432/agentx" },
-        }),
+        driver: db0Driver({ database }),
       });
+    }
 
     default:
       throw new Error(`Unknown storage driver: ${driver}`);
@@ -198,11 +211,11 @@ function createStorageFromConfig(config: PersistenceConfig): Storage {
 }
 
 /**
- * Create Persistence instance
+ * Create Persistence instance (async)
  *
  * @param config - Configuration options
- * @returns Persistence instance
+ * @returns Promise<Persistence> instance
  */
-export function createPersistence(config?: PersistenceConfig): PersistenceImpl {
-  return new PersistenceImpl(config);
+export async function createPersistence(config?: PersistenceConfig): Promise<PersistenceImpl> {
+  return PersistenceImpl.create(config);
 }

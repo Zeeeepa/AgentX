@@ -2,14 +2,16 @@
  * createAgentX - Factory function for creating AgentX instances
  *
  * Supports two modes:
- * - Local mode: Uses Runtime directly (Claude API)
- * - Remote mode: Connects to AgentX server via WebSocket
+ * - Local mode: Uses Runtime directly (Claude API) - Node.js only
+ * - Remote mode: Connects to AgentX server via WebSocket - Browser & Node.js
+ *
+ * Local mode implementation is dynamically imported to enable tree-shaking
+ * in browser builds.
  */
 
 import type {
   AgentX,
   AgentXConfig,
-  LocalConfig,
   Unsubscribe,
 } from "@agentxjs/types/agentx";
 import { isRemoteConfig } from "@agentxjs/types/agentx";
@@ -20,154 +22,37 @@ import type {
   RequestDataFor,
   SystemEvent,
 } from "@agentxjs/types/event";
-import type { WebSocket as WS, WebSocketServer as WSS } from "ws";
 import { createLogger } from "@agentxjs/common";
 
-const logger = createLogger("agentx/createAgentX");
 const remoteLogger = createLogger("agentx/RemoteClient");
 
 /**
  * Create AgentX instance
+ *
+ * @param config - Configuration (LocalConfig or RemoteConfig)
+ * @returns AgentX instance
+ *
+ * @example
+ * ```typescript
+ * // Remote mode (browser & Node.js)
+ * const agentx = await createAgentX({ server: "ws://localhost:5200" });
+ *
+ * // Local mode (Node.js only)
+ * const agentx = await createAgentX({ llm: { apiKey: "sk-..." } });
+ * ```
  */
 export async function createAgentX(config?: AgentXConfig): Promise<AgentX> {
   if (config && isRemoteConfig(config)) {
     return createRemoteAgentX(config.server);
   }
+
+  // Dynamic import for tree-shaking in browser builds
+  const { createLocalAgentX } = await import("./createLocalAgentX");
   return createLocalAgentX(config ?? {});
 }
 
 // ============================================================================
-// Local Mode Implementation
-// ============================================================================
-
-async function createLocalAgentX(config: LocalConfig): Promise<AgentX> {
-  // Apply logger configuration
-  if (config.logger) {
-    const { LoggerFactoryImpl, setLoggerFactory } = await import("@agentxjs/common");
-
-    LoggerFactoryImpl.configure({
-      defaultLevel: config.logger.level,
-      consoleOptions: config.logger.console,
-    });
-
-    if (config.logger.factory) {
-      setLoggerFactory(config.logger.factory);
-    }
-  }
-
-  // Dynamic import to avoid bundling runtime in browser
-  const { createRuntime, createPersistence } = await import("@agentxjs/runtime");
-
-  // Create persistence from storage config
-  const storageConfig = config.storage ?? {};
-  const persistence = createPersistence(storageConfig as Parameters<typeof createPersistence>[0]);
-
-  const runtime = createRuntime({
-    persistence,
-    llmProvider: {
-      name: "claude",
-      provide: () => ({
-        apiKey: config.llm?.apiKey ?? "",
-        baseUrl: config.llm?.baseUrl,
-        model: config.llm?.model,
-      }),
-    },
-  });
-
-  // WebSocket server state
-  let peer: WSS | null = null;
-  const connections = new Set<WS>();
-
-  return {
-    // Core API - delegate to runtime
-    request: (type, data, timeout) => runtime.request(type, data, timeout),
-
-    on: (type, handler) => runtime.on(type, handler),
-
-    onCommand: (type, handler) => runtime.onCommand(type, handler),
-
-    emitCommand: (type, data) => runtime.emitCommand(type, data),
-
-    // Server API
-    async listen(port: number, host?: string) {
-      if (peer) {
-        throw new Error("Server already listening");
-      }
-
-      const { WebSocketServer } = await import("ws");
-      peer = new WebSocketServer({ port, host: host ?? "0.0.0.0" });
-
-      peer.on("connection", (ws: WS) => {
-        connections.add(ws);
-        logger.info("Client connected", { totalConnections: connections.size });
-
-        // Forward client commands to runtime
-        ws.on("message", (data: Buffer) => {
-          try {
-            const event = JSON.parse(data.toString()) as SystemEvent;
-            logger.info("Received from client", { type: event.type, requestId: (event.data as { requestId?: string })?.requestId });
-            runtime.emit(event);
-          } catch {
-            // Ignore parse errors
-          }
-        });
-
-        ws.on("close", () => {
-          connections.delete(ws);
-          logger.info("Client disconnected", { totalConnections: connections.size });
-        });
-      });
-
-      // Forward runtime events to all clients (only broadcastable events)
-      runtime.onAny((event) => {
-        // Skip non-broadcastable events (internal events like DriveableEvent)
-        if (event.broadcastable === false) {
-          return;
-        }
-
-        logger.info("Broadcasting to clients", { type: event.type, category: event.category, requestId: (event.data as { requestId?: string })?.requestId });
-        const message = JSON.stringify(event);
-        for (const ws of connections) {
-          if (ws.readyState === 1) {
-            // WebSocket.OPEN
-            ws.send(message);
-          }
-        }
-      });
-    },
-
-    async close() {
-      if (!peer) return;
-
-      for (const ws of connections) {
-        ws.close();
-      }
-      connections.clear();
-
-      await new Promise<void>((resolve) => {
-        peer!.close(() => resolve());
-      });
-      peer = null;
-    },
-
-    async dispose() {
-      if (peer) {
-        for (const ws of connections) {
-          ws.close();
-        }
-        connections.clear();
-        await new Promise<void>((resolve) => {
-          peer!.close(() => resolve());
-        });
-        peer = null;
-      }
-      await runtime.dispose();
-    },
-  };
-}
-
-// ============================================================================
-// Remote Mode Implementation
+// Remote Mode Implementation (Browser & Node.js compatible)
 // ============================================================================
 
 // Declare window for TypeScript (available in browser)
@@ -176,7 +61,16 @@ declare const window: { WebSocket: typeof WebSocket } | undefined;
 // Detect browser environment
 const isBrowser = typeof window !== "undefined" && typeof window.WebSocket !== "undefined";
 
-async function createRemoteAgentX(serverUrl: string): Promise<AgentX> {
+/**
+ * Create AgentX instance in remote mode
+ *
+ * Connects to an AgentX server via WebSocket.
+ * Works in both browser and Node.js environments.
+ *
+ * @param serverUrl - WebSocket server URL
+ * @returns AgentX instance
+ */
+export async function createRemoteAgentX(serverUrl: string): Promise<AgentX> {
   // Use native WebSocket in browser, ws library in Node.js
   const WebSocketImpl = isBrowser
     ? window.WebSocket
@@ -352,15 +246,18 @@ async function createRemoteAgentX(serverUrl: string): Promise<AgentX> {
     },
 
     async dispose() {
-      // Clear pending requests
-      for (const [, pending] of pendingRequests) {
+      for (const pending of pendingRequests.values()) {
         clearTimeout(pending.timer);
         pending.reject(new Error("AgentX disposed"));
       }
       pendingRequests.clear();
       handlers.clear();
 
-      ws.close();
+      if (isBrowser) {
+        ws.close();
+      } else {
+        (ws as any).close();
+      }
     },
   };
 }

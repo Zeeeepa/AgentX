@@ -1,4 +1,4 @@
-import type { UserMessage as UserMessageType } from "@agentxjs/types/agent";
+import type { UserMessage as UserMessageType } from "agentxjs";
 import { MessageAvatar } from "~/components/element/MessageAvatar";
 import { User } from "lucide-react";
 import { TextContent } from "../parts/TextContent";

@@ -40,7 +40,6 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@agentxjs/types": "workspace:*",
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
     "agentxjs": "workspace:*",

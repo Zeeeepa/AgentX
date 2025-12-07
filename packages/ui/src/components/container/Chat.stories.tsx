@@ -25,7 +25,7 @@ type Story = StoryObj<typeof Chat>;
  * Uses Image-First model: creates an Image first, then uses imageId for chat
  */
 const ConnectedWrapper = () => {
-  const agentx = useAgentX({ server: "ws://localhost:5200" });
+  const agentx = useAgentX("ws://localhost:5200");
   const [imageId, setImageId] = React.useState<string | null>(null);
   const [status, setStatus] = React.useState<string>("disconnected");
   const { createImage } = useImages(agentx, { autoLoad: false });
@@ -116,7 +116,7 @@ export const NoConversationSelected: Story = {
  * Custom input height
  */
 const CustomHeightWrapper = () => {
-  const agentx = useAgentX({ server: "ws://localhost:5200" });
+  const agentx = useAgentX("ws://localhost:5200");
   const [imageId, setImageId] = React.useState<string | null>(null);
   const { createImage } = useImages(agentx, { autoLoad: false });
 
@@ -156,7 +156,7 @@ export const CustomInputHeight: Story = {
  * Without save button (not needed in Image-First model - auto-saved)
  */
 const NoSaveWrapper = () => {
-  const agentx = useAgentX({ server: "ws://localhost:5200" });
+  const agentx = useAgentX("ws://localhost:5200");
   const [imageId, setImageId] = React.useState<string | null>(null);
   const { createImage } = useImages(agentx, { autoLoad: false });
 

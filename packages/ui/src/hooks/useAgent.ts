@@ -408,7 +408,7 @@ export function useAgent(
 
       try {
         // Send to agent via request - use imageId, agent auto-activates
-        const response = await agentx.request("agent_receive_request", {
+        const response = await agentx.request("message_send_request", {
           imageId,
           content: text,
         });

@@ -1,18 +1,15 @@
 /**
- * useAgentX - React hook for AgentX instance management
+ * useAgentX - React hook for AgentX remote connection
  *
- * Creates and manages an AgentX instance lifecycle.
+ * Creates and manages an AgentX instance that connects to a remote server.
+ * This hook only supports remote mode (browser environment).
  *
  * @example
  * ```tsx
  * import { useAgentX } from "@agentxjs/ui";
  *
  * function App() {
- *   // Remote mode - connect to server
- *   const agentx = useAgentX({ server: "ws://localhost:5200" });
- *
- *   // Local mode with API key
- *   // const agentx = useAgentX({ llm: { apiKey: "sk-..." } });
+ *   const agentx = useAgentX("ws://localhost:5200");
  *
  *   if (!agentx) return <div>Connecting...</div>;
  *
@@ -22,52 +19,40 @@
  */
 
 import { useState, useEffect } from "react";
-import type { AgentX, AgentXConfig } from "agentxjs";
+import type { AgentX } from "agentxjs";
+import { createAgentX } from "agentxjs";
 import { createLogger } from "@agentxjs/common";
 
 const logger = createLogger("ui/useAgentX");
 
-// Lazy import to avoid bundling issues
-let createAgentXFn: ((config?: AgentXConfig) => Promise<AgentX>) | null = null;
-
-async function getCreateAgentX(): Promise<
-  (config?: AgentXConfig) => Promise<AgentX>
-> {
-  if (!createAgentXFn) {
-    const module = await import("agentxjs");
-    createAgentXFn = module.createAgentX;
-  }
-  return createAgentXFn;
-}
-
 /**
- * React hook for AgentX instance management
+ * React hook for AgentX remote connection
  *
  * Creates an AgentX instance on mount and disposes on unmount.
+ * Only supports remote mode (connects to WebSocket server).
  *
- * @param config - AgentX configuration (LocalConfig or RemoteConfig)
- * @returns The AgentX instance (null during initialization)
+ * @param serverUrl - WebSocket server URL (e.g., "ws://localhost:5200")
+ * @returns The AgentX instance (null during connection)
  */
-export function useAgentX(config?: AgentXConfig): AgentX | null {
+export function useAgentX(serverUrl: string): AgentX | null {
   const [agentx, setAgentx] = useState<AgentX | null>(null);
-
-  // Serialize config for dependency comparison
-  const configKey = JSON.stringify(config ?? {});
 
   useEffect(() => {
     let instance: AgentX | null = null;
     let mounted = true;
 
-    getCreateAgentX()
-      .then(async (createAgentX) => {
-        if (!mounted) return;
-        instance = await createAgentX(config);
-        if (mounted) {
-          setAgentx(instance);
+    createAgentX({ server: serverUrl })
+      .then((agentx) => {
+        if (!mounted) {
+          agentx.dispose();
+          return;
         }
+        instance = agentx;
+        setAgentx(agentx);
+        logger.info("Connected to server", { serverUrl });
       })
       .catch((error) => {
-        logger.error("Failed to initialize AgentX", { error });
+        logger.error("Failed to connect to server", { serverUrl, error });
       });
 
     return () => {
@@ -78,8 +63,7 @@ export function useAgentX(config?: AgentXConfig): AgentX | null {
         });
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [configKey]);
+  }, [serverUrl]);
 
   return agentx;
 }

@@ -1,4 +1,4 @@
-import type { ToolCallMessage as ToolCallMessageType } from "@agentxjs/types/agent";
+import type { ToolCallMessage as ToolCallMessageType } from "agentxjs";
 import { MessageAvatar } from "~/components/element/MessageAvatar";
 import { Wrench } from "lucide-react";
 import { ToolCallContent } from "../parts/ToolCallContent";

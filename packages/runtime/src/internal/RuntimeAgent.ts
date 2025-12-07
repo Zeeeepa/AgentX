@@ -115,7 +115,8 @@ class BusPresenter implements AgentPresenter {
    */
   private convertToMessage(output: AgentOutput): Message {
     const eventData = output.data as Record<string, unknown>;
-    const messageId = eventData.messageId as string;
+    // Note: user_message uses 'id' field (UserMessage type), other events use 'messageId'
+    const messageId = (eventData.messageId ?? eventData.id) as string;
     const timestamp = (eventData.timestamp as number) || output.timestamp;
 
     switch (output.type) {

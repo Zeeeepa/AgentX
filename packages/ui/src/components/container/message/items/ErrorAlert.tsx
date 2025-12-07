@@ -1,6 +1,6 @@
 // @ts-nocheck - Temporary workaround for TypeScript JSX type inference issues
 import type React from "react";
-import type { AgentError } from "@agentxjs/types/agent";
+import type { AgentError } from "agentxjs";
 import { MessageAvatar } from "~/components/element/MessageAvatar";
 import { AlertCircle, AlertTriangle, XCircle } from "lucide-react";
 

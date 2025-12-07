@@ -24,7 +24,7 @@ import type {
   Message,
   ToolCallMessage as ToolCallMessageType,
   ToolResultMessage as ToolResultMessageType,
-} from "@agentxjs/types/agent";
+} from "agentxjs";
 import { UserMessage } from "./items/UserMessage";
 import { AssistantMessage } from "./items/AssistantMessage";
 import { ToolUseMessage } from "./items/ToolUseMessage";

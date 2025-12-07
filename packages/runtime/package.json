@@ -27,11 +27,12 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@agentxjs/types": "workspace:*",
-    "@agentxjs/common": "workspace:*",
     "@agentxjs/agent": "workspace:*",
+    "@agentxjs/common": "workspace:*",
+    "@agentxjs/types": "workspace:*",
     "@anthropic-ai/claude-agent-sdk": "^0.1.30",
     "better-sqlite3": "^11.7.0",
+    "db0": "^0.3.4",
     "rxjs": "^7.8.2",
     "unstorage": "^1.14.4"
   },
