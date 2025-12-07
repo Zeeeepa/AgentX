@@ -35,12 +35,10 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
-    "@agentxjs/common": "workspace:*",
-    "@agentxjs/types": "workspace:*",
     "ws": "^8.18.0"
   },
   "peerDependencies": {
-    "@agentxjs/runtime": "workspace:*"
+    "@agentxjs/runtime": ">=0.1.0"
   },
   "peerDependenciesMeta": {
     "@agentxjs/runtime": {
@@ -48,7 +46,9 @@
     }
   },
   "devDependencies": {
+    "@agentxjs/common": "workspace:*",
     "@agentxjs/runtime": "workspace:*",
+    "@agentxjs/types": "workspace:*",
     "@types/node": "^24.9.2",
     "@types/ws": "^8.5.10",
     "tsup": "^8.3.5",
