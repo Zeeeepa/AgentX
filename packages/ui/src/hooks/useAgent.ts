@@ -1,10 +1,10 @@
 /**
  * useAgent - React hook for Agent event binding
  *
- * In the Image-First model:
- * - Use imageId to interact with conversations (preferred)
+ * Image-First model:
+ * - Use imageId to interact with conversations
  * - Agent is auto-activated when sending messages
- * - agentId is used for event filtering (obtained after runImage or receiveMessage)
+ * - agentId is internal, used for event filtering
  *
  * @example
  * ```tsx
@@ -18,8 +18,7 @@
  *     errors,
  *     send,
  *     isLoading,
- *     agentId, // Current agent ID (if running)
- *   } = useAgent(agentx, { imageId });
+ *   } = useAgent(agentx, imageId);
  *
  *   return (
  *     <div>
@@ -124,22 +123,6 @@ export interface UseAgentResult {
 }
 
 /**
- * Agent identifier - either by imageId (preferred) or agentId (legacy)
- */
-export interface AgentIdentifier {
-  /**
-   * Image ID - preferred for Image-First model
-   * Agent will be auto-activated on first message
-   */
-  imageId?: string;
-
-  /**
-   * Agent ID - for direct agent binding (legacy)
-   */
-  agentId?: string;
-}
-
-/**
  * Options for useAgent hook
  */
 export interface UseAgentOptions {
@@ -168,27 +151,26 @@ export interface UseAgentOptions {
  * React hook for binding to Agent events via AgentX
  *
  * @param agentx - The AgentX instance
- * @param identifier - Agent identifier (imageId or agentId)
+ * @param imageId - The image ID for the conversation
  * @param options - Optional configuration
  * @returns Reactive state and control functions
  */
 export function useAgent(
   agentx: AgentX | null,
-  identifier: AgentIdentifier | string | null,
+  imageId: string | null,
   options: UseAgentOptions = {}
 ): UseAgentResult {
   const { initialMessages = [], onSend, onError, onStatusChange } = options;
-
-  // Normalize identifier
-  const imageId = typeof identifier === "string" ? undefined : identifier?.imageId;
-  const initialAgentId = typeof identifier === "string" ? identifier : identifier?.agentId;
 
   // State
   const [messages, setMessages] = useState<UIMessage[]>(initialMessages);
   const [streaming, setStreaming] = useState("");
   const [status, setStatus] = useState<AgentStatus>("idle");
   const [errors, setErrors] = useState<UIError[]>([]);
-  const [currentAgentId, setCurrentAgentId] = useState<string | null>(initialAgentId ?? null);
+
+  // Track current agentId - use ref so event handlers always see latest value
+  const agentIdRef = useRef<string | null>(null);
+  const [agentIdState, setAgentIdState] = useState<string | null>(null);
 
   // Track if component is mounted
   const mountedRef = useRef(true);
@@ -200,39 +182,35 @@ export function useAgent(
     status === "responding" ||
     status === "tool_executing";
 
-  // Reset state when identifier changes
+  // Reset state when imageId changes
   useEffect(() => {
     setMessages(initialMessages);
     setStreaming("");
     setErrors([]);
     setStatus("idle");
-    setCurrentAgentId(initialAgentId ?? null);
+    agentIdRef.current = null;
+    setAgentIdState(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageId, initialAgentId]);
+  }, [imageId]);
 
   // Subscribe to agent events
   useEffect(() => {
-    // Need either currentAgentId or imageId to subscribe
-    if (!agentx || (!currentAgentId && !imageId)) return;
+    if (!agentx || !imageId) return;
 
     mountedRef.current = true;
     const unsubscribes: Array<() => void> = [];
 
-    // Helper to check if event is for this agent/image
-    const isForThisAgent = (event: SystemEvent): boolean => {
-      // Match by agentId if we have one
-      if (currentAgentId && event.context?.agentId === currentAgentId) {
-        return true;
-      }
-      // For imageId mode before agent is activated, we can't filter yet
-      // Events will be filtered once we get agentId from receive response
-      return false;
+    // Helper to check if event is for this image
+    // Uses imageId which is known from the start (no timing issues)
+    const isForThisImage = (event: SystemEvent): boolean => {
+      const eventImageId = event.context?.imageId;
+      return eventImageId === imageId;
     };
 
     // Stream events - text_delta
     unsubscribes.push(
       agentx.on("text_delta", (event) => {
-        if (!mountedRef.current || !isForThisAgent(event)) return;
+        if (!mountedRef.current || !isForThisImage(event)) return;
         const data = event.data as { text: string };
         setStreaming((prev) => prev + data.text);
       })
@@ -241,7 +219,7 @@ export function useAgent(
     // State events - conversation lifecycle
     unsubscribes.push(
       agentx.on("conversation_start", (event) => {
-        if (!mountedRef.current || !isForThisAgent(event)) return;
+        if (!mountedRef.current || !isForThisImage(event)) return;
         setStatus("thinking");
         onStatusChange?.("thinking");
       })
@@ -249,7 +227,7 @@ export function useAgent(
 
     unsubscribes.push(
       agentx.on("conversation_thinking", (event) => {
-        if (!mountedRef.current || !isForThisAgent(event)) return;
+        if (!mountedRef.current || !isForThisImage(event)) return;
         setStatus("thinking");
         onStatusChange?.("thinking");
       })
@@ -257,7 +235,7 @@ export function useAgent(
 
     unsubscribes.push(
       agentx.on("conversation_responding", (event) => {
-        if (!mountedRef.current || !isForThisAgent(event)) return;
+        if (!mountedRef.current || !isForThisImage(event)) return;
         setStatus("responding");
         onStatusChange?.("responding");
       })
@@ -265,7 +243,7 @@ export function useAgent(
 
     unsubscribes.push(
       agentx.on("conversation_end", (event) => {
-        if (!mountedRef.current || !isForThisAgent(event)) return;
+        if (!mountedRef.current || !isForThisImage(event)) return;
         setStatus("idle");
         onStatusChange?.("idle");
       })
@@ -273,7 +251,7 @@ export function useAgent(
 
     unsubscribes.push(
       agentx.on("tool_executing", (event) => {
-        if (!mountedRef.current || !isForThisAgent(event)) return;
+        if (!mountedRef.current || !isForThisImage(event)) return;
         setStatus("tool_executing");
         onStatusChange?.("tool_executing");
       })
@@ -282,7 +260,7 @@ export function useAgent(
     // Message events - complete messages
     unsubscribes.push(
       agentx.on("assistant_message", (event) => {
-        if (!mountedRef.current || !isForThisAgent(event)) return;
+        if (!mountedRef.current || !isForThisImage(event)) return;
         const data = event.data as {
           messageId: string;
           content: unknown;
@@ -306,7 +284,7 @@ export function useAgent(
 
     unsubscribes.push(
       agentx.on("tool_call_message", (event) => {
-        if (!mountedRef.current || !isForThisAgent(event)) return;
+        if (!mountedRef.current || !isForThisImage(event)) return;
         const data = event.data as {
           messageId: string;
           toolCalls: unknown;
@@ -329,7 +307,7 @@ export function useAgent(
 
     unsubscribes.push(
       agentx.on("tool_result_message", (event) => {
-        if (!mountedRef.current || !isForThisAgent(event)) return;
+        if (!mountedRef.current || !isForThisImage(event)) return;
         const data = event.data as {
           messageId: string;
           results: unknown;
@@ -353,7 +331,7 @@ export function useAgent(
     // Error events
     unsubscribes.push(
       agentx.on("error_occurred", (event) => {
-        if (!mountedRef.current || !isForThisAgent(event)) return;
+        if (!mountedRef.current || !isForThisImage(event)) return;
         const data = event.data as UIError;
         setErrors((prev) => [...prev, data]);
         setStreaming(""); // Clear streaming on error
@@ -363,19 +341,19 @@ export function useAgent(
       })
     );
 
-    logger.debug("Subscribed to agent events", { agentId: currentAgentId, imageId });
+    logger.debug("Subscribed to agent events", { imageId });
 
     return () => {
       mountedRef.current = false;
       unsubscribes.forEach((unsub) => unsub());
-      logger.debug("Unsubscribed from agent events", { agentId: currentAgentId, imageId });
+      logger.debug("Unsubscribed from agent events", { imageId });
     };
-  }, [agentx, currentAgentId, imageId, onError, onStatusChange]);
+  }, [agentx, imageId, onError, onStatusChange]);
 
   // Send message
   const send = useCallback(
-    (text: string) => {
-      if (!agentx || (!currentAgentId && !imageId)) return;
+    async (text: string) => {
+      if (!agentx || !imageId) return;
 
       // Clear errors on new message
       setErrors([]);
@@ -392,42 +370,39 @@ export function useAgent(
       setStatus("queued");
       onStatusChange?.("queued");
 
-      // Send to agent via request - prefer imageId (auto-activates agent)
-      agentx
-        .request("agent_receive_request", {
+      try {
+        // Send to agent via request - use imageId, agent auto-activates
+        const response = await agentx.request("agent_receive_request", {
           imageId,
-          agentId: currentAgentId ?? undefined,
           content: text,
-        })
-        .then((response) => {
-          // Update agentId from response (for event filtering)
-          if (response.data.agentId && !currentAgentId) {
-            setCurrentAgentId(response.data.agentId);
-            logger.debug("Agent activated", { imageId, agentId: response.data.agentId });
-          }
-        })
-        .catch((error) => {
-          logger.error("Failed to send message", { imageId, agentId: currentAgentId, error });
-          setStatus("error");
-          onStatusChange?.("error");
         });
+
+        // Update agentId from response (for event filtering)
+        // IMPORTANT: Set ref immediately so event handlers can use it
+        if (response.data.agentId) {
+          agentIdRef.current = response.data.agentId;
+          setAgentIdState(response.data.agentId);
+          logger.debug("Agent activated", { imageId, agentId: response.data.agentId });
+        }
+      } catch (error) {
+        logger.error("Failed to send message", { imageId, error });
+        setStatus("error");
+        onStatusChange?.("error");
+      }
     },
-    [agentx, currentAgentId, imageId, onSend, onStatusChange]
+    [agentx, imageId, onSend, onStatusChange]
   );
 
   // Interrupt
   const interrupt = useCallback(() => {
-    if (!agentx || (!currentAgentId && !imageId)) return;
+    if (!agentx || !imageId) return;
 
     agentx
-      .request("agent_interrupt_request", {
-        imageId,
-        agentId: currentAgentId ?? undefined,
-      })
+      .request("agent_interrupt_request", { imageId })
       .catch((error) => {
-        logger.error("Failed to interrupt agent", { imageId, agentId: currentAgentId, error });
+        logger.error("Failed to interrupt agent", { imageId, error });
       });
-  }, [agentx, currentAgentId, imageId]);
+  }, [agentx, imageId]);
 
   // Clear messages
   const clearMessages = useCallback(() => {
@@ -450,6 +425,11 @@ export function useAgent(
     isLoading,
     clearMessages,
     clearErrors,
-    agentId: currentAgentId,
+    agentId: agentIdState,
   };
 }
+
+// Legacy support - keep AgentIdentifier type for backwards compatibility
+export type AgentIdentifier = {
+  imageId?: string;
+};

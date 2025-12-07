@@ -100,6 +100,11 @@ export interface EventContext {
   containerId?: string;
 
   /**
+   * Image ID (persistent conversation identity)
+   */
+  imageId?: string;
+
+  /**
    * Agent ID (if event is agent-scoped)
    */
   agentId?: string;

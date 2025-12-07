@@ -98,20 +98,15 @@ export function Chat({
   inputHeightRatio = 0.25,
   className,
 }: ChatProps) {
-  // Use imageId if provided, otherwise fall back to agentId
-  const identifier = imageId
-    ? { imageId }
-    : legacyAgentId
-    ? legacyAgentId
-    : null;
-
+  // Use imageId (Image-First model)
+  // legacyAgentId is deprecated and ignored
   const {
     messages,
     streaming,
     status,
     send,
     interrupt,
-  } = useAgent(agentx, identifier);
+  } = useAgent(agentx, imageId ?? null);
 
   // Map UIMessage[] to MessagePaneItem[]
   const items: MessagePaneItem[] = React.useMemo(() => {

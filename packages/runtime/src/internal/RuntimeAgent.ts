@@ -22,6 +22,7 @@ const logger = createLogger("runtime/RuntimeAgent");
  */
 export interface RuntimeAgentConfig {
   agentId: string;
+  imageId: string;
   containerId: string;
   config: AgentConfig;
   bus: SystemBus;
@@ -45,6 +46,7 @@ class BusPresenter implements AgentPresenter {
     private readonly producer: SystemBusProducer,
     private readonly session: Session,
     private readonly agentId: string,
+    private readonly imageId: string,
     private readonly containerId: string
   ) {}
 
@@ -59,6 +61,7 @@ class BusPresenter implements AgentPresenter {
       intent: "notification",
       context: {
         containerId: this.containerId,
+        imageId: this.imageId,
         agentId: this.agentId,
         sessionId: this.session.sessionId,
       },
@@ -129,6 +132,7 @@ class BusPresenter implements AgentPresenter {
  */
 export class RuntimeAgent implements RuntimeAgentInterface {
   readonly agentId: string;
+  readonly imageId: string;
   readonly name: string;
   readonly containerId: string;
   readonly createdAt: number;
@@ -142,6 +146,7 @@ export class RuntimeAgent implements RuntimeAgentInterface {
 
   constructor(config: RuntimeAgentConfig) {
     this.agentId = config.agentId;
+    this.imageId = config.imageId;
     this.name = config.config.name ?? `agent-${config.agentId}`;
     this.containerId = config.containerId;
     this.createdAt = Date.now();
@@ -163,6 +168,7 @@ export class RuntimeAgent implements RuntimeAgentInterface {
       this.producer,
       config.session,
       this.agentId,
+      this.imageId,
       this.containerId
     );
 
@@ -203,6 +209,7 @@ export class RuntimeAgent implements RuntimeAgentInterface {
       },
       context: {
         containerId: this.containerId,
+        imageId: this.imageId,
         agentId: this.agentId,
         sessionId: this.session.sessionId,
       },
@@ -236,6 +243,7 @@ export class RuntimeAgent implements RuntimeAgentInterface {
       },
       context: {
         containerId: this.containerId,
+        imageId: this.imageId,
         agentId: this.agentId,
         sessionId: this.session.sessionId,
       },
@@ -261,6 +269,7 @@ export class RuntimeAgent implements RuntimeAgentInterface {
         },
         context: {
           containerId: this.containerId,
+          imageId: this.imageId,
           agentId: this.agentId,
           sessionId: this.session.sessionId,
         },

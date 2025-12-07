@@ -153,6 +153,7 @@ export class RuntimeContainer implements Container {
     // Create RuntimeAgent
     const agent = new RuntimeAgent({
       agentId,
+      imageId: image.imageId,
       containerId: this.containerId,
       config: {
         name: image.name,
