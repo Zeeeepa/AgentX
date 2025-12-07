@@ -20,6 +20,7 @@ import { Save, Smile, Paperclip, FolderOpen } from "lucide-react";
 import { MessagePane, InputPane, type MessagePaneItem, type ToolBarItem } from "~/components/pane";
 import { useAgent, type UIMessage } from "~/hooks";
 import { cn } from "~/utils";
+import { ChatHeader } from "./ChatHeader";
 
 export interface ChatProps {
   /**
@@ -30,6 +31,10 @@ export interface ChatProps {
    * Current agent ID to chat with
    */
   agentId: string | null;
+  /**
+   * Agent name to display in header
+   */
+  agentName?: string;
   /**
    * Callback when save button is clicked
    */
@@ -75,6 +80,7 @@ function toMessagePaneItem(msg: UIMessage): MessagePaneItem {
 export function Chat({
   agentx,
   agentId,
+  agentName,
   onSave,
   showSaveButton = true,
   placeholder = "Type a message...",
@@ -144,6 +150,13 @@ export function Chat({
 
   return (
     <div className={cn("flex flex-col h-full bg-background", className)}>
+      {/* Header */}
+      <ChatHeader
+        agentName={agentName}
+        status={status}
+        messageCount={messages.length}
+      />
+
       {/* Message area */}
       <div style={{ height: messageHeight }} className="min-h-0">
         <MessagePane

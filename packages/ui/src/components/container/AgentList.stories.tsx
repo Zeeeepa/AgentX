@@ -28,7 +28,7 @@ const ConnectedWrapper = () => {
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [currentAgentId, setCurrentAgentId] = React.useState<string | null>(null);
 
-  const handleSelect = (agentId: string, imageId: string) => {
+  const handleSelect = (agentId: string, imageId: string | null) => {
     setCurrentAgentId(agentId);
     setSelectedId(imageId);
     console.log("Selected:", { agentId, imageId });

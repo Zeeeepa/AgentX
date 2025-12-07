@@ -51,3 +51,10 @@ export {
   type UseImagesResult,
   type UseImagesOptions,
 } from "./useImages";
+
+export {
+  useAgents,
+  type UseAgentsResult,
+  type UseAgentsOptions,
+  type AgentRecord,
+} from "./useAgents";

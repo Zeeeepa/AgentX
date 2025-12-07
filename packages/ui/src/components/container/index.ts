@@ -25,3 +25,7 @@ export type { AgentListProps } from "./AgentList";
 // Chat - Chat interface
 export { Chat } from "./Chat";
 export type { ChatProps } from "./Chat";
+
+// ChatHeader - Chat header component
+export { ChatHeader } from "./ChatHeader";
+export type { ChatHeaderProps } from "./ChatHeader";

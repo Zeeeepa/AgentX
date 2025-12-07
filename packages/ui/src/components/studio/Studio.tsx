@@ -84,28 +84,38 @@ export function Studio({
   // State
   const [currentAgentId, setCurrentAgentId] = React.useState<string | null>(null);
   const [currentImageId, setCurrentImageId] = React.useState<string | null>(null);
+  const [currentAgentName, setCurrentAgentName] = React.useState<string | undefined>(undefined);
 
   // Toast state
   const { toasts, showToast, dismissToast } = useToast();
 
   // Images hook for snapshotting
-  const { snapshotAgent, refresh: refreshImages } = useImages(agentx, {
+  const { images, snapshotAgent, refresh: refreshImages } = useImages(agentx, {
     autoLoad: false,
   });
 
   // Handle selecting a conversation
   const handleSelect = React.useCallback(
-    (agentId: string, imageId: string) => {
+    (agentId: string, imageId: string | null) => {
       setCurrentAgentId(agentId);
       setCurrentImageId(imageId);
+
+      // Set agent name based on image
+      if (imageId) {
+        const image = images.find((img) => img.imageId === imageId);
+        setCurrentAgentName(image?.name || "Conversation");
+      } else {
+        setCurrentAgentName("New Conversation");
+      }
     },
-    []
+    [images]
   );
 
   // Handle creating a new conversation
   const handleNew = React.useCallback((agentId: string) => {
     setCurrentAgentId(agentId);
     setCurrentImageId(null);
+    setCurrentAgentName("New Conversation");
   }, []);
 
   // Handle saving current conversation
@@ -164,6 +174,7 @@ export function Studio({
         <Chat
           agentx={agentx}
           agentId={currentAgentId}
+          agentName={currentAgentName}
           onSave={handleSave}
           showSaveButton={showSaveButton}
           inputHeightRatio={inputHeightRatio}
