@@ -77,10 +77,10 @@ jobs:
             fi
           done
 
-  # Build Docker images in parallel using matrix
+  # Build Docker images in parallel using native runners (no QEMU)
   build-docker:
     name: Build Docker (${{ matrix.platform }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     needs: publish-npm
     permissions:
       contents: read
@@ -89,14 +89,13 @@ jobs:
         include:
           - platform: linux/amd64
             suffix: amd64
+            runner: ubuntu-latest
           - platform: linux/arm64
             suffix: arm64
+            runner: ubuntu-24.04-arm
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
