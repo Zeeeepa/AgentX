@@ -77,15 +77,26 @@ jobs:
             fi
           done
 
-  publish-docker:
-    name: Build and Push Docker Images
+  # Build Docker images in parallel using matrix
+  build-docker:
+    name: Build Docker (${{ matrix.platform }})
     runs-on: ubuntu-latest
-    needs: publish-npm # Wait for NPM packages to be published
+    needs: publish-npm
     permissions:
       contents: read
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            suffix: amd64
+          - platform: linux/arm64
+            suffix: arm64
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -104,50 +115,88 @@ jobs:
           else
             VERSION=${{ github.event.inputs.tag }}
           fi
-          # Remove 'v' prefix if exists
           VERSION=${VERSION#v}
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Wait for NPM Package Availability
         run: |
           echo "Waiting for @agentxjs/portagent to be available on NPM..."
-          for i in {1..12}; do
+          for i in {1..6}; do
             if npm view @agentxjs/portagent@latest version &>/dev/null; then
               echo "Package is available!"
               exit 0
             fi
-            echo "Attempt $i/12: Package not yet available, waiting 10 seconds..."
+            echo "Attempt $i/6: Package not yet available, waiting 10 seconds..."
             sleep 10
           done
-          echo "Warning: Package still not available after 2 minutes, proceeding anyway..."
+          echo "Warning: Package still not available after 1 minute, proceeding anyway..."
 
-      - name: Build and Push Portagent Image to Docker Hub
+      - name: Build and Push Platform Image
         uses: docker/build-push-action@v5
         with:
           context: ./apps/portagent
           file: ./apps/portagent/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           push: true
           tags: |
-            deepracticexs/portagent:latest
-            deepracticexs/portagent:${{ steps.version.outputs.version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            deepracticexs/portagent:${{ steps.version.outputs.version }}-${{ matrix.suffix }}
+          cache-from: type=gha,scope=${{ matrix.suffix }}
+          cache-to: type=gha,scope=${{ matrix.suffix }},mode=max
+
+  # Merge platform images into multi-arch manifest
+  merge-docker:
+    name: Create Multi-arch Manifest
+    runs-on: ubuntu-latest
+    needs: build-docker
+    permissions:
+      contents: read
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Extract Version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION=${{ github.event.release.tag_name }}
+          else
+            VERSION=${{ github.event.inputs.tag }}
+          fi
+          VERSION=${VERSION#v}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Create and Push Multi-arch Manifest
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+
+          # Create versioned manifest
+          docker buildx imagetools create -t deepracticexs/portagent:${VERSION} \
+            deepracticexs/portagent:${VERSION}-amd64 \
+            deepracticexs/portagent:${VERSION}-arm64
+
+          # Create latest manifest
+          docker buildx imagetools create -t deepracticexs/portagent:latest \
+            deepracticexs/portagent:${VERSION}-amd64 \
+            deepracticexs/portagent:${VERSION}-arm64
 
       - name: Summary
         run: |
+          VERSION=${{ steps.version.outputs.version }}
           echo "## ✅ Docker Images Published" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Version:** \`${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${VERSION}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Docker Hub" >> $GITHUB_STEP_SUMMARY
+          echo "### Docker Hub (Multi-arch: amd64 + arm64)" >> $GITHUB_STEP_SUMMARY
           echo "- \`deepracticexs/portagent:latest\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`deepracticexs/portagent:${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`deepracticexs/portagent:${VERSION}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Usage" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-          echo "docker pull deepracticexs/portagent:${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull deepracticexs/portagent:${VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "docker run -d -p 5200:5200 \\" >> $GITHUB_STEP_SUMMARY
           echo "  -e LLM_PROVIDER_KEY=your_api_key \\" >> $GITHUB_STEP_SUMMARY
-          echo "  deepracticexs/portagent:${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "  deepracticexs/portagent:${VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
