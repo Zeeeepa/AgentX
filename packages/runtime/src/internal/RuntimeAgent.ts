@@ -303,6 +303,7 @@ export class RuntimeAgent implements RuntimeAgentInterface {
       baseUrl: config.llmConfig.baseUrl,
       model: config.llmConfig.model,
       systemPrompt: config.config.systemPrompt,
+      cwd: config.sandbox.workdir.path,
       resumeSessionId,
       onSessionIdCaptured: (sdkSessionId) => {
         // Persist sdkSessionId to image metadata for future resume
@@ -317,6 +318,7 @@ export class RuntimeAgent implements RuntimeAgentInterface {
     logger.info("ClaudeEnvironment created for agent", {
       agentId: this.agentId,
       imageId: this.imageId,
+      cwd: config.sandbox.workdir.path,
       resumeSessionId: resumeSessionId ?? "none",
       isResume: !!resumeSessionId,
       imageMetadata: config.image.metadata,
