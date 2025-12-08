@@ -89,13 +89,13 @@ jobs:
       - name: Commit Version Changes
         run: |
           git add .
-          git commit -m "chore: version packages for ${{ steps.version.outputs.version }}" || echo "No changes to commit"
+          git commit --no-verify -m "chore: version packages for ${{ steps.version.outputs.version }}" || echo "No changes to commit"
 
       - name: Push Release Branch
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          git push origin ${{ steps.version.outputs.branch }}
+          git push --no-verify origin ${{ steps.version.outputs.branch }}
 
       - name: Create Release PR
         env:
