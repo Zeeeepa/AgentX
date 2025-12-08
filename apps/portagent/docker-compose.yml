@@ -1,43 +1,27 @@
 # Portagent Docker Compose
-# Usage:
-#   1. Edit environment variables below (at minimum: LLM_PROVIDER_KEY)
-#   2. Run: docker compose up -d
-#   3. Access: http://localhost:5200
 
 services:
   portagent:
     image: deepracticexs/portagent:latest
-    # Or build locally:
-    # build: .
     container_name: portagent
     restart: unless-stopped
     ports:
       - "5200:5200"
     environment:
-      # Required
-      - LLM_PROVIDER_KEY=sk-ant-xxxxx
-
-      # Optional - LLM Configuration
-      - LLM_PROVIDER_URL=https://api.anthropic.com
-      - LLM_PROVIDER_MODEL=claude-sonnet-4-20250514
-
-      # Optional - Server Configuration
+      - LLM_PROVIDER_KEY=${LLM_PROVIDER_KEY}
+      - LLM_PROVIDER_URL=${LLM_PROVIDER_URL:-https://api.anthropic.com}
+      - LLM_PROVIDER_MODEL=${LLM_PROVIDER_MODEL:-claude-sonnet-4-20250514}
       - NODE_ENV=production
       - PORT=5200
-      - LOG_LEVEL=info
-
-      # Optional - Auth Configuration
-      - JWT_SECRET=change-me-to-a-random-string
-      - INVITE_CODE_REQUIRED=true
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - JWT_SECRET=${JWT_SECRET}
+      - INVITE_CODE_REQUIRED=${INVITE_CODE_REQUIRED:-true}
+      - DATA_DIR=/data
     volumes:
-      # Persist database
-      - portagent-data:/root/.agentx/data
+      - ./data:/data
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5200/health"]
       interval: 30s
       timeout: 10s
       start_period: 5s
       retries: 3
-
-volumes:
-  portagent-data:
