@@ -30,7 +30,19 @@
 
 ## 🚀 Quick Start
 
-Run your AI Agent gateway in one command:
+### Option 1: npx (One-liner)
+
+Quick try with Node.js 20+:
+
+```bash
+LLM_PROVIDER_KEY=sk-ant-xxxxx \
+LLM_PROVIDER_URL=https://api.anthropic.com \
+npx @agentxjs/portagent
+```
+
+### Option 2: Docker (Recommended for Production)
+
+Stable, no compilation required:
 
 ```bash
 docker run -d \
@@ -38,7 +50,7 @@ docker run -d \
   -p 5200:5200 \
   -e LLM_PROVIDER_KEY=sk-ant-xxxxx \
   -e LLM_PROVIDER_URL=https://api.anthropic.com \
-  -v ./data:/home/agentx/.agentx \
+  -v ./data:/home/node/.agentx \
   deepracticexs/portagent:latest
 ```
 

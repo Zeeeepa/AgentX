@@ -15,14 +15,27 @@ Portagent is a multi-user AI Agent gateway powered by [AgentX](https://github.co
 
 ## Quick Start
 
-### Using Docker (Recommended)
+### Using npx (Quick Try)
+
+One-liner to start, requires Node.js 20+:
+
+```bash
+LLM_PROVIDER_KEY=sk-ant-xxxxx \
+LLM_PROVIDER_URL=https://api.anthropic.com \
+npx @agentxjs/portagent
+```
+
+Then open <http://localhost:5200> in your browser.
+
+### Using Docker (Recommended for Production)
 
 ```bash
 docker run -d \
   --name portagent \
   -p 5200:5200 \
   -e LLM_PROVIDER_KEY=sk-ant-xxxxx \
-  -v ./data:/home/agentx/.agentx \
+  -e LLM_PROVIDER_URL=https://api.anthropic.com \
+  -v ./data:/home/node/.agentx \
   deepracticexs/portagent:latest
 ```
 
@@ -55,7 +68,7 @@ services:
       - INVITE_CODE_REQUIRED=${INVITE_CODE_REQUIRED:-false}
       - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
-      - ./data:/home/agentx/.agentx
+      - ./data:/home/node/.agentx
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5200/health"]
       interval: 30s
@@ -76,8 +89,9 @@ docker compose up -d
 # Install globally
 npm install -g @agentxjs/portagent
 
-# Run with required API key
+# Run with required environment variables
 export LLM_PROVIDER_KEY=sk-ant-xxxxx
+export LLM_PROVIDER_URL=https://api.anthropic.com
 portagent
 ```
 
@@ -259,7 +273,7 @@ services:
       - INVITE_CODE_REQUIRED=true # Enable for production
       - LOG_LEVEL=info
     volumes:
-      - ./data:/home/agentx/.agentx # Persist data
+      - ./data:/home/node/.agentx # Persist data
     ports:
       - "5200:5200"
 ```
@@ -270,7 +284,7 @@ services:
 2. **JWT Secret**: Use a strong, random secret and keep it consistent across restarts
 3. **Invite Codes**: Enable invite codes in production to control access
 4. **HTTPS**: Use a reverse proxy (nginx, Caddy) with TLS in production
-5. **Volume Permissions**: The container runs as non-root user (uid 1001)
+5. **Volume Permissions**: The container runs as non-root user `node`
 
 ### Reverse Proxy (nginx example)
 
@@ -309,11 +323,11 @@ server {
 
 ### Permission denied errors
 
-- Docker container runs as user `agentx` (uid 1001)
+- Docker container runs as user `node`
 - Ensure mounted volumes have correct permissions:
 
 ```bash
-sudo chown -R 1001:1001 ./data
+sudo chown -R $(id -u):$(id -g) ./data
 ```
 
 ### WebSocket connection fails
@@ -331,7 +345,7 @@ docker logs portagent
 docker logs -f portagent
 
 # Log files inside container
-docker exec portagent cat /home/agentx/.agentx/logs/portagent.log
+docker exec portagent cat /home/node/.agentx/logs/portagent.log
 ```
 
 ## Development

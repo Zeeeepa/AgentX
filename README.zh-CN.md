@@ -30,7 +30,19 @@
 
 ## 🚀 快速开始
 
-一键运行 AI Agent 网关：
+### 方式一：npx（一键启动）
+
+需要 Node.js 20+：
+
+```bash
+LLM_PROVIDER_KEY=sk-ant-xxxxx \
+LLM_PROVIDER_URL=https://api.anthropic.com \
+npx @agentxjs/portagent
+```
+
+### 方式二：Docker（生产环境推荐）
+
+无需编译，开箱即用：
 
 ```bash
 docker run -d \
@@ -38,7 +50,7 @@ docker run -d \
   -p 5200:5200 \
   -e LLM_PROVIDER_KEY=sk-ant-xxxxx \
   -e LLM_PROVIDER_URL=https://api.anthropic.com \
-  -v ./data:/home/agentx/.agentx \
+  -v ./data:/home/node/.agentx \
   deepracticexs/portagent:latest
 ```
 
