@@ -1,5 +1,14 @@
 # agentxjs
 
+## 1.1.3
+
+### Patch Changes
+
+- Updated dependencies [2068a66]
+  - @agentxjs/network@1.1.3
+  - @agentxjs/types@1.1.3
+  - @agentxjs/common@1.1.3
+
 ## 1.1.2
 
 ## 1.1.1

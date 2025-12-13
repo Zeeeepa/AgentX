@@ -1,5 +1,13 @@
 # @agentxjs/network
 
+## 1.1.3
+
+### Patch Changes
+
+- 2068a66: Fix workspace: protocol in published packages
+  - @agentxjs/types@1.1.3
+  - @agentxjs/common@1.1.3
+
 ## 0.2.0
 
 ### Minor Changes

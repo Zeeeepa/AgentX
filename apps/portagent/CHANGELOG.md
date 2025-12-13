@@ -1,5 +1,13 @@
 # @agentxjs/portagent
 
+## 1.1.3
+
+### Patch Changes
+
+- agentxjs@1.1.3
+- @agentxjs/runtime@1.1.3
+- @agentxjs/ui@1.1.3
+
 ## 1.1.2
 
 ### Patch Changes
