@@ -20,7 +20,7 @@
 
 import * as React from "react";
 import type { AgentX } from "agentxjs";
-import { Save, Smile, Paperclip, FolderOpen } from "lucide-react";
+import { Save, Smile, FolderOpen } from "lucide-react";
 import { MessagePane, InputPane, type ToolBarItem } from "~/components/pane";
 import { UserEntry, AssistantEntry, ErrorEntry } from "~/components/entry";
 import { useAgent, type ConversationData } from "~/hooks";
@@ -135,11 +135,56 @@ export function Chat({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isLoading, interrupt]);
 
+  // Full-area drag & drop state
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [droppedFiles, setDroppedFiles] = React.useState<File[] | undefined>(undefined);
+  const dragCounterRef = React.useRef(0);
+
+  // Handle drag events for full-area drop zone
+  const handleDragEnter = React.useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current++;
+    if (e.dataTransfer?.types.includes("Files")) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragLeave = React.useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = React.useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = React.useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current = 0;
+    setIsDragging(false);
+
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      setDroppedFiles(Array.from(files));
+    }
+  }, []);
+
+  // Clear dropped files after they've been processed by InputPane
+  const handleDroppedFilesProcessed = React.useCallback(() => {
+    setDroppedFiles(undefined);
+  }, []);
+
   // Toolbar items
   const toolbarItems: ToolBarItem[] = React.useMemo(
     () => [
       { id: "emoji", icon: <Smile className="w-4 h-4" />, label: "Emoji" },
-      { id: "attach", icon: <Paperclip className="w-4 h-4" />, label: "Attach" },
       { id: "folder", icon: <FolderOpen className="w-4 h-4" />, label: "File" },
     ],
     []
@@ -178,7 +223,13 @@ export function Chat({
   }
 
   return (
-    <div className={cn("flex flex-col h-full bg-background", className)}>
+    <div
+      className={cn("flex flex-col h-full bg-background relative", className)}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       {/* Header */}
       <ChatHeader agentName={agentName} status={status} messageCount={conversations.length} />
 
@@ -194,15 +245,42 @@ export function Chat({
       {/* Input area */}
       <div style={{ height: inputHeight }} className="min-h-0">
         <InputPane
-          onSend={send}
+          onSend={(content) => {
+            // Pass content directly - useAgent now supports multimodal
+            send(content);
+          }}
           onStop={interrupt}
           isLoading={isLoading}
           placeholder={placeholder}
           toolbarItems={toolbarItems}
           toolbarRightItems={toolbarRightItems}
           onToolbarItemClick={handleToolbarClick}
+          droppedFiles={droppedFiles}
+          onDroppedFilesProcessed={handleDroppedFilesProcessed}
         />
       </div>
+
+      {/* Full-area drop overlay - dark mask style */}
+      {isDragging && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 pointer-events-none">
+          <div className="w-20 h-20 mb-4 rounded-2xl bg-primary flex items-center justify-center">
+            <svg
+              className="w-10 h-10 text-primary-foreground"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+              />
+            </svg>
+          </div>
+          <p className="text-white text-lg">Drop to send</p>
+        </div>
+      )}
     </div>
   );
 }
