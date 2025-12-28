@@ -26,11 +26,6 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Setup pnpm (for publishing)
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
       - name: Setup Node.js (for npm publish)
         uses: actions/setup-node@v4
         with:
@@ -43,9 +38,24 @@ jobs:
       - name: Build Packages
         run: bun run turbo build --filter='!@agentx/dev-storybook'
 
+      - name: Replace workspace protocol
+        run: |
+          # Get version from packages/types (all packages use same version via changeset fixed)
+          VERSION=$(jq -r '.version' packages/types/package.json)
+          echo "Replacing workspace:* with ^${VERSION}"
+
+          # Replace workspace:* in all package.json files
+          find packages apps -name "package.json" -type f -exec sed -i 's/"workspace:\*"/"^'"${VERSION}"'"/g' {} \;
+
+          # Verify no workspace:* remains
+          if grep -r '"workspace:' packages/ apps/ --include="package.json" 2>/dev/null; then
+            echo "ERROR: workspace: protocol still found!"
+            exit 1
+          fi
+          echo "✅ All workspace:* replaced with ^${VERSION}"
+
       - name: Publish packages to NPM
         run: |
-          # pnpm publish automatically resolves workspace:* to actual versions
           # Publish public packages in dependency order
           PACKAGES=(
             "packages/types"
@@ -65,7 +75,7 @@ jobs:
               if [ "$PRIVATE" != "true" ]; then
                 echo "Publishing $NAME..."
                 cd "$pkg"
-                pnpm publish --access public --no-git-checks || echo "Failed to publish $NAME (may already exist)"
+                npm publish --access public || echo "Failed to publish $NAME (may already exist)"
                 cd -
               else
                 echo "Skipping private package: $NAME"
