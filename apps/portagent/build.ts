@@ -150,13 +150,16 @@ async function buildBinaries() {
     console.error(`   ❌ Failed to copy Claude Code:`, error.message);
   }
 
-  // Create CLI wrapper script
+  // Create CLI wrapper script (ESM)
   console.log("\n📦 Creating CLI wrapper...");
   await writeFile(
     join(outdir, "cli.js"),
     `#!/usr/bin/env node
-const { execFileSync } = require("child_process");
-const { join } = require("path");
+import { execFileSync } from "child_process";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const BINARIES = {
   "darwin-arm64": "portagent-darwin-arm64",
@@ -189,28 +192,6 @@ try {
 `
   );
 
-  // Create package.json for npm publish
-  await writeFile(
-    join(outdir, "package.json"),
-    JSON.stringify(
-      {
-        name: "@agentxjs/portagent",
-        version: VERSION,
-        description: "Portagent - AgentX Portal Application",
-        license: "MIT",
-        repository: {
-          type: "git",
-          url: "https://github.com/Deepractice/AgentX.git",
-        },
-        bin: { portagent: "cli.js" },
-        files: ["cli.js", "bin", "public", "claude-code"],
-        publishConfig: { access: "public" },
-      },
-      null,
-      2
-    )
-  );
-
   // Copy README
   try {
     await cp("./README.md", join(outdir, "README.md"));
@@ -240,8 +221,8 @@ try {
   console.log(`\n✅ Package ready in ${outdir}/`);
   console.log("\nTo test locally:");
   console.log(`  node ${outdir}/cli.js --help`);
-  console.log("\nTo publish:");
-  console.log(`  cd ${outdir} && npm publish`);
+  console.log("\nTo publish (via changesets):");
+  console.log(`  bunx changeset && git commit && push`);
 }
 
 // Main - Always build binaries (portagent is an app, not a library)

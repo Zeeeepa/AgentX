@@ -10,19 +10,16 @@
   "homepage": "https://github.com/Deepractice/AgentX",
   "type": "module",
   "bin": {
-    "portagent": "./bin/portagent.js"
+    "portagent": "./dist/cli.js"
   },
-  "main": "./dist/server/index.js",
   "files": [
-    "dist",
-    "bin",
-    "LICENSE",
-    "README.md"
+    "dist"
   ],
   "scripts": {
     "dev:client": "vite",
     "build": "bun run build.ts",
-    "start": "node dist/cli/index.js",
+    "start": "node dist/cli.js",
+    "prepublishOnly": "bun run build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "clean": "rm -rf dist"
