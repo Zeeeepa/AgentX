@@ -36,6 +36,22 @@ jobs:
       - name: Build Packages
         run: bun run build
 
+      - name: Replace workspace protocol
+        run: |
+          # Get version from types package (all packages use same version via fixed mode)
+          VERSION=$(jq -r '.version' packages/types/package.json)
+          echo "Replacing workspace:* with ^${VERSION}"
+
+          # Replace workspace:* in all package.json files
+          find packages apps -name "package.json" -type f -exec sed -i 's/"workspace:\*"/"^'"${VERSION}"'"/g' {} \;
+
+          # Verify no workspace:* remains
+          if grep -r '"workspace:' packages/ apps/ --include="package.json" 2>/dev/null; then
+            echo "ERROR: workspace: protocol still found!"
+            exit 1
+          fi
+          echo "✅ All workspace:* replaced with ^${VERSION}"
+
       - name: Create Release Pull Request or Publish
         id: changesets
         uses: changesets/action@v1
