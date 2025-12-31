@@ -35,10 +35,9 @@ const BINARY_EXTERNALS = [
   "@planetscale/database",
   "@libsql/client",
   "better-sqlite3",
-  // Unstorage optional drivers
+  // Unstorage optional drivers (NOT db0 - it's required for SQLite)
   "unstorage/drivers/redis",
   "unstorage/drivers/mongodb",
-  "unstorage/drivers/db0",
 ];
 
 async function buildFrontend() {
