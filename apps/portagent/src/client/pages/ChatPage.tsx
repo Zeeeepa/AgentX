@@ -107,7 +107,10 @@ export function ChatPage() {
         // Construct WebSocket URL
         // In dev: connect directly to backend (Vite WS proxy has bugs in v6/v7)
         // In prod: same origin
-        const wsHost = import.meta.env.DEV ? "localhost:5200" : window.location.host;
+        // Note: Use import.meta.hot to detect Vite dev server, not import.meta.env.DEV
+        // because Bun doesn't statically replace import.meta.env.DEV at build time
+        const isViteDev = !!import.meta.hot;
+        const wsHost = isViteDev ? "localhost:5200" : window.location.host;
         const wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${wsHost}${info.wsPath || "/ws"}`;
 
         // Create AgentX instance in remote mode (WebSocket)
