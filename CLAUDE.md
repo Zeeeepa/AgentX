@@ -14,13 +14,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 │   └── portagent/        # Web UI with auth (Hono + Vite + React)
 ├── packages/
 │   ├── types/            # @agentxjs/types - Type definitions (zero deps)
-│   ├── common/           # @agentxjs/common - Logger facade
+│   ├── common/           # @agentxjs/common - Logger, SQLite, Path utilities
 │   ├── persistence/      # @agentxjs/persistence - Storage layer (SQLite, Redis, etc.)
-│   ├── network/          # @agentxjs/network - WebSocket server
+│   ├── queue/            # @agentxjs/queue - Event queue with RxJS + SQLite
+│   ├── network/          # @agentxjs/network - WebSocket with reliable delivery (ACK)
 │   ├── agent/            # @agentxjs/agent - Agent lifecycle and event management
 │   ├── agentx/           # agentxjs - Platform API (unified entry point)
 │   ├── runtime/          # @agentxjs/runtime - Claude driver, SystemBus
 │   └── ui/               # @agentxjs/ui - React components (pure UI, no server deps)
+├── bdd/                  # BDD tests (Cucumber)
 └── dev/
     ├── server/           # Shared dev server (WebSocket, Agent runtime)
     └── storybook/        # @agentx/dev-storybook - UI component development
@@ -54,6 +56,39 @@ bun dev --help        # Show all available services
 # Single package commands
 bun --filter @agentxjs/agent test            # Run tests for one package
 bun --filter @agentxjs/agent test:watch      # Watch mode
+
+# BDD tests
+cd bdd && bun test                           # Run all BDD tests
+cd bdd && bun test --tags @bug               # Run bug reproduction tests
+```
+
+## Bug-Driven Testing
+
+When fixing bugs, follow the **Bug-First Testing** workflow:
+
+1. **Reproduce in BDD**: Create a `.feature` file in `bdd/features/bugs/` to reproduce the bug
+2. **Tag with @bug @wip**: Mark as work-in-progress bug test
+3. **Run and verify failure**: Ensure the test fails as expected
+4. **Fix the code**: Implement the fix
+5. **Verify test passes**: Run the bug test to confirm fix
+6. **Promote if valuable**: Move to appropriate feature directory (e.g., `reliability/`, `conversation/`)
+
+```bash
+# Bug reproduction workflow
+cd bdd
+bun test --tags "@bug and @wip"              # Run WIP bug tests only
+bun test --tags @bug                         # Run all bug tests
+```
+
+**Directory structure**:
+
+```text
+bdd/features/
+├── bugs/                 # Bug reproduction tests (@bug tag)
+│   └── *.feature         # Individual bug scenarios
+├── reliability/          # Reliability tests (reconnect, delivery)
+├── conversation/         # Conversation flow tests
+└── agentx/               # AgentX API tests
 ```
 
 ## Core Architecture
@@ -189,6 +224,124 @@ logger.info("Agent created", { agentId });
 ```
 
 Exceptions: Storybook stories, test files, build scripts.
+
+### Common Utilities
+
+Always prefer using utilities from `@agentxjs/common` instead of writing custom implementations:
+
+#### SQLite (`@agentxjs/common/sqlite`)
+
+**DO NOT** use `db0` or other SQLite libraries. Use our native SQLite abstraction:
+
+```typescript
+import { openDatabase } from "@agentxjs/common/sqlite";
+
+const db = openDatabase("./data/app.db");
+db.exec("CREATE TABLE IF NOT EXISTS ...");
+db.prepare("INSERT INTO ...").run(params);
+const rows = db.prepare("SELECT * FROM ...").all();
+db.close();
+```
+
+**Features:**
+
+- Auto-detects runtime (Bun → `bun:sqlite`, Node.js 22+ → `node:sqlite`)
+- Auto-creates parent directories
+- Zero external dependencies
+
+#### Path Utilities (`@agentxjs/common/path`)
+
+**DO NOT** use `import.meta.dir` directly (Node.js incompatible). Use path utilities:
+
+```typescript
+import {
+  getModuleDir,
+  getPackageRoot,
+  getMonorepoRoot,
+  resolveFromRoot,
+  resolveFromPackage,
+} from "@agentxjs/common/path";
+
+// Current module directory (cross-runtime __dirname)
+const __dirname = getModuleDir(import.meta);
+
+// Package root (e.g., /AgentX/packages/queue)
+const pkgRoot = getPackageRoot(import.meta);
+
+// Monorepo root (e.g., /AgentX)
+const root = getMonorepoRoot(import.meta);
+
+// Resolve paths
+const dataDir = resolveFromRoot(import.meta, "data");
+const testFixtures = resolveFromPackage(import.meta, "tests", "fixtures");
+```
+
+**Use cases:**
+
+- BDD/integration tests need to locate test data
+- Build scripts need to find monorepo root
+- Packages need portable path resolution
+
+#### Queue (`@agentxjs/queue`)
+
+Event queue with in-memory pub/sub (RxJS) and SQLite persistence:
+
+```typescript
+import { createQueue } from "@agentxjs/queue";
+
+const queue = createQueue({ path: "./data/queue.db" });
+
+// Publish events (broadcasts + persists async)
+const cursor = queue.publish("session-123", event);
+
+// Subscribe to real-time events
+queue.subscribe("session-123", (entry) => {
+  console.log(entry.event);
+});
+
+// ACK after processing (update consumer position)
+await queue.ack(connectionId, "session-123", cursor);
+
+// Recover missed events on reconnection
+const lastCursor = await queue.getCursor(connectionId, "session-123");
+const missed = await queue.recover("session-123", lastCursor);
+```
+
+**Key points:**
+
+- In-memory = fast real-time delivery
+- SQLite = persistence guarantee for recovery
+- Decoupled from network protocol
+
+#### Network (`@agentxjs/network`)
+
+WebSocket with reliable message delivery:
+
+```typescript
+import { WebSocketServer } from "@agentxjs/network";
+
+const server = new WebSocketServer();
+await server.listen(5200);
+
+server.onConnection((connection) => {
+  // Reliable delivery with ACK
+  connection.sendReliable(JSON.stringify(event), {
+    onAck: () => {
+      console.log("Client confirmed receipt");
+      // Hook: persist data after ACK
+    },
+    timeout: 5000,
+    onTimeout: () => console.log("Client did not ACK"),
+  });
+});
+```
+
+**Key points:**
+
+- `sendReliable()` wraps message with `__msgId`
+- Client auto-sends `__ack`
+- Server triggers `onAck` callback
+- Use for at-least-once delivery guarantees
 
 ## Environment Variables
 

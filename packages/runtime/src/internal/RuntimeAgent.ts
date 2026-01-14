@@ -55,12 +55,14 @@ import type {
   Session,
   ImageRepository,
   ImageRecord,
+  EnvironmentFactory,
+  Environment,
 } from "@agentxjs/types/runtime/internal";
 import { createAgent } from "@agentxjs/agent";
-import { createLogger } from "@agentxjs/common";
+import { createLogger, generateRequestId } from "@agentxjs/common";
 import { BusDriver } from "./BusDriver";
 import { AgentInteractor } from "./AgentInteractor";
-import { ClaudeEnvironment } from "../environment";
+import { defaultEnvironmentFactory } from "../environment/DefaultEnvironmentFactory";
 
 const logger = createLogger("runtime/RuntimeAgent");
 
@@ -81,6 +83,8 @@ export interface RuntimeAgentConfig {
   image: ImageRecord;
   /** Image repository for persisting metadata */
   imageRepository: ImageRepository;
+  /** Optional environment factory for dependency injection */
+  environmentFactory?: EnvironmentFactory;
 }
 
 /**
@@ -126,7 +130,7 @@ class BusPresenter implements AgentPresenter {
     }
 
     // Build complete SystemEvent with full context
-    // All events from BusPresenter are broadcastable (including stream events for frontend)
+    // All events from BusPresenter are external (source: "agent") and will be enqueued
     const systemEvent: SystemEvent = {
       type: output.type,
       timestamp: output.timestamp,
@@ -144,12 +148,9 @@ class BusPresenter implements AgentPresenter {
 
     this.producer.emit(systemEvent);
 
-    // Persist Message layer events to session (except user_message)
-    if (category === "message") {
-      this.session.addMessage(data as Message).catch((err) => {
-        logger.error("Failed to persist message", { error: err, messageType: output.type });
-      });
-    }
+    // NOTE: Message persistence is now handled by Queue ACK callback
+    // in createLocalAgentX.ts, not here. This ensures messages are only
+    // persisted after client acknowledges receipt.
   }
 
   /**
@@ -219,7 +220,7 @@ export class RuntimeAgent implements RuntimeAgentInterface {
   private readonly driver: BusDriver;
   private readonly engine: AgentEngine;
   private readonly producer: SystemBusProducer;
-  private readonly environment: ClaudeEnvironment;
+  private readonly environment: Environment;
   private readonly imageRepository: ImageRepository;
   readonly session: Session;
   readonly config: AgentConfig;
@@ -236,15 +237,15 @@ export class RuntimeAgent implements RuntimeAgentInterface {
     this.config = config.config;
     this.imageRepository = config.imageRepository;
 
-    // Create this agent's own ClaudeEnvironment
+    // Create this agent's own Environment (using factory for DI support)
     // Resume using stored sdkSessionId if available
     // Read systemPrompt and mcpServers from ImageRecord (single source of truth)
     const resumeSessionId = config.image.metadata?.claudeSdkSessionId;
-    this.environment = new ClaudeEnvironment({
+    const factory = config.environmentFactory ?? defaultEnvironmentFactory;
+
+    this.environment = factory.create({
       agentId: this.agentId,
-      apiKey: config.llmConfig.apiKey,
-      baseUrl: config.llmConfig.baseUrl,
-      model: config.llmConfig.model,
+      llmConfig: config.llmConfig,
       systemPrompt: config.image.systemPrompt,
       cwd: config.sandbox.workdir.path,
       resumeSessionId,
@@ -259,8 +260,16 @@ export class RuntimeAgent implements RuntimeAgentInterface {
     this.environment.receptor.connect(config.bus.asProducer());
     this.environment.effector.connect(config.bus.asConsumer());
 
-    logger.info("ClaudeEnvironment created for agent", {
+    // Warmup environment (fire-and-forget to reduce first message latency)
+    if (this.environment.warmup) {
+      this.environment.warmup().catch((err) => {
+        logger.warn("Environment warmup failed (non-fatal)", { error: err, agentId: this.agentId });
+      });
+    }
+
+    logger.info("Environment created for agent", {
       agentId: this.agentId,
+      environmentName: this.environment.name,
       imageId: this.imageId,
       cwd: config.sandbox.workdir.path,
       resumeSessionId: resumeSessionId ?? "none",
@@ -361,7 +370,7 @@ export class RuntimeAgent implements RuntimeAgentInterface {
     // Use Interactor to handle user input
     // This will: build UserMessage, persist, emit to bus
     // BusDriver will receive DriveableEvents when Claude responds
-    await this.interactor.receive(content, requestId || `req_${Date.now()}`);
+    await this.interactor.receive(content, requestId || generateRequestId());
 
     logger.debug("RuntimeAgent.receive completed", { agentId: this.agentId });
   }

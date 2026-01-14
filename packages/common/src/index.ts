@@ -39,3 +39,9 @@ export {
   setLoggerFactory,
   createLogger,
 } from "./logger";
+
+// ID generation utilities
+export { generateRequestId, generateId } from "./id";
+
+// Note: SQLite abstraction is exported separately via "@agentxjs/common/sqlite"
+// to keep the main entry browser-compatible

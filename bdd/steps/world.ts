@@ -10,8 +10,11 @@ import type { SystemEvent } from "@agentxjs/types/event";
  * Custom World with AgentX context
  */
 export class AgentXWorld extends World {
-  // AgentX instance
+  // AgentX instance (server in local mode, client in remote mode)
   agentx?: AgentX;
+
+  // Server instance (for remote mode tests)
+  server?: AgentX;
 
   // Last response from request()
   lastResponse?: SystemEvent;
@@ -25,16 +28,50 @@ export class AgentXWorld extends World {
   // Server ports used in tests (for cleanup)
   usedPorts: number[] = [];
 
-  // Remote client instances
+  // Remote client instances (for multi-client tests)
   remoteClients: Map<string, AgentX> = new Map();
 
   // Created resources (for tracking)
   createdContainers: string[] = [];
-  createdAgents: Map<string, string> = new Map(); // agentId -> containerId
-  createdImages: Map<string, string> = new Map(); // alias -> imageId
+  createdImages: Map<string, string> = new Map(); // imageId -> containerId
+  savedValues: Map<string, string> = new Map(); // for saving response values
+
+  // Messages received (for reliability tests)
+  receivedMessages: Map<string, string[]> = new Map(); // clientId -> messages
+
+  // Connection state
+  isConnected = false;
+
+  // Mock environment factory (for @mock tests)
+  mockFactory?: any;
+
+  // Unique ID for this scenario (for data isolation)
+  scenarioId: string;
 
   constructor(options: IWorldOptions) {
     super(options);
+    // Generate unique ID per scenario
+    this.scenarioId = `test_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+  }
+
+  /**
+   * Create AgentX instance with mock environment
+   */
+  async createMockAgentX(): Promise<void> {
+    const { MockEnvironmentFactory } = await import("../mock");
+    this.mockFactory = new MockEnvironmentFactory();
+
+    const { createAgentX } = await import("agentxjs");
+    this.agentx = await createAgentX({
+      environmentFactory: this.mockFactory,
+    });
+  }
+
+  /**
+   * Change mock scenario
+   */
+  setMockScenario(name: string): void {
+    this.mockFactory?.setScenario(name);
   }
 
   /**
@@ -53,19 +90,27 @@ export class AgentXWorld extends World {
     }
     this.remoteClients.clear();
 
-    // Dispose main AgentX
+    // Dispose main AgentX (client)
     if (this.agentx) {
       await this.agentx.dispose();
       this.agentx = undefined;
+    }
+
+    // Dispose server
+    if (this.server) {
+      await this.server.dispose();
+      this.server = undefined;
     }
 
     // Clear state
     this.lastResponse = undefined;
     this.collectedEvents = [];
     this.createdContainers = [];
-    this.createdAgents.clear();
     this.createdImages.clear();
+    this.savedValues.clear();
+    this.receivedMessages.clear();
     this.usedPorts = [];
+    this.isConnected = false;
   }
 
   /**

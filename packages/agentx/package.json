@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "@agentxjs/persistence": "workspace:*",
+    "@agentxjs/queue": "workspace:*",
     "@agentxjs/runtime": "workspace:*"
   },
   "publishConfig": {

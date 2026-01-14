@@ -59,4 +59,17 @@ export interface Environment {
    * Effector - subscribes to SystemBus, acts on external world
    */
   readonly effector: Effector;
+
+  /**
+   * Warmup the environment (optional pre-initialization)
+   *
+   * Call this early to reduce latency for the first user message.
+   * Implementations should handle this gracefully if not supported.
+   */
+  warmup?(): Promise<void>;
+
+  /**
+   * Dispose environment resources
+   */
+  dispose(): void;
 }

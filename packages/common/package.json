@@ -24,6 +24,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./sqlite": {
+      "types": "./dist/sqlite/index.d.ts",
+      "default": "./dist/sqlite/index.js"
+    },
+    "./path": {
+      "types": "./dist/path/index.d.ts",
+      "default": "./dist/path/index.js"
     }
   },
   "files": [

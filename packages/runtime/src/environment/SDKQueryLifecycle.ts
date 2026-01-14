@@ -71,6 +71,7 @@ export class SDKQueryLifecycle {
   private claudeQuery: Query | null = null;
   private isInitialized = false;
   private abortController: AbortController | null = null;
+  private capturedSessionId: string | null = null;
 
   constructor(config: SDKQueryConfig, callbacks: SDKQueryCallbacks = {}) {
     this.config = config;
@@ -82,6 +83,20 @@ export class SDKQueryLifecycle {
    */
   get initialized(): boolean {
     return this.isInitialized;
+  }
+
+  /**
+   * Warmup the SDK query (pre-initialize)
+   *
+   * Call this early to start the SDK subprocess before the first message.
+   * This reduces latency for the first user message.
+   *
+   * @returns Promise that resolves when SDK is ready
+   */
+  async warmup(): Promise<void> {
+    logger.info("Warming up SDKQueryLifecycle");
+    await this.initialize();
+    logger.info("SDKQueryLifecycle warmup complete");
   }
 
   /**
@@ -214,8 +229,13 @@ export class SDKQueryLifecycle {
             sessionId: sdkMsg.session_id,
           });
 
-          // Capture session ID
-          if (sdkMsg.session_id && this.callbacks.onSessionIdCaptured) {
+          // Capture session ID (only once, on first occurrence)
+          if (
+            sdkMsg.session_id &&
+            this.callbacks.onSessionIdCaptured &&
+            this.capturedSessionId !== sdkMsg.session_id
+          ) {
+            this.capturedSessionId = sdkMsg.session_id;
             this.callbacks.onSessionIdCaptured(sdkMsg.session_id);
           }
 
