@@ -190,9 +190,11 @@ AgentX is in early development. We welcome your ideas, feedback, and feature req
 
 Part of the [Deepractice](https://github.com/Deepractice) AI Agent infrastructure:
 
-- **[PromptX](https://github.com/Deepractice/PromptX)** - AI Agent context management platform (DPML)
+- **[PromptX](https://github.com/Deepractice/PromptX)** - AI Agent context platform
 - **[ResourceX](https://github.com/Deepractice/ResourceX)** - Unified resource manager (ARP)
-- **[DARP](https://github.com/Deepractice/DARP)** - Agent Resource Protocol specification
+- **[ToolX](https://github.com/Deepractice/ToolX)** - Tool integration
+- **[UIX](https://github.com/Deepractice/UIX)** - AI-to-UI protocol layer
+- **[SandboX](https://github.com/Deepractice/SandboX)** - Agent sandbox
 
 ### 📞 Connect
 
