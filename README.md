@@ -188,12 +188,11 @@ AgentX is in early development. We welcome your ideas, feedback, and feature req
 
 ### 🌐 Ecosystem
 
-Part of the Deepractice AI development ecosystem:
+Part of the [Deepractice](https://github.com/Deepractice) AI Agent infrastructure:
 
-- **[PromptX](https://github.com/Deepractice/PromptX)** - Prompt engineering and management framework
-- **[DPML](https://github.com/Deepractice/dpml)** - Deepractice Markup Language for AI workflows
-- **[DARP](https://github.com/Deepractice/DARP)** - Deepractice Agent Runtime Protocol
-- **[Lucid-UI](https://github.com/Deepractice/Lucid-UI)** - AI-powered UI component library
+- **[PromptX](https://github.com/Deepractice/PromptX)** - AI Agent context management platform (DPML)
+- **[ResourceX](https://github.com/Deepractice/ResourceX)** - Unified resource manager (ARP)
+- **[DARP](https://github.com/Deepractice/DARP)** - Agent Resource Protocol specification
 
 ### 📞 Connect
 
