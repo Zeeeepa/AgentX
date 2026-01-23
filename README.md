@@ -130,7 +130,40 @@ function App() {
 }
 ```
 
-👉 **[Full AgentX Documentation](./docs/README.md)** - Architecture, API reference, guides, and examples
+### 📚 Documentation
+
+- **[Getting Started](./docs/getting-started/)**
+  - [Installation](./docs/getting-started/installation.md)
+  - [Quick Start](./docs/getting-started/quickstart.md)
+  - [First Agent](./docs/getting-started/first-agent.md)
+- **[Core Concepts](./docs/concepts/)**
+  - [Architecture Overview](./docs/concepts/overview.md)
+  - [Event System](./docs/concepts/event-system.md)
+  - [Lifecycle](./docs/concepts/lifecycle.md)
+  - [Mealy Machine](./docs/concepts/mealy-machine.md)
+- **[Guides](./docs/guides/)**
+  - [Event Subscription](./docs/guides/events.md)
+  - [Session Management](./docs/guides/sessions.md)
+  - [Persistence](./docs/guides/persistence.md)
+  - [MCP Tools](./docs/guides/tools.md)
+- **[API Reference](./docs/api/)**
+  - [AgentX API](./docs/api/agentx.md)
+  - [Runtime API](./docs/api/runtime.md)
+  - [Agent API](./docs/api/agent.md)
+  - [Event Types](./docs/api/events.md)
+- **[Packages](./docs/packages/)**
+  - [@agentxjs/types](./docs/packages/types.md)
+  - [@agentxjs/common](./docs/packages/common.md)
+  - [@agentxjs/agent](./docs/packages/agent.md)
+  - [@agentxjs/runtime](./docs/packages/runtime.md)
+  - [agentxjs](./docs/packages/agentx.md)
+  - [@agentxjs/ui](./docs/packages/ui.md)
+- **[Examples](./docs/examples/)**
+  - [CLI Chat](./docs/examples/chat-cli.md)
+  - [Web Chat](./docs/examples/chat-web.md)
+  - [Tool Usage](./docs/examples/tool-use.md)
+
+👉 **[Full Documentation](./docs/README.md)** - Learning paths and more
 
 ---
 
