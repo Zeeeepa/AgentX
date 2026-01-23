@@ -5,9 +5,10 @@ WebSocket communication layer for AgentX with reliable message delivery.
 ## Features
 
 - **Reliable Message Delivery** - ACK-based confirmation with timeout handling
-- **Cross-Platform Client** - Node.js and Browser support with auto-reconnect
+- **Cross-Platform Client** - Node.js and Browser support with environment auto-detection
+- **Auto-Reconnect** - Browser client with exponential backoff reconnection
 - **Heartbeat** - Connection health monitoring via ping/pong
-- **Modular Design** - Separate protocol, server, and client modules
+- **Custom Headers** - Authentication support (handshake in Node.js, first message in Browser)
 
 ## Installation
 
@@ -45,13 +46,15 @@ server.onConnection((connection) => {
 await server.listen(5200);
 ```
 
-### Client (Node.js)
+### Client
 
 ```typescript
 import { createWebSocketClient } from "@agentxjs/network";
 
+// Factory auto-detects environment (Node.js or Browser)
 const client = await createWebSocketClient({
   serverUrl: "ws://localhost:5200",
+  autoReconnect: true, // Default: true in Browser
 });
 
 client.onMessage((message) => {
@@ -60,26 +63,6 @@ client.onMessage((message) => {
 });
 
 client.send(JSON.stringify({ type: "hello" }));
-```
-
-### Client (Browser)
-
-```typescript
-import { createWebSocketClient } from "@agentxjs/network";
-
-const client = await createWebSocketClient({
-  serverUrl: "ws://localhost:5200",
-  autoReconnect: true,
-  maxReconnectionDelay: 10000,
-});
-
-client.onMessage((message) => {
-  console.log("Received:", message);
-});
-
-client.onClose(() => {
-  console.log("Disconnected, will auto-reconnect...");
-});
 ```
 
 ## API Reference
@@ -98,6 +81,7 @@ const server = new WebSocketServer(options?: ChannelServerOptions);
 | ------------------- | --------- | ------- | -------------------------- |
 | `heartbeat`         | `boolean` | `true`  | Enable ping/pong heartbeat |
 | `heartbeatInterval` | `number`  | `30000` | Heartbeat interval in ms   |
+| `debug`             | `boolean` | `false` | Enable debug logging       |
 
 **Methods:**
 
@@ -118,7 +102,7 @@ Server-side representation of a client connection.
 interface ChannelConnection {
   readonly id: string;
 
-  // Basic send (fire-and-forget)
+  // Fire-and-forget send
   send(message: string): void;
 
   // Reliable send with ACK
@@ -143,7 +127,9 @@ interface SendReliableOptions {
 }
 ```
 
-### WebSocketClient
+### createWebSocketClient
+
+Factory function that auto-detects environment.
 
 ```typescript
 import { createWebSocketClient } from "@agentxjs/network";
@@ -153,15 +139,16 @@ const client = await createWebSocketClient(options: ChannelClientOptions);
 
 **Options:**
 
-| Option                 | Type                 | Default          | Description                   |
-| ---------------------- | -------------------- | ---------------- | ----------------------------- |
-| `serverUrl`            | `string`             | required         | WebSocket server URL          |
-| `autoReconnect`        | `boolean`            | `true` (browser) | Auto-reconnect on disconnect  |
-| `minReconnectionDelay` | `number`             | `1000`           | Min delay between reconnects  |
-| `maxReconnectionDelay` | `number`             | `10000`          | Max delay between reconnects  |
-| `maxRetries`           | `number`             | `Infinity`       | Max reconnection attempts     |
-| `connectionTimeout`    | `number`             | `4000`           | Connection timeout in ms      |
-| `headers`              | `object \| function` | -                | Custom headers (Node.js only) |
+| Option                 | Type                 | Default          | Description                  |
+| ---------------------- | -------------------- | ---------------- | ---------------------------- |
+| `serverUrl`            | `string`             | required         | WebSocket server URL         |
+| `autoReconnect`        | `boolean`            | `true` (browser) | Auto-reconnect on disconnect |
+| `minReconnectionDelay` | `number`             | `1000`           | Min delay between reconnects |
+| `maxReconnectionDelay` | `number`             | `10000`          | Max delay between reconnects |
+| `maxRetries`           | `number`             | `Infinity`       | Max reconnection attempts    |
+| `connectionTimeout`    | `number`             | `4000`           | Connection timeout in ms     |
+| `headers`              | `object \| function` | -                | Custom headers (see below)   |
+| `debug`                | `boolean`            | `false`          | Enable debug logging         |
 
 **Methods:**
 
@@ -181,12 +168,12 @@ The `sendReliable()` method provides guaranteed message delivery:
 
 ```
 Server                              Client
-   │                                   │
-   │  ──── { __msgId, __payload } ──►  │
-   │                                   │
-   │  ◄──── { __ack: msgId } ────────  │
-   │                                   │
-   ▼ onAck() called                    ▼
+   |                                   |
+   |  ---- { __msgId, __payload } -->  |
+   |                                   |
+   |  <---- { __ack: msgId } --------  |
+   |                                   |
+   v onAck() called                    v
 ```
 
 **How it works:**
@@ -201,24 +188,6 @@ Server                              Client
 - Persist data only after client confirms receipt
 - Track message delivery status
 - Implement at-least-once delivery semantics
-
-## Architecture
-
-```
-@agentxjs/network
-├── protocol/
-│   └── reliable-message.ts    # ACK protocol types
-│
-├── server/
-│   ├── WebSocketConnection.ts # Connection with sendReliable
-│   └── WebSocketServer.ts     # Server management
-│
-├── client/
-│   ├── WebSocketClient.ts     # Node.js client
-│   └── BrowserWebSocketClient.ts # Browser client with reconnect
-│
-└── factory.ts                 # createWebSocketClient
-```
 
 ## Examples
 
@@ -238,9 +207,10 @@ wsServer.attach(httpServer, "/ws");
 httpServer.listen(5200);
 ```
 
-### Custom Headers (Node.js)
+### Custom Headers
 
 ```typescript
+// Static headers (Node.js only during handshake)
 const client = await createWebSocketClient({
   serverUrl: "ws://localhost:5200",
   headers: {
@@ -248,7 +218,7 @@ const client = await createWebSocketClient({
   },
 });
 
-// Or dynamic headers
+// Dynamic headers (sync or async function)
 const client = await createWebSocketClient({
   serverUrl: "ws://localhost:5200",
   headers: async () => ({
@@ -256,6 +226,8 @@ const client = await createWebSocketClient({
   }),
 });
 ```
+
+> **Note:** In browsers, headers are sent as the first message after connection (WebSocket API limitation). The server should handle `{ type: "auth", headers: {...} }` messages.
 
 ### Reliable Delivery with Persistence
 
@@ -275,19 +247,35 @@ server.onConnection((connection) => {
 });
 ```
 
-## Testing
+## Architecture
 
-```bash
-bun test
+```
+@agentxjs/network
+├── protocol/
+│   └── reliable-message.ts      # ACK protocol types and guards
+│
+├── server/
+│   ├── WebSocketConnection.ts   # Connection with sendReliable
+│   └── WebSocketServer.ts       # Server management
+│
+├── client/
+│   ├── WebSocketClient.ts       # Node.js client (ws library)
+│   └── BrowserWebSocketClient.ts # Browser client (reconnecting-websocket)
+│
+└── factory.ts                   # createWebSocketClient (auto-detect)
 ```
 
-52 tests covering:
+## Dependencies
 
-- Protocol type guards
-- Connection send/sendReliable
-- ACK handling and timeouts
-- Server lifecycle
-- Client auto-ACK
+- `ws` - WebSocket implementation for Node.js
+- `reconnecting-websocket` - Auto-reconnect for browser clients
+- `@agentxjs/common` - Logger utilities
+- `@agentxjs/types` - Type definitions
+
+## Related
+
+- [AgentX Repository](https://github.com/Deepractice/AgentX)
+- [@agentxjs/queue](../queue) - Event queue with persistence
 
 ## License
 

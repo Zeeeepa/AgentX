@@ -1,13 +1,15 @@
 # @agentxjs/queue
 
-Event queue with in-memory pub/sub and SQLite persistence for AgentX.
+Reliable event delivery queue for AgentX with in-memory pub/sub and SQLite persistence.
 
-## Features
+## Overview
 
-- **In-Memory Pub/Sub** - RxJS Subject for real-time event delivery
-- **SQLite Persistence** - Reliable storage for reconnection recovery
-- **Consumer Tracking** - At-least-once delivery with cursor-based ACK
-- **Cross-Runtime** - Works on Bun and Node.js 22+
+`@agentxjs/queue` provides a traditional message queue implementation optimized for real-time event delivery with persistence guarantees:
+
+- **RxJS-based pub/sub** for instant real-time delivery
+- **SQLite persistence** for recovery after disconnection
+- **Consumer cursor tracking** for at-least-once delivery semantics
+- **Topic isolation** for multi-session/multi-channel support
 
 ## Installation
 
@@ -15,144 +17,195 @@ Event queue with in-memory pub/sub and SQLite persistence for AgentX.
 bun add @agentxjs/queue
 ```
 
+**Requirements:** Node.js 22+ or Bun
+
 ## Quick Start
 
 ```typescript
 import { createQueue } from "@agentxjs/queue";
 
+// Create a queue with SQLite persistence
 const queue = createQueue({ path: "./data/queue.db" });
 
-// Subscribe to events
+// Subscribe to real-time events
 queue.subscribe("session-123", (entry) => {
-  console.log("Received:", entry.event);
+  console.log("Event:", entry.event);
   console.log("Cursor:", entry.cursor);
 });
 
-// Publish events
-const cursor = queue.publish("session-123", { type: "message", text: "hello" });
+// Publish events (persists + broadcasts)
+const cursor = queue.publish("session-123", {
+  type: "message",
+  text: "Hello!",
+});
 
-// ACK after processing
-await queue.ack("client-1", "session-123", cursor);
+// Acknowledge after processing
+await queue.ack("consumer-1", "session-123", cursor);
 
-// Recover on reconnection
-const lastCursor = await queue.getCursor("client-1", "session-123");
-const missed = await queue.recover("session-123", lastCursor);
+// Clean up
+await queue.close();
 ```
 
-## API
+## Features
+
+### Real-Time Pub/Sub
+
+Events are delivered instantly to all subscribers via RxJS Subject:
+
+```typescript
+// Multiple subscribers receive the same event
+queue.subscribe("topic", (entry) => logToConsole(entry));
+queue.subscribe("topic", (entry) => saveToAnalytics(entry));
+
+queue.publish("topic", { data: "broadcast" });
+```
+
+### Persistence & Recovery
+
+All events are persisted to SQLite for recovery on reconnection:
+
+```typescript
+// On reconnection, get last acknowledged position
+const lastCursor = await queue.getCursor("client-id", "session-123");
+
+// Recover all events after that cursor
+const missed = await queue.recover("session-123", lastCursor);
+
+for (const entry of missed) {
+  processEvent(entry.event);
+  await queue.ack("client-id", "session-123", entry.cursor);
+}
+
+// Resume real-time subscription
+queue.subscribe("session-123", handler);
+```
+
+### Consumer Cursor Tracking
+
+Each consumer tracks its position independently:
+
+```typescript
+const queue = createQueue({ path: "./queue.db" });
+
+// Consumer A processes slowly
+queue.subscribe("topic", async (entry) => {
+  await slowProcess(entry.event);
+  await queue.ack("consumer-a", "topic", entry.cursor);
+});
+
+// Consumer B processes fast
+queue.subscribe("topic", (entry) => {
+  fastProcess(entry.event);
+  queue.ack("consumer-b", "topic", entry.cursor);
+});
+
+// Each consumer maintains independent position
+```
+
+### Topic Isolation
+
+Events are isolated by topic, typically used as sessionId or channelId:
+
+```typescript
+queue.subscribe("session-1", handler1);
+queue.subscribe("session-2", handler2);
+
+// Only handler1 receives this
+queue.publish("session-1", { msg: "for session 1" });
+
+// Only handler2 receives this
+queue.publish("session-2", { msg: "for session 2" });
+```
+
+## API Reference
 
 ### `createQueue(options: QueueOptions): EventQueue`
 
-Create an event queue instance.
-
-**Options:**
+Creates a new EventQueue instance.
 
 ```typescript
 interface QueueOptions {
-  path: string; // SQLite database path
-  retentionMs?: number; // Message retention (default: 24h)
-  cleanupIntervalMs?: number; // Cleanup interval (default: 5min)
+  // SQLite database path (use ":memory:" for testing)
+  path: string;
+
+  // Message retention period (default: 24 hours)
+  retentionMs?: number;
+
+  // Cleanup interval (default: 5 minutes, 0 to disable)
+  cleanupIntervalMs?: number;
 }
 ```
 
-### `EventQueue`
+### `EventQueue` Methods
 
-**Methods:**
+| Method                                                        | Description                       |
+| ------------------------------------------------------------- | --------------------------------- |
+| `publish(topic, event): string`                               | Publish event, returns cursor     |
+| `subscribe(topic, handler): Unsubscribe`                      | Subscribe to real-time events     |
+| `ack(consumerId, topic, cursor): Promise<void>`               | Acknowledge consumption           |
+| `getCursor(consumerId, topic): Promise<string \| null>`       | Get consumer's last cursor        |
+| `recover(topic, afterCursor?, limit?): Promise<QueueEntry[]>` | Fetch historical events           |
+| `close(): Promise<void>`                                      | Close queue and release resources |
 
-| Method                                 | Description                       |
-| -------------------------------------- | --------------------------------- |
-| `publish(topic, event)`                | Publish event, returns cursor     |
-| `subscribe(topic, handler)`            | Subscribe to real-time events     |
-| `ack(consumerId, topic, cursor)`       | Acknowledge consumption           |
-| `getCursor(consumerId, topic)`         | Get consumer's cursor             |
-| `recover(topic, afterCursor?, limit?)` | Fetch historical events           |
-| `close()`                              | Close queue and release resources |
-
-**Entry Format:**
+### `QueueEntry`
 
 ```typescript
 interface QueueEntry {
-  cursor: string; // Monotonic cursor
+  cursor: string; // Monotonic cursor (e.g., "lq5x4g2-0001")
   topic: string; // Topic identifier
   event: unknown; // Event payload
   timestamp: number; // Unix milliseconds
 }
 ```
 
+### `CursorGenerator`
+
+Utility class for generating monotonically increasing cursors:
+
+```typescript
+import { CursorGenerator } from "@agentxjs/queue";
+
+const gen = new CursorGenerator();
+const cursor1 = gen.generate(); // "lq5x4g2-0000"
+const cursor2 = gen.generate(); // "lq5x4g2-0001"
+
+// Compare cursors (lexicographic = temporal order)
+CursorGenerator.compare(cursor1, cursor2); // negative (cursor1 < cursor2)
+```
+
 ## Architecture
 
 ```
-Event → publish() → SQLite (persist) → RxJS Subject (broadcast)
-                                              ↓
-                                       Subscribers (real-time)
+publish(topic, event)
+    │
+    ├──► SQLite (sync persist)
+    │
+    └──► RxJS Subject (broadcast)
+              │
+              └──► Subscribers (real-time)
 
-Client disconnect → reconnect → getCursor() → recover(afterCursor)
+Reconnection:
+    getCursor(consumerId, topic) → recover(topic, cursor) → subscribe()
 ```
 
-**Key Points:**
+**Design Principles:**
 
-- **In-memory = Fast**: Events broadcast via RxJS Subject
-- **SQLite = Reliable**: Persistence for recovery guarantee
-- **Consumer Cursor**: Tracks each consumer's position independently
-- **Decoupled**: No network protocol dependency
-
-## Example: Multi-Consumer
-
-```typescript
-const queue = createQueue({ path: "./queue.db" });
-
-// Consumer A
-queue.subscribe("session-1", (entry) => {
-  processEvent(entry.event);
-  queue.ack("consumer-a", "session-1", entry.cursor);
-});
-
-// Consumer B (independent position)
-queue.subscribe("session-1", (entry) => {
-  logEvent(entry.event);
-  queue.ack("consumer-b", "session-1", entry.cursor);
-});
-
-// Both receive same events, track position independently
-queue.publish("session-1", { type: "data", value: 123 });
-```
-
-## Example: Reconnection Recovery
-
-```typescript
-// Before disconnect
-queue.subscribe("session-1", (entry) => {
-  console.log(entry.event);
-  queue.ack("my-client", "session-1", entry.cursor);
-});
-
-// ... disconnect ...
-
-// On reconnect
-const lastCursor = await queue.getCursor("my-client", "session-1");
-const missed = await queue.recover("session-1", lastCursor);
-
-// Replay missed events
-for (const entry of missed) {
-  console.log("Missed:", entry.event);
-}
-
-// Resume subscription
-queue.subscribe("session-1", handler);
-```
+- **In-memory = Fast**: RxJS Subject for instant delivery
+- **SQLite = Reliable**: Sync writes ensure persistence before broadcast
+- **Decoupled**: No network protocol dependency; caller controls ACK timing
 
 ## Testing
 
 ```bash
+cd packages/queue
 bun test
 ```
 
-13 tests covering:
+## Related Packages
 
-- Publish/subscribe
-- Consumer ACK tracking
-- Historical recovery
-- Topic isolation
+- [@agentxjs/network](../network) - WebSocket with reliable delivery (uses queue for ACK)
+- [@agentxjs/common](../common) - SQLite abstraction used by queue
+- [@agentxjs/types](../types) - Type definitions
 
 ## License
 

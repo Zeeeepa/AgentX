@@ -4,16 +4,16 @@
 
 ## Overview
 
-`@agentxjs/persistence` provides the persistence layer for AgentX agents, including:
+`@agentxjs/persistence` provides the persistence layer for AgentX agents:
 
-- **Image Repository** - Store and retrieve agent snapshots
-- **Container Repository** - Manage container metadata
-- **Session Repository** - Persist conversation history
+- **ImageRepository** - Store and retrieve agent images (snapshots)
+- **ContainerRepository** - Manage container metadata
+- **SessionRepository** - Persist conversation sessions and messages
 
 **Key Features:**
 
 - **Subpath Exports** - Import only the driver you need (tree-shaking friendly)
-- **Multiple Backends** - SQLite, Redis, MongoDB, MySQL, PostgreSQL
+- **Multiple Backends** - Memory, Filesystem, SQLite, Redis, MongoDB, MySQL, PostgreSQL
 - **Zero Config Default** - Memory driver works out of the box
 - **Cross-Runtime** - SQLite driver works on both Bun and Node.js 22+
 
@@ -57,32 +57,41 @@ const persistence = await createPersistence(redisDriver({ url: "redis://localhos
 | ---------- | ---------------------------------- | ----------------- |
 | Memory     | `@agentxjs/persistence`            | None              |
 | Filesystem | `@agentxjs/persistence/fs`         | None              |
-| SQLite     | `@agentxjs/persistence/sqlite`     | `db0`             |
+| SQLite     | `@agentxjs/persistence/sqlite`     | None (built-in)   |
 | Redis      | `@agentxjs/persistence/redis`      | `ioredis`         |
 | MongoDB    | `@agentxjs/persistence/mongodb`    | `mongodb`         |
-| MySQL      | `@agentxjs/persistence/mysql`      | `mysql2`          |
-| PostgreSQL | `@agentxjs/persistence/postgresql` | `pg`              |
+| MySQL      | `@agentxjs/persistence/mysql`      | `db0`, `mysql2`   |
+| PostgreSQL | `@agentxjs/persistence/postgresql` | `db0`, `pg`       |
 
-## Driver Options
+## Driver Configuration
 
 ### SQLite
 
-Automatically detects runtime:
+Uses `@agentxjs/common/sqlite` with automatic runtime detection:
 
 - **Bun**: uses `bun:sqlite` (built-in)
 - **Node.js 22+**: uses `node:sqlite` (built-in)
 
 ```typescript
-sqliteDriver({
-  path: "./data.db", // Database file path
-});
+sqliteDriver({ path: "./data.db" });
+```
+
+### Filesystem
+
+Stores data as JSON files in a directory:
+
+```typescript
+import { fsDriver } from "@agentxjs/persistence/fs";
+
+fsDriver({ base: "./data" });
 ```
 
 ### Redis
 
 ```typescript
 redisDriver({
-  url: "redis://localhost:6379", // Redis connection URL
+  url: "redis://localhost:6379",
+  base: "agentx", // Key prefix (default: "agentx")
 });
 ```
 
@@ -90,9 +99,9 @@ redisDriver({
 
 ```typescript
 mongodbDriver({
-  connectionString: "mongodb://localhost:27017", // MongoDB connection string
-  databaseName: "agentx", // Database name (optional)
-  collectionName: "storage", // Collection name (optional)
+  connectionString: "mongodb://localhost:27017",
+  databaseName: "agentx", // default: "agentx"
+  collectionName: "storage", // default: "storage"
 });
 ```
 
@@ -100,11 +109,7 @@ mongodbDriver({
 
 ```typescript
 mysqlDriver({
-  host: "localhost",
-  port: 3306,
-  user: "root",
-  password: "password",
-  database: "agentx",
+  uri: "mysql://user:pass@localhost:3306/agentx",
 });
 ```
 
@@ -112,12 +117,82 @@ mysqlDriver({
 
 ```typescript
 postgresqlDriver({
-  host: "localhost",
-  port: 5432,
-  user: "postgres",
-  password: "password",
-  database: "agentx",
+  connectionString: "postgres://user:pass@localhost:5432/agentx",
 });
+```
+
+## Repository Interfaces
+
+### ImageRepository
+
+```typescript
+// Save an image
+await persistence.images.saveImage({
+  imageId: "img_abc123",
+  containerId: "container-1",
+  sessionId: "session-1",
+  name: "My Assistant",
+  systemPrompt: "You are helpful.",
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+});
+
+// Find images
+const image = await persistence.images.findImageById("img_abc123");
+const all = await persistence.images.findAllImages();
+const byName = await persistence.images.findImagesByName("My Assistant");
+const byContainer = await persistence.images.findImagesByContainerId("container-1");
+
+// Update and delete
+await persistence.images.updateMetadata("img_abc123", { key: "value" });
+await persistence.images.deleteImage("img_abc123");
+```
+
+### SessionRepository
+
+```typescript
+// Save a session
+await persistence.sessions.saveSession({
+  sessionId: "session-1",
+  imageId: "img_abc123",
+  containerId: "container-1",
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+});
+
+// Find sessions
+const session = await persistence.sessions.findSessionById("session-1");
+const byImage = await persistence.sessions.findSessionByImageId("img_abc123");
+const byContainer = await persistence.sessions.findSessionsByContainerId("container-1");
+
+// Message operations
+await persistence.sessions.addMessage("session-1", {
+  id: "msg-1",
+  subtype: "user",
+  content: "Hello!",
+  timestamp: Date.now(),
+});
+const messages = await persistence.sessions.getMessages("session-1");
+await persistence.sessions.clearMessages("session-1");
+```
+
+### ContainerRepository
+
+```typescript
+// Save a container
+await persistence.containers.saveContainer({
+  containerId: "container-1",
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+});
+
+// Find containers
+const container = await persistence.containers.findContainerById("container-1");
+const all = await persistence.containers.findAllContainers();
+const exists = await persistence.containers.containerExists("container-1");
+
+// Delete container
+await persistence.containers.deleteContainer("container-1");
 ```
 
 ## Custom Driver
@@ -139,27 +214,6 @@ const customDriver: PersistenceDriver = {
 const persistence = await createPersistence(customDriver);
 ```
 
-## Architecture
-
-```text
-┌────────────────────────────────────────────────────────────┐
-│                     Persistence                             │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│   ┌─────────────────┐  ┌─────────────────────────────────┐ │
-│   │  Repositories   │  │         Storage (unstorage)     │ │
-│   │                 │  │                                 │ │
-│   │  ImageRepo      │◄─┼─ memoryDriver()                 │ │
-│   │  ContainerRepo  │  │  sqliteDriver({ path })         │ │
-│   │  SessionRepo    │  │  redisDriver({ url })           │ │
-│   │                 │  │  mongodbDriver({ ... })         │ │
-│   └─────────────────┘  │  mysqlDriver({ ... })           │ │
-│                        │  postgresqlDriver({ ... })      │ │
-│                        └─────────────────────────────────┘ │
-│                                                             │
-└────────────────────────────────────────────────────────────┘
-```
-
 ## Why Subpath Exports?
 
 Each driver is a separate entry point to enable tree-shaking:
@@ -168,33 +222,24 @@ Each driver is a separate entry point to enable tree-shaking:
 // Only bundles memory driver (no external deps)
 import { memoryDriver } from "@agentxjs/persistence";
 
-// Only bundles SQLite driver (requires db0)
+// Only bundles SQLite driver
 import { sqliteDriver } from "@agentxjs/persistence/sqlite";
 
-// Driver dependencies are NOT bundled if not imported
+// Redis/MongoDB/MySQL/PostgreSQL are NOT bundled unless imported
 ```
 
-This is critical for binary distribution - portagent only imports `sqliteDriver`, so Redis/MySQL/PostgreSQL dependencies are never bundled.
+This is important for binary distribution - only imported drivers are bundled.
 
-## Package Exports
+## Documentation
 
-```json
-{
-  "exports": {
-    ".": "./dist/index.js",
-    "./sqlite": "./dist/drivers/sqlite.js",
-    "./redis": "./dist/drivers/redis.js",
-    "./mongodb": "./dist/drivers/mongodb.js",
-    "./mysql": "./dist/drivers/mysql.js",
-    "./postgresql": "./dist/drivers/postgresql.js"
-  }
-}
-```
+For detailed documentation, see:
+
+- [Persistence Guide](../../docs/guides/persistence.md)
 
 ## Related Packages
 
-- **[@agentxjs/runtime](../runtime)** - Runtime that uses persistence
-- **[agentxjs](../agentx)** - High-level unified API
+- [@agentxjs/runtime](../runtime) - Runtime that uses persistence
+- [agentxjs](../agentx) - Unified API entry point
 
 ## License
 

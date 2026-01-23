@@ -1,17 +1,15 @@
 # @agentxjs/common
 
-> Shared infrastructure for AgentX internal packages
+Common utilities for the AgentX platform. Provides shared infrastructure including logging, SQLite database abstraction, path utilities, and ID generation.
 
 ## Overview
 
-`@agentxjs/common` provides shared utilities used by AgentX internal packages (`@agentxjs/agent`, `@agentxjs/runtime`, etc.). This is an internal package - application code should not depend on it directly.
+`@agentxjs/common` is an internal package providing essential utilities used throughout AgentX. Key design principles:
 
-**Modules:**
-
-| Module | Import                    | Description                                      |
-| ------ | ------------------------- | ------------------------------------------------ |
-| Logger | `@agentxjs/common`        | Lazy-initialized logging with pluggable backends |
-| SQLite | `@agentxjs/common/sqlite` | Unified SQLite abstraction for Bun/Node.js       |
+- **Internal Use**: Designed for AgentX internal packages
+- **Lazy Initialization**: Safe to use at module level before configuration
+- **Cross-Runtime**: Works in both Bun and Node.js environments
+- **Zero Dependencies**: No external dependencies (except `@agentxjs/types`)
 
 ## Installation
 
@@ -21,87 +19,40 @@ bun add @agentxjs/common
 
 > **Note**: This package is typically installed transitively as a dependency of other AgentX packages.
 
+## Modules
+
+| Module | Import Path               | Purpose                                          |
+| ------ | ------------------------- | ------------------------------------------------ |
+| Logger | `@agentxjs/common`        | Lazy-initialized logging with pluggable backends |
+| SQLite | `@agentxjs/common/sqlite` | Cross-runtime SQLite database abstraction        |
+| Path   | `@agentxjs/common/path`   | Cross-runtime path utilities                     |
+| ID     | `@agentxjs/common`        | Unique ID generation utilities                   |
+
 ---
 
 ## Logger
 
-### Quick Start
+Lazy-initialized logging with pluggable backends.
 
 ```typescript
 import { createLogger } from "@agentxjs/common";
 
-// Safe to use at module level (before Runtime configured)
-const logger = createLogger("agent/AgentEngine");
+// Safe at module level (before Runtime configured)
+const logger = createLogger("engine/AgentEngine");
 
-// Later, at runtime
-logger.info("Agent created", { agentId: "agent_123" });
-logger.debug("Processing message", { messageId: "msg_456" });
-logger.error("Failed to process", { error: err.message });
+// Log messages with context
+logger.debug("Processing event", { eventType: "text_delta" });
+logger.info("Agent initialized", { agentId: "agent_123" });
+logger.warn("Connection retry", { attempt: 3 });
+logger.error("Failed to process", { messageId: "msg_456" });
 ```
 
-### Features
-
-#### 1. Lazy Initialization
-
-Loggers can be created at module level without errors:
+### Custom Logger Factory
 
 ```typescript
-// At module level (before Runtime exists)
-const logger = createLogger("engine/MealyMachine");
+import { setLoggerFactory, LoggerFactoryImpl } from "@agentxjs/common";
 
-// No-op until LoggerFactory is configured
-logger.info("This is buffered");
-
-// Later, when Runtime initializes
-setLoggerFactory(new LoggerFactoryImpl());
-
-// Now logs are emitted
-logger.info("This is logged");
-```
-
-#### 2. Structured Logging
-
-All loggers support structured context:
-
-```typescript
-logger.info("User logged in", {
-  userId: "user_123",
-  timestamp: Date.now(),
-  ip: "192.168.1.1",
-});
-
-// Output (with ConsoleLogger):
-// [INFO] agent/UserService: User logged in {"userId":"user_123",...}
-```
-
-#### 3. Log Levels
-
-Supported log levels (in order of severity):
-
-```typescript
-logger.debug("Detailed debug info"); // Development only
-logger.info("Normal operation"); // General info
-logger.warn("Warning condition"); // Potential issues
-logger.error("Error occurred"); // Errors
-```
-
-### API
-
-#### `createLogger(category: string): Logger`
-
-Creates a new logger instance.
-
-```typescript
-const logger = createLogger("agent/MyAgent");
-```
-
-#### `setLoggerFactory(factory: LoggerFactory): void`
-
-Sets the global logger factory (called by Runtime).
-
-```typescript
-import { LoggerFactoryImpl, setLoggerFactory } from "@agentxjs/common";
-
+// Configure the default factory
 setLoggerFactory(
   new LoggerFactoryImpl({
     level: "debug",
@@ -114,19 +65,20 @@ setLoggerFactory(
 
 ## SQLite
 
-Unified SQLite abstraction that auto-detects runtime:
+Cross-runtime SQLite abstraction with automatic runtime detection.
 
-- **Bun** → uses `bun:sqlite` (built-in)
-- **Node.js 22+** → uses `node:sqlite` (built-in)
-
-### Quick Start
+| Runtime     | Implementation           |
+| ----------- | ------------------------ |
+| Bun         | `bun:sqlite` (built-in)  |
+| Node.js 22+ | `node:sqlite` (built-in) |
 
 ```typescript
 import { openDatabase } from "@agentxjs/common/sqlite";
 
+// Open database (auto-creates parent directories)
 const db = openDatabase("./data/app.db");
 
-// Create tables
+// Create table
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
@@ -135,100 +87,26 @@ db.exec(`
 `);
 
 // Insert data
-db.prepare("INSERT INTO users (name) VALUES (?)").run("Alice");
+const stmt = db.prepare("INSERT INTO users (name) VALUES (?)");
+const result = stmt.run("Alice");
+console.log("Inserted ID:", result.lastInsertRowid);
 
 // Query data
 const users = db.prepare("SELECT * FROM users").all();
 console.log(users); // [{ id: 1, name: "Alice" }]
 
+// In-memory database for testing
+const memDb = openDatabase(":memory:");
+
 // Close when done
 db.close();
-```
-
-### API
-
-#### `openDatabase(path: string): Database`
-
-Opens a SQLite database.
-
-```typescript
-import { openDatabase } from "@agentxjs/common/sqlite";
-
-// File-based database
-const db = openDatabase("./data/app.db");
-
-// In-memory database (for testing)
-const memDb = openDatabase(":memory:");
-```
-
-### Database Interface
-
-```typescript
-interface Database {
-  /** Execute raw SQL (no return value) */
-  exec(sql: string): void;
-
-  /** Prepare a statement */
-  prepare(sql: string): Statement;
-
-  /** Close the database */
-  close(): void;
-}
-
-interface Statement {
-  /** Execute with params, return changes */
-  run(...params: unknown[]): RunResult;
-
-  /** Get single row */
-  get(...params: unknown[]): unknown;
-
-  /** Get all rows */
-  all(...params: unknown[]): unknown[];
-}
-
-interface RunResult {
-  changes: number;
-  lastInsertRowid: number | bigint;
-}
-```
-
-### Example: Key-Value Store
-
-```typescript
-import { openDatabase } from "@agentxjs/common/sqlite";
-
-const db = openDatabase("./kv.db");
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS kv (
-    key TEXT PRIMARY KEY,
-    value TEXT
-  )
-`);
-
-function set(key: string, value: unknown) {
-  const json = JSON.stringify(value);
-  db.prepare("INSERT OR REPLACE INTO kv (key, value) VALUES (?, ?)").run(key, json);
-}
-
-function get<T>(key: string): T | null {
-  const row = db.prepare("SELECT value FROM kv WHERE key = ?").get(key) as
-    | { value: string }
-    | undefined;
-  return row ? JSON.parse(row.value) : null;
-}
-
-set("user:1", { name: "Alice", age: 30 });
-console.log(get("user:1")); // { name: "Alice", age: 30 }
 ```
 
 ---
 
 ## Path Utilities
 
-Cross-runtime path helpers that work in both Bun and Node.js.
-
-### Quick Start
+Cross-runtime path helpers for ESM modules.
 
 ```typescript
 import {
@@ -239,164 +117,88 @@ import {
   resolveFromPackage,
 } from "@agentxjs/common/path";
 
-// Current module directory
+// Current module directory (cross-runtime __dirname)
 const __dirname = getModuleDir(import.meta);
-// e.g., /Users/sean/AgentX/packages/queue/src
 
 // Package root (where package.json is)
 const pkgRoot = getPackageRoot(import.meta);
-// e.g., /Users/sean/AgentX/packages/queue
 
 // Monorepo root
 const root = getMonorepoRoot(import.meta);
-// e.g., /Users/sean/AgentX
 
 // Resolve from monorepo root
-const dataDir = resolveFromRoot(import.meta, "data", "logs");
-// e.g., /Users/sean/AgentX/data/logs
+const dataDir = resolveFromRoot(import.meta, "data");
 
 // Resolve from package root
 const testsDir = resolveFromPackage(import.meta, "tests", "fixtures");
-// e.g., /Users/sean/AgentX/packages/queue/tests/fixtures
 ```
 
-### API
+> **Why not `import.meta.dir`?** Bun provides `import.meta.dir`, but Node.js does not. Use these utilities for cross-runtime compatibility.
 
-#### `getModuleDir(meta: ImportMeta): string`
+---
 
-Get the directory of the current module.
+## ID Generation
 
-```typescript
-const __dirname = getModuleDir(import.meta);
-```
-
-**Compatibility:**
-
-- Bun: uses `import.meta.dir`
-- Node.js: converts `import.meta.url` to path
-
-#### `getPackageRoot(meta: ImportMeta): string`
-
-Get the package root directory (walks up to find `package.json`).
+Consistent ID generation patterns.
 
 ```typescript
-const pkgRoot = getPackageRoot(import.meta);
-```
+import { generateId, generateRequestId } from "@agentxjs/common";
 
-#### `getMonorepoRoot(meta: ImportMeta): string`
+// Generate request ID for command correlation
+const requestId = generateRequestId();
+// => "req_1704067200000_a1b2c3"
 
-Get the monorepo root directory (walks up to find lock files).
+// Generate ID with custom prefix
+const msgId = generateId("msg");
+// => "msg_1704067200000_a1b2c3"
 
-```typescript
-const root = getMonorepoRoot(import.meta);
-```
-
-**Detects:**
-
-- `pnpm-workspace.yaml` (pnpm monorepo)
-- `bun.lock` (bun workspace)
-- `package-lock.json` (npm workspace)
-- `yarn.lock` (yarn workspace)
-
-#### `resolveFromRoot(meta: ImportMeta, ...paths: string[]): string`
-
-Resolve a path relative to the monorepo root.
-
-```typescript
-const configPath = resolveFromRoot(import.meta, "config", "settings.json");
-```
-
-#### `resolveFromPackage(meta: ImportMeta, ...paths: string[]): string`
-
-Resolve a path relative to the package root.
-
-```typescript
-const testData = resolveFromPackage(import.meta, "tests", "fixtures", "data.json");
-```
-
-### Example: Test Fixtures
-
-```typescript
-import { resolveFromPackage } from "@agentxjs/common/path";
-import { readFileSync } from "node:fs";
-
-// Load test fixture from current package
-const fixturePath = resolveFromPackage(import.meta, "tests", "fixtures", "sample.json");
-const data = JSON.parse(readFileSync(fixturePath, "utf-8"));
+const agentId = generateId("agent");
+// => "agent_1704067200000_x7y8z9"
 ```
 
 ---
 
-## Built-in Implementations
+## API Summary
 
-### ConsoleLogger
+### Main Exports (`@agentxjs/common`)
 
-Default console-based logger with formatting.
+| Export              | Type     | Description                   |
+| ------------------- | -------- | ----------------------------- |
+| `createLogger`      | Function | Create a logger instance      |
+| `setLoggerFactory`  | Function | Set external logger factory   |
+| `ConsoleLogger`     | Class    | Default console-based logger  |
+| `LoggerFactoryImpl` | Class    | Logger factory implementation |
+| `generateId`        | Function | Generate ID with prefix       |
+| `generateRequestId` | Function | Generate request ID           |
 
-```typescript
-import { ConsoleLogger } from "@agentxjs/common";
+### SQLite Exports (`@agentxjs/common/sqlite`)
 
-const logger = new ConsoleLogger("my-category", {
-  level: "debug",
-  enableTimestamp: true,
-  enableColor: true,
-});
+| Export         | Type     | Description            |
+| -------------- | -------- | ---------------------- |
+| `openDatabase` | Function | Open a SQLite database |
 
-logger.info("Hello", { foo: "bar" });
-// Output: [INFO] my-category: Hello {"foo":"bar"}
-```
+### Path Exports (`@agentxjs/common/path`)
 
-**Options:**
-
-```typescript
-interface ConsoleLoggerOptions {
-  level?: LogLevel; // Minimum log level (default: "info")
-  enableTimestamp?: boolean; // Show timestamps (default: false)
-  enableColor?: boolean; // Colorize output (default: true in TTY)
-}
-```
-
-### LoggerFactoryImpl
-
-Default factory that creates `ConsoleLogger` instances.
-
-```typescript
-import { LoggerFactoryImpl } from "@agentxjs/common";
-
-const factory = new LoggerFactoryImpl({
-  level: "info",
-  enableTimestamp: false,
-});
-
-const logger = factory.createLogger("test");
-```
+| Export               | Type     | Description                     |
+| -------------------- | -------- | ------------------------------- |
+| `getModuleDir`       | Function | Get current module directory    |
+| `getPackageRoot`     | Function | Get package root directory      |
+| `getMonorepoRoot`    | Function | Get monorepo root directory     |
+| `resolveFromRoot`    | Function | Resolve path from monorepo root |
+| `resolveFromPackage` | Function | Resolve path from package root  |
 
 ---
 
-## Package Dependencies
+## Full Documentation
 
-```text
-@agentxjs/types     Type definitions
-       ↑
-@agentxjs/common    This package (logger + sqlite)
-       ↑
-@agentxjs/queue     Uses sqlite
-       ↑
-@agentxjs/persistence  Uses sqlite
-       ↑
-@agentxjs/runtime   Uses logger + provides factory
-```
-
----
+For detailed API documentation and advanced usage, see the [full documentation](../../docs/packages/common.md).
 
 ## Related Packages
 
-- **[@agentxjs/types](../types)** - Type definitions
-- **[@agentxjs/queue](../queue)** - Event queue (uses SQLite)
-- **[@agentxjs/persistence](../persistence)** - Storage layer (uses SQLite)
-- **[@agentxjs/runtime](../runtime)** - Runtime implementation
-
----
+- [@agentxjs/types](../types) - Type definitions
+- [@agentxjs/queue](../queue) - Event queue (uses SQLite)
+- [@agentxjs/persistence](../persistence) - Storage layer (uses SQLite)
+- [@agentxjs/runtime](../runtime) - Runtime implementation
 
 ## License
 

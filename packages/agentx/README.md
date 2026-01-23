@@ -2,391 +2,299 @@
 
 > Unified API for AI Agents - Server and Browser
 
-## Overview
+The `agentxjs` package provides a **unified API** for building AI agents that works seamlessly across server (Node.js) and browser environments.
 
-`agentxjs` provides a **unified API** for building AI agents that works seamlessly across server (Node.js) and browser environments.
+## Features
 
-**Key Features:**
-
-- **Unified API** - Same `createAgentX()` function for both server and browser
-- **Type-Safe Configuration** - TypeScript discriminates between Source and Mirror modes
-- **Docker-Style Lifecycle** - Container → Agent → Image
-- **Event-Driven** - Real-time streaming events (text_delta, tool_call, etc.)
+- **Unified API** - Same `createAgentX()` function for both local and remote modes
+- **Two Modes** - Local mode (embedded runtime) and Remote mode (WebSocket client)
+- **Type-Safe** - TypeScript discriminated unions for configuration
+- **Event-Driven** - Real-time streaming with 4-layer event system
+- **Built-in Server** - Local mode includes WebSocket server for remote clients
 
 ## Installation
 
 ```bash
+# Using bun (recommended)
+bun add agentxjs
+
+# Using npm
+npm install agentxjs
+
+# Using pnpm
 pnpm add agentxjs
 ```
 
----
-
 ## Quick Start
 
-### Server (Source Mode)
+### Local Mode (Server/Node.js)
+
+Local mode runs AgentX with an embedded runtime, connecting directly to the Claude API.
 
 ```typescript
 import { createAgentX } from "agentxjs";
 
-// Minimal - reads ANTHROPIC_API_KEY from environment
-const agentx = createAgentX();
+// Create AgentX - reads ANTHROPIC_API_KEY from environment
+const agentx = await createAgentX();
 
 // Or with explicit configuration
-const agentx = createAgentX({
-  apiKey: "sk-ant-...",
-  model: "claude-sonnet-4-20250514",
+const agentx = await createAgentX({
+  llm: {
+    apiKey: "sk-ant-...",
+    model: "claude-sonnet-4-20250514",
+  },
 });
 
-// Run an agent
-const agent = await agentx.run({ name: "Assistant" });
+// Subscribe to streaming text
+agentx.on("text_delta", (e) => {
+  process.stdout.write(e.data.text);
+});
 
-// Subscribe to events
-agent.on("text_delta", (e) => process.stdout.write(e.data.text));
+// Create a container
+await agentx.request("container_create_request", {
+  containerId: "my-container",
+});
 
-// Send message
-await agent.receive("Hello!");
+// Create an image and run an agent
+const { data: image } = await agentx.request("image_create_request", {
+  containerId: "my-container",
+  name: "Assistant",
+  systemPrompt: "You are a helpful assistant.",
+});
+
+const { data: agent } = await agentx.request("image_run_request", {
+  imageId: image.imageId,
+});
+
+// Send a message
+await agentx.request("message_send_request", {
+  sessionId: agent.sessionId,
+  content: "Hello!",
+});
+
+// Optionally start WebSocket server for remote clients
+await agentx.listen(5200);
+console.log("Server running on ws://localhost:5200");
 
 // Cleanup
 await agentx.dispose();
 ```
 
-### Browser (Mirror Mode)
+### Remote Mode (Browser/Client)
+
+Remote mode connects to an AgentX server via WebSocket. Works in both browser and Node.js.
 
 ```typescript
 import { createAgentX } from "agentxjs";
 
-// Connect to remote server via WebSocket
-const agentx = createAgentX({
+// Connect to AgentX server
+const agentx = await createAgentX({
   serverUrl: "ws://localhost:5200",
-  token: "optional-auth-token",
 });
 
-// Same API as server!
-const agent = await agentx.run({ name: "Assistant" });
+// Same API as local mode!
+agentx.on("text_delta", (e) => {
+  console.log(e.data.text);
+});
 
-agent.on("text_delta", (e) => console.log(e.data.text));
+await agentx.request("container_create_request", {
+  containerId: "my-container",
+});
 
-await agent.receive("Hello!");
+// Cleanup
+await agentx.dispose();
 ```
 
----
-
-## API Design
-
-### Configuration Types
+### Remote Mode with Authentication
 
 ```typescript
-// Server-side configuration (Source mode)
-interface SourceConfig {
-  apiKey?: string; // Default: process.env.ANTHROPIC_API_KEY
-  model?: string; // Default: "claude-sonnet-4-20250514"
-  baseUrl?: string; // Default: "https://api.anthropic.com"
-  persistence?: Persistence;
-}
-
-// Browser-side configuration (Mirror mode)
-interface MirrorConfig {
-  serverUrl: string; // WebSocket URL, e.g., "ws://localhost:5200"
-  token?: string; // Authentication token
-  headers?: Record<string, string>;
-}
-
-// Type discrimination: presence of `serverUrl` determines mode
-type AgentXConfig = SourceConfig | MirrorConfig;
+const agentx = await createAgentX({
+  serverUrl: "ws://localhost:5200",
+  // Static headers
+  headers: { Authorization: "Bearer sk-xxx" },
+  // Or dynamic headers
+  headers: async () => ({
+    Authorization: `Bearer ${await fetchToken()}`,
+  }),
+  // Business context (merged into all requests)
+  context: {
+    userId: "user-123",
+    tenantId: "tenant-abc",
+  },
+});
 ```
 
-### Type Guards
+## API Reference
+
+### createAgentX()
+
+Factory function that creates an AgentX instance.
 
 ```typescript
-import { isMirrorConfig, isSourceConfig } from "agentxjs";
+function createAgentX(config?: AgentXConfig): Promise<AgentX>;
+```
 
-const config: AgentXConfig = { serverUrl: "ws://localhost:5200" };
+Mode is determined by the presence of `serverUrl`:
 
-if (isMirrorConfig(config)) {
-  // TypeScript knows this is MirrorConfig
+| Configuration               | Mode   | Use Case               |
+| --------------------------- | ------ | ---------------------- |
+| `{}` or `{ llm: {...} }`    | Local  | Server, CLI, Backend   |
+| `{ serverUrl: "ws://..." }` | Remote | Browser, Remote Client |
+
+### request()
+
+Send a command and wait for the response.
+
+```typescript
+const res = await agentx.request("container_create_request", {
+  containerId: "my-container",
+});
+```
+
+**Request Types:**
+
+| Request Type               | Description           |
+| -------------------------- | --------------------- |
+| `container_create_request` | Create a container    |
+| `container_get_request`    | Get container details |
+| `container_list_request`   | List all containers   |
+| `image_create_request`     | Create an agent image |
+| `image_run_request`        | Run an agent          |
+| `image_stop_request`       | Stop a running agent  |
+| `image_list_request`       | List all images       |
+| `message_send_request`     | Send message to agent |
+| `agent_interrupt_request`  | Interrupt agent       |
+| `agent_destroy_request`    | Destroy an agent      |
+
+### on()
+
+Subscribe to events by type.
+
+```typescript
+// Subscribe to specific event type
+const unsubscribe = agentx.on("text_delta", (e) => {
+  process.stdout.write(e.data.text);
+});
+
+// Subscribe to all events
+agentx.on("*", (e) => {
+  console.log(e.type, e.data);
+});
+
+// Unsubscribe
+unsubscribe();
+```
+
+**Common Event Types:**
+
+| Event Type              | Category | Description              |
+| ----------------------- | -------- | ------------------------ |
+| `text_delta`            | stream   | Incremental text output  |
+| `message_start`         | stream   | Message streaming begins |
+| `message_stop`          | stream   | Message streaming ends   |
+| `tool_use_start`        | stream   | Tool call starting       |
+| `tool_result`           | stream   | Tool result received     |
+| `conversation_start`    | state    | Conversation started     |
+| `conversation_thinking` | state    | Agent is thinking        |
+| `conversation_end`      | state    | Conversation ended       |
+| `assistant_message`     | message  | Complete assistant reply |
+
+### onCommand()
+
+Subscribe to command events with full type safety.
+
+```typescript
+agentx.onCommand("container_create_response", (e) => {
+  console.log("Container created:", e.data.containerId);
+});
+```
+
+### listen() (Local Mode Only)
+
+Start WebSocket server for remote clients.
+
+```typescript
+await agentx.listen(5200);
+// Or with custom host
+await agentx.listen(5200, "0.0.0.0");
+```
+
+### dispose()
+
+Release all resources.
+
+```typescript
+await agentx.dispose();
+```
+
+## Agent Definition
+
+Use `defineAgent()` to define agent behavior:
+
+```typescript
+import { defineAgent, createAgentX } from "agentxjs";
+
+const CodingAssistant = defineAgent({
+  name: "CodingAssistant",
+  description: "A helpful coding assistant",
+  systemPrompt: "You are an expert programmer.",
+  mcpServers: {
+    filesystem: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"],
+    },
+  },
+});
+
+const agentx = await createAgentX({
+  llm: { apiKey: process.env.ANTHROPIC_API_KEY! },
+  defaultAgent: CodingAssistant,
+});
+```
+
+## Type Guards
+
+```typescript
+import { isLocalConfig, isRemoteConfig } from "agentxjs";
+
+const config = { serverUrl: "ws://localhost:5200" };
+
+if (isRemoteConfig(config)) {
+  // TypeScript knows this is RemoteConfig
   console.log(config.serverUrl);
 }
 
-if (isSourceConfig(config)) {
-  // TypeScript knows this is SourceConfig
-  console.log(config.apiKey);
+if (isLocalConfig(config)) {
+  // TypeScript knows this is LocalConfig
+  console.log(config.llm?.apiKey);
 }
 ```
 
-### AgentX Interface
+## Browser Entry Point
+
+The browser build only includes remote mode to minimize bundle size:
 
 ```typescript
-interface AgentX {
-  // Quick start - run agent in default container
-  run(config: AgentRunConfig): Promise<Agent>;
-
-  // Container management
-  readonly containers: ContainersAPI;
-
-  // Agent management (cross-container)
-  readonly agents: AgentsAPI;
-
-  // Image (snapshot) management
-  readonly images: ImagesAPI;
-
-  // Cleanup
-  dispose(): Promise<void>;
-}
-```
-
-### Sub-APIs
-
-```typescript
-// Container management
-interface ContainersAPI {
-  create(containerId: string): Promise<Container>;
-  get(containerId: string): Container | undefined;
-  list(): Container[];
-}
-
-// Agent management
-interface AgentsAPI {
-  run(containerId: string, config: AgentRunConfig): Promise<Agent>;
-  get(agentId: string): Agent | undefined;
-  list(containerId: string): Agent[];
-  destroy(agentId: string): Promise<boolean>;
-  destroyAll(containerId: string): Promise<void>;
-}
-
-// Image management
-interface ImagesAPI {
-  snapshot(agent: Agent): Promise<AgentImage>;
-  list(): Promise<AgentImage[]>;
-  get(imageId: string): Promise<AgentImage | null>;
-  delete(imageId: string): Promise<void>;
-}
-```
-
-### Agent Run Configuration
-
-```typescript
-interface AgentRunConfig {
-  name: string;
-  systemPrompt?: string;
-}
-```
-
----
-
-## Architecture
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                         createAgentX(config)                      │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  config has serverUrl?                                            │
-│         │                                                         │
-│         ├── YES ──▶ Mirror Mode (Browser)                         │
-│         │           - MirrorRuntime                               │
-│         │           - WebSocket communication                     │
-│         │           - Local state mirrors server                  │
-│         │                                                         │
-│         └── NO ───▶ Source Mode (Server)                          │
-│                     - Runtime                                     │
-│                     - Direct LLM access                           │
-│                     - Persistence layer                           │
-│                                                                   │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│                        AgentX API                                 │
-│                                                                   │
-│   agentx.run(config)           Quick start                        │
-│   agentx.containers.*          Container lifecycle                │
-│   agentx.agents.*              Agent operations                   │
-│   agentx.images.*              Snapshot management                │
-│   agentx.dispose()             Cleanup                            │
-│                                                                   │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Source vs Mirror
-
-| Aspect        | Source (Server)      | Mirror (Browser) |
-| ------------- | -------------------- | ---------------- |
-| Runtime       | Runtime              | MirrorRuntime    |
-| LLM Access    | Direct API calls     | Via server       |
-| Persistence   | Local (SQLite, etc.) | Server-side      |
-| Communication | N/A                  | WebSocket events |
-| Use Case      | Backend services     | Frontend apps    |
-
----
-
-## Docker-Style Lifecycle
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                     Lifecycle Flow                                │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   Container                                                       │
-│       │                                                           │
-│       │ run(config)                                               │
-│       ▼                                                           │
-│   Agent (running instance)                                        │
-│       │                                                           │
-│       │ snapshot()                                                │
-│       ▼                                                           │
-│   AgentImage (frozen state)                                       │
-│       │                                                           │
-│       │ resume()                                                  │
-│       ▼                                                           │
-│   Agent (restored from image)                                     │
-│                                                                   │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Image Operations
-
-```typescript
-// Create snapshot
-const agent = await agentx.run({ name: "Assistant" });
-await agent.receive("Hello!");
-const image = await agentx.images.snapshot(agent);
-
-// Resume from snapshot
-const resumedAgent = await image.resume();
-// Agent has previous conversation history
-```
-
----
-
-## Event System
-
-### Stream Events (Real-time)
-
-```typescript
-agent.on("message_start", (e) => {
-  /* Response started */
-});
-agent.on("text_delta", (e) => console.log(e.data.text));
-agent.on("tool_call", (e) => {
-  /* Tool being called */
-});
-agent.on("tool_result", (e) => {
-  /* Tool result received */
-});
-agent.on("message_stop", (e) => {
-  /* Response complete */
-});
-```
-
-### Subscribe to All Events
-
-```typescript
-agent.on((event) => {
-  console.log(event.type, event.data);
-});
-```
-
----
-
-## Advanced Usage
-
-### Container Management
-
-```typescript
-// Create named container
-const container = await agentx.containers.create("my-container");
-
-// Run agent in container
-const agent = await agentx.agents.run("my-container", {
-  name: "Assistant",
-  systemPrompt: "You are helpful",
-});
-
-// List agents in container
-const agents = agentx.agents.list("my-container");
-
-// Destroy all agents in container
-await agentx.agents.destroyAll("my-container");
-```
-
-### Custom Persistence (Source Mode)
-
-```typescript
+// Browser entry automatically selected by bundlers
 import { createAgentX } from "agentxjs";
-import { createPersistence } from "@agentxjs/persistence";
 
-const agentx = createAgentX({
-  apiKey: "sk-ant-...",
-  persistence: createPersistence({
-    driver: "sqlite",
-    path: "./data.db",
-  }),
+// Local mode throws in browser
+createAgentX(); // Error: Browser only supports remote mode
+
+// Remote mode works
+const agentx = await createAgentX({
+  serverUrl: "ws://localhost:5200",
 });
 ```
 
----
+## Documentation
 
-## Design Decisions
+For full documentation, see:
 
-### Why Unified `createAgentX`?
-
-Instead of separate `createSource()` and `createMirror()` functions, we use a single `createAgentX()` with type discrimination:
-
-```typescript
-// Type system determines mode automatically
-createAgentX(); // Source (no serverUrl)
-createAgentX({ apiKey: "..." }); // Source (no serverUrl)
-createAgentX({ serverUrl: "ws://..." }); // Mirror (has serverUrl)
-```
-
-**Benefits:**
-
-- Single import, single function to learn
-- TypeScript enforces correct configuration
-- Easy refactoring between modes
-
-### Why WebSocket for Mirror?
-
-Mirror mode uses WebSocket (not HTTP/SSE) for bidirectional communication:
-
-1. **Request/Response pattern** - Browser sends commands, server responds
-2. **Real-time events** - Server pushes stream events to browser
-3. **State synchronization** - Browser maintains local mirror of server state
-
-### Why No `defineAgent`?
-
-Previous versions required:
-
-```typescript
-const MyAgent = defineAgent({ name: "Assistant", ... });
-agentx.definitions.register(MyAgent);
-const image = agentx.images.getMetaImage(MyAgent.name);
-const agent = await image.run();
-```
-
-New API is simpler:
-
-```typescript
-const agent = await agentx.run({ name: "Assistant", ... });
-```
-
-The `AgentRunConfig` replaces `AgentDefinition` for most use cases. For advanced scenarios (versioning, derived images), use the Images API directly.
-
----
-
-## Package Dependencies
-
-```text
-@agentxjs/types      Type definitions
-       ↑
-@agentxjs/common     Logger facade
-       ↑
-@agentxjs/runtime    Runtime implementation
-       ↑
-@agentxjs/mirror     MirrorRuntime implementation
-       ↑
-agentxjs             This package (unified API)
-```
-
----
+- [agentxjs Package Documentation](../../docs/packages/agentx.md)
+- [Event System](../../docs/concepts/event-system.md)
+- [Lifecycle Management](../../docs/concepts/lifecycle.md)
+- [Architecture Overview](../../docs/concepts/overview.md)
 
 ## License
 
