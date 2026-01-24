@@ -41,6 +41,16 @@ docs/
 │   ├── agentx.md        # agentxjs
 │   └── ui.md            # @agentxjs/ui
 │
+├── portagent/           # Portagent (Production Example)
+│   ├── index.md         # Overview & Quick Start
+│   ├── deployment.md    # Deployment Guide
+│   ├── configuration.md # Configuration Reference
+│   ├── authentication.md# Authentication System
+│   ├── architecture.md  # Architecture Design
+│   ├── development.md   # Development Guide
+│   ├── operations.md    # Operations Guide
+│   └── troubleshooting.md # Troubleshooting
+│
 └── examples/            # Examples
     ├── chat-cli.md      # CLI Chat Application
     ├── chat-web.md      # Web Chat Application
@@ -107,6 +117,7 @@ agentxjs               Unified API (local/remote)
 - **[Architecture Overview](./concepts/overview.md)** - Understand the system
 - **[Event System](./concepts/event-system.md)** - Core event architecture
 - **[API Reference](./api/agentx.md)** - Complete API documentation
+- **[Portagent](./portagent/index.md)** - Production deployment example
 
 ## Related Resources
 
