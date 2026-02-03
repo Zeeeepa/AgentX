@@ -1,0 +1,134 @@
+{
+  "name": "force-test",
+  "description": "Recording of: \"Hello again!\"",
+  "recordedAt": 1770108346522,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 4321,
+      "data": {
+        "message": {
+          "id": "msg_01WbTgpUPsgvhQHErTQL49Vu",
+          "model": "claude-haiku-4-5-20251001"
+        }
+      }
+    },
+    {
+      "type": "text_content_block_start",
+      "delay": 2,
+      "data": {},
+      "index": 0
+    },
+    {
+      "type": "text_delta",
+      "delay": 19,
+      "data": {
+        "text": "Hello! "
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 16,
+      "data": {
+        "text": "👋 Welcome"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 21,
+      "data": {
+        "text": " back!"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 3,
+      "data": {
+        "text": " How can I help you today?"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 13,
+      "data": {
+        "text": " Whether"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 21,
+      "data": {
+        "text": " you need to"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 27,
+      "data": {
+        "text": " explore"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 22,
+      "data": {
+        "text": " a c"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 26,
+      "data": {
+        "text": "odebase, write"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 26,
+      "data": {
+        "text": " code, run tests"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 22,
+      "data": {
+        "text": ", or tackle"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 28,
+      "data": {
+        "text": " any"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 21,
+      "data": {
+        "text": " other task, I'm ready to assist"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 18,
+      "data": {
+        "text": "!"
+      }
+    },
+    {
+      "type": "text_content_block_stop",
+      "delay": 31,
+      "data": {},
+      "index": 0
+    },
+    {
+      "type": "message_stop",
+      "delay": 0,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    }
+  ]
+}

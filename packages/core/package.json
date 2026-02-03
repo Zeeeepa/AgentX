@@ -22,6 +22,7 @@
     "test": "bun test"
   },
   "dependencies": {
+    "jsonrpc-lite": "2.2.0",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {

@@ -1,0 +1,385 @@
+{
+  "name": "tool-ls-test",
+  "description": "Recording of: \"List files in current directory\"",
+  "recordedAt": 1770102936084,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 4814,
+      "data": {
+        "message": {
+          "id": "msg_01PFUwgfRGRbgoBTz1VPJySQ",
+          "model": "claude-haiku-4-5-20251001"
+        }
+      }
+    },
+    {
+      "type": "text_content_block_start",
+      "delay": 0,
+      "data": {},
+      "index": 0
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "I'll list the files in the current"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 7,
+      "data": {
+        "text": " directory for you."
+      }
+    },
+    {
+      "type": "text_content_block_stop",
+      "delay": 174,
+      "data": {},
+      "index": 0
+    },
+    {
+      "type": "tool_use_content_block_start",
+      "delay": 0,
+      "data": {
+        "id": "toolu_01Dyrn99s9c9kVBdo6GV1LL3",
+        "name": "Bash"
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": ""
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 369,
+      "data": {
+        "partialJson": "{\"co"
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "mmand\":"
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": " \"ls"
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": " -la"
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "\""
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": ", \"descri"
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "ption"
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "\":"
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 83,
+      "data": {
+        "partialJson": " \"List all"
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": " files and "
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "directori"
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "es in cu"
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "rren"
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "t directory"
+      },
+      "index": 1
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "\"}"
+      },
+      "index": 1
+    },
+    {
+      "type": "tool_use_content_block_stop",
+      "delay": 13,
+      "data": {},
+      "index": 1
+    },
+    {
+      "type": "message_stop",
+      "delay": 1,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 787,
+      "data": {
+        "toolUseId": "toolu_01Dyrn99s9c9kVBdo6GV1LL3",
+        "result": "total 16\ndrwxr-xr-x  7 sean  staff  224 Feb  3 15:02 .\ndrwxr-xr-x  8 sean  staff  256 Feb  3 14:53 ..\ndrwxr-xr-x  5 sean  staff  160 Feb  3 15:02 fixtures\n-rw-r--r--  1 sean  staff  554 Feb  3 15:01 package.json\ndrwxr-xr-x  3 sean  staff   96 Feb  3 15:14 scripts\ndrwxr-xr-x  6 sean  staff  192 Feb  3 15:12 src\n-rw-r--r--  1 sean  staff  283 Feb  3 15:02 tsconfig.json\n\n───────────────────────────────────────────────────────────────\n  📂 PWD: /Users/sean/Deepractice/AgentX/packages/devtools\n  🔀 Git: refactor/core-refactor (uncommitted changes)\n  📦 Node: v22.14.0\n  📝 Project: @agentxjs/devtools\n  ⏰ Time: 2026-02-03 15:15:42\n───────────────────────────────────────────────────────────────",
+        "isError": false
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 2106,
+      "data": {
+        "message": {
+          "id": "msg_01Xz7gec4RVwVsgdwzspQUXv",
+          "model": "claude-haiku-4-5-20251001"
+        }
+      }
+    },
+    {
+      "type": "text_content_block_start",
+      "delay": 0,
+      "data": {},
+      "index": 0
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "The"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 24,
+      "data": {
+        "text": " current directory (`"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 30,
+      "data": {
+        "text": "/Users/sean/Deepract"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 27,
+      "data": {
+        "text": "ice/AgentX/packages/"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 28,
+      "data": {
+        "text": "devtools`) contains:\n\n**"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 49,
+      "data": {
+        "text": "Directories:**\n- `fixtures/"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 24,
+      "data": {
+        "text": "` - Contains test fixtures\n- `"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 24,
+      "data": {
+        "text": "scripts/` - Contains scripts"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 20,
+      "data": {
+        "text": "\n- `src/` - Source"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 20,
+      "data": {
+        "text": " code"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 22,
+      "data": {
+        "text": "\n\n**Files:**\n- `"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 18,
+      "data": {
+        "text": "package.json` - Package"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 21,
+      "data": {
+        "text": " configuration\n- `tsconfig.json"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 20,
+      "data": {
+        "text": "` - TypeScript configuration"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 21,
+      "data": {
+        "text": "\n\nYou"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 44,
+      "data": {
+        "text": "'re"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 5,
+      "data": {
+        "text": " on"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 29,
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 27,
+      "data": {
+        "text": " `"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 24,
+      "data": {
+        "text": "ref"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 27,
+      "data": {
+        "text": "actor/core-refactor` branch"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 27,
+      "data": {
+        "text": " with uncommitted changes."
+      }
+    },
+    {
+      "type": "text_content_block_stop",
+      "delay": 42,
+      "data": {},
+      "index": 0
+    },
+    {
+      "type": "message_stop",
+      "delay": 24,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    }
+  ]
+}

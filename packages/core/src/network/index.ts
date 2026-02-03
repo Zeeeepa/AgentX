@@ -27,7 +27,7 @@ export type {
   ChannelClientProvider,
 } from "./types";
 
-// Protocol
+// Protocol (reliable delivery)
 export type { ReliableWrapper, AckMessage } from "./protocol";
 export {
   isReliableWrapper,
@@ -37,3 +37,40 @@ export {
   unwrapMessage,
   generateMessageId,
 } from "./protocol";
+
+// JSON-RPC 2.0 Protocol
+export type {
+  RpcMethod,
+  NotificationMethod,
+  RpcRequest,
+  RpcSuccessResponse,
+  RpcErrorResponse,
+  RpcNotification,
+  StreamEventParams,
+  ControlAckParams,
+} from "./jsonrpc";
+export {
+  JsonRpcError,
+  RpcErrorCodes,
+  createRequest,
+  createNotification,
+  createStreamEvent,
+  createAckNotification,
+  createSuccessResponse,
+  createErrorResponse,
+  parseMessage,
+  parseMessageObject,
+  isRequest,
+  isNotification,
+  isSuccessResponse,
+  isErrorResponse,
+  isInvalid,
+  isStreamEvent,
+  isControlAck,
+  eventTypeToRpcMethod,
+  rpcMethodToResponseType,
+} from "./jsonrpc";
+
+// RPC Client
+export type { RpcClientConfig, RpcClientState } from "./RpcClient";
+export { RpcClient } from "./RpcClient";

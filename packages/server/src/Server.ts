@@ -1,16 +1,30 @@
 /**
- * AgentX Server Implementation
+ * AgentX Server Implementation (JSON-RPC 2.0)
  *
  * Creates a WebSocket server that:
  * 1. Accepts client connections
- * 2. Routes command events through CommandHandler
- * 3. Broadcasts agent events to subscribed clients
+ * 2. Handles JSON-RPC requests directly via CommandHandler
+ * 3. Broadcasts stream events as JSON-RPC notifications
+ *
+ * Message Types:
+ * - RPC Request (has id): Client → Server → Client (direct response)
+ * - RPC Notification (no id): Server → Client (stream events)
  */
 
 import type { AgentXProvider } from "@agentxjs/core/runtime";
 import type { ChannelConnection } from "@agentxjs/core/network";
-import type { BusEvent } from "@agentxjs/core/event";
+import type { BusEvent, SystemEvent } from "@agentxjs/core/event";
 import { createAgentXRuntime } from "@agentxjs/core/runtime";
+import {
+  parseMessage,
+  isRequest,
+  isNotification,
+  createSuccessResponse,
+  createErrorResponse,
+  createStreamEvent,
+  RpcErrorCodes,
+  type RpcMethod,
+} from "@agentxjs/core/network";
 import { WebSocketServer, isDeferredProvider, type DeferredProviderConfig } from "@agentxjs/node-provider";
 import { createLogger } from "commonxjs/logger";
 import { CommandHandler } from "./CommandHandler";
@@ -82,8 +96,8 @@ export async function createServer(config: ServerConfig): Promise<AgentXServer> 
     debug: config.debug,
   });
 
-  // Create command handler
-  const commandHandler = new CommandHandler(runtime, provider.eventBus);
+  // Create command handler (no longer needs eventBus)
+  const commandHandler = new CommandHandler(runtime);
 
   // Track connections
   const connections = new Map<string, ConnectionState>();
@@ -103,27 +117,46 @@ export async function createServer(config: ServerConfig): Promise<AgentXServer> 
    * Check if event should be sent to connection based on subscriptions
    */
   function shouldSendToConnection(state: ConnectionState, event: BusEvent): boolean {
-    // Always send global events
-    if (state.subscribedTopics.has("global")) {
-      // But skip internal events
-      if (event.source === "driver" && event.intent === "request") {
-        return false;
-      }
+    // Skip internal driver events
+    if (event.source === "driver" && event.intent !== "notification") {
+      return false;
     }
 
-    // Check if subscribed to event's session (context is in data or as separate field)
+    // Skip command events (they are handled via RPC, not broadcast)
+    if (event.source === "command") {
+      return false;
+    }
+
+    // Check if subscribed to event's session
     const eventWithContext = event as BusEvent & { context?: { sessionId?: string } };
     const sessionId = eventWithContext.context?.sessionId;
     if (sessionId && state.subscribedTopics.has(sessionId)) {
       return true;
     }
 
-    // Send command responses
-    if (event.category === "response") {
-      return true;
-    }
-
+    // Send to global subscribers
     return state.subscribedTopics.has("global");
+  }
+
+  /**
+   * Send JSON-RPC response to a specific connection
+   */
+  function sendResponse(connection: ChannelConnection, id: string | number, result: unknown): void {
+    const response = createSuccessResponse(id, result);
+    connection.send(JSON.stringify(response));
+  }
+
+  /**
+   * Send JSON-RPC error to a specific connection
+   */
+  function sendError(
+    connection: ChannelConnection,
+    id: string | number | null,
+    code: number,
+    message: string
+  ): void {
+    const response = createErrorResponse(id, code, message);
+    connection.send(JSON.stringify(response));
   }
 
   // Handle new connections
@@ -140,28 +173,22 @@ export async function createServer(config: ServerConfig): Promise<AgentXServer> 
     });
 
     // Handle messages from client
-    connection.onMessage((message) => {
+    connection.onMessage(async (message) => {
       try {
-        const parsed = JSON.parse(message);
+        const parsed = parseMessage(message);
 
-        // Handle subscription request
-        if (parsed.type === "subscribe" && parsed.sessionId) {
-          subscribeToTopic(connection.id, parsed.sessionId);
-          return;
+        // Handle single message (not batch)
+        if (!Array.isArray(parsed)) {
+          await handleParsedMessage(connection, state, parsed);
+        } else {
+          // Handle batch (not common, but supported by JSON-RPC 2.0)
+          for (const item of parsed) {
+            await handleParsedMessage(connection, state, item);
+          }
         }
-
-        // Forward event to EventBus
-        const event = parsed as BusEvent;
-        logger.debug("Received client event", {
-          type: event.type,
-          category: event.category,
-        });
-
-        provider.eventBus.emit(event);
       } catch (err) {
-        logger.error("Failed to parse client message", {
-          error: (err as Error).message,
-        });
+        logger.error("Failed to parse message", { error: (err as Error).message });
+        sendError(connection, null, RpcErrorCodes.PARSE_ERROR, "Parse error");
       }
     });
 
@@ -175,14 +202,74 @@ export async function createServer(config: ServerConfig): Promise<AgentXServer> 
     });
   });
 
-  // Route events to connected clients
+  /**
+   * Handle a parsed JSON-RPC message
+   */
+  async function handleParsedMessage(
+    connection: ChannelConnection,
+    state: ConnectionState,
+    parsed: import("jsonrpc-lite").IParsedObject
+  ): Promise<void> {
+    if (isRequest(parsed)) {
+      // JSON-RPC Request - handle and respond directly
+      const payload = parsed.payload as {
+        id: string | number;
+        method: string;
+        params: unknown;
+      };
+      const { id, method, params } = payload;
+
+      logger.debug("Received RPC request", { id, method });
+
+      // Call command handler
+      const result = await commandHandler.handle(method as RpcMethod, params);
+
+      if (result.success) {
+        sendResponse(connection, id, result.data);
+      } else {
+        sendError(connection, id, result.code, result.message);
+      }
+    } else if (isNotification(parsed)) {
+      // JSON-RPC Notification - control messages
+      const payload = parsed.payload as {
+        method: string;
+        params: unknown;
+      };
+      const { method, params } = payload;
+
+      logger.debug("Received notification", { method });
+
+      if (method === "subscribe") {
+        const { topic } = params as { topic: string };
+        subscribeToTopic(connection.id, topic);
+      } else if (method === "unsubscribe") {
+        const { topic } = params as { topic: string };
+        state.subscribedTopics.delete(topic);
+        logger.debug("Connection unsubscribed from topic", { connectionId: connection.id, topic });
+      } else if (method === "control.ack") {
+        // ACK for reliable delivery - handled by network layer
+        logger.debug("Received ACK notification");
+      }
+    } else {
+      // Invalid message
+      logger.warn("Received invalid JSON-RPC message");
+    }
+  }
+
+  // Route internal events to connected clients as JSON-RPC notifications
   provider.eventBus.onAny((event) => {
-    // Skip internal events
-    if (event.source === "driver" && event.intent !== "notification") {
+    // Only broadcast broadcastable events
+    if (!shouldBroadcastEvent(event)) {
       return;
     }
 
-    const message = JSON.stringify(event);
+    // Get topic from event context
+    const eventWithContext = event as BusEvent & { context?: { sessionId?: string } };
+    const topic = eventWithContext.context?.sessionId || "global";
+
+    // Wrap as JSON-RPC notification
+    const notification = createStreamEvent(topic, event as SystemEvent);
+    const message = JSON.stringify(notification);
 
     for (const [connectionId, state] of connections) {
       if (shouldSendToConnection(state, event)) {
@@ -198,6 +285,29 @@ export async function createServer(config: ServerConfig): Promise<AgentXServer> 
       }
     }
   });
+
+  /**
+   * Check if event should be broadcast
+   */
+  function shouldBroadcastEvent(event: BusEvent): boolean {
+    // Skip internal driver events
+    if (event.source === "driver" && event.intent !== "notification") {
+      return false;
+    }
+
+    // Skip command events (handled via RPC)
+    if (event.source === "command") {
+      return false;
+    }
+
+    // Check broadcastable flag
+    const systemEvent = event as SystemEvent;
+    if (systemEvent.broadcastable === false) {
+      return false;
+    }
+
+    return true;
+  }
 
   // Attach to existing server if provided
   if (config.server) {

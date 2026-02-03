@@ -1,0 +1,143 @@
+{
+  "name": "tool-list-files",
+  "description": "Recording of: \"List files in the current directory\"",
+  "recordedAt": 1770102169408,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 4779,
+      "data": {
+        "message": {
+          "id": "msg_019QeVaLsZfHdfby3WVc3bXA",
+          "model": "claude-haiku-4-5-20251001"
+        }
+      }
+    },
+    {
+      "type": "tool_use_content_block_start",
+      "delay": 1,
+      "data": {
+        "id": "toolu_01S3q3J6dcQCUxEJqk8hTDpJ",
+        "name": "Bash"
+      },
+      "index": 0
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": ""
+      },
+      "index": 0
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 103,
+      "data": {
+        "partialJson": "{\"command"
+      },
+      "index": 0
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 3,
+      "data": {
+        "partialJson": "\": "
+      },
+      "index": 0
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "\"ls -la"
+      },
+      "index": 0
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 3,
+      "data": {
+        "partialJson": "\""
+      },
+      "index": 0
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 139,
+      "data": {
+        "partialJson": ", \"des"
+      },
+      "index": 0
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "cription\": "
+      },
+      "index": 0
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "\"Lis"
+      },
+      "index": 0
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 3,
+      "data": {
+        "partialJson": "t files in"
+      },
+      "index": 0
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": " curre"
+      },
+      "index": 0
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 2,
+      "data": {
+        "partialJson": "nt directory"
+      },
+      "index": 0
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 5,
+      "data": {
+        "partialJson": " with"
+      },
+      "index": 0
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 2,
+      "data": {
+        "partialJson": " details\"}"
+      },
+      "index": 0
+    },
+    {
+      "type": "tool_use_content_block_stop",
+      "delay": 17,
+      "data": {},
+      "index": 0
+    },
+    {
+      "type": "message_stop",
+      "delay": 7,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    }
+  ]
+}

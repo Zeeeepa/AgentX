@@ -52,12 +52,12 @@ async function getServerUrl(port: number): Promise<{ url: string; cleanup?: () =
   }
 
   // Validate API key for starting new server
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.DEEPRACTICE_API_KEY;
   if (!apiKey) {
-    console.error("Error: ANTHROPIC_API_KEY environment variable is required");
+    console.error("Error: DEEPRACTICE_API_KEY environment variable is required");
     console.error("");
     console.error("Create a .env.local file with:");
-    console.error("  ANTHROPIC_API_KEY=sk-xxx");
+    console.error("  DEEPRACTICE_API_KEY=sk-xxx");
     process.exit(1);
   }
 

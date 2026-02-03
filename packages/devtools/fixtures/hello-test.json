@@ -1,0 +1,113 @@
+{
+  "name": "hello-test",
+  "description": "Recording of: \"Hello, say hi briefly.\"",
+  "recordedAt": 1770102020745,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 10987,
+      "data": {
+        "message": {
+          "id": "msg_77b0da2e-5783-4c35-90",
+          "model": "claude-haiku-4-5-20251001"
+        }
+      }
+    },
+    {
+      "type": "text_content_block_start",
+      "delay": 1,
+      "data": {},
+      "index": 0
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "Hi"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "! I'm Claude, ready"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " to help you with coding"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " tasks,"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 6,
+      "data": {
+        "text": " git"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " operations, file"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 85,
+      "data": {
+        "text": " management"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 30,
+      "data": {
+        "text": ", and more"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 20,
+      "data": {
+        "text": ". What"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 23,
+      "data": {
+        "text": " can I "
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 78,
+      "data": {
+        "text": "do for you today?"
+      }
+    },
+    {
+      "type": "text_content_block_stop",
+      "delay": 51,
+      "data": {},
+      "index": 0
+    },
+    {
+      "type": "message_stop",
+      "delay": 1,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    }
+  ]
+}

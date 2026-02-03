@@ -7,7 +7,11 @@ peer = true
 [test]
 # Enable coverage reporting
 coverage = true
+# Preload env loader
+preload = ["./scripts/env-loader.ts"]
 
 [run]
 # Use Bun runtime for scripts
 bun = true
+# Preload env loader for all scripts
+preload = ["./scripts/env-loader.ts"]
