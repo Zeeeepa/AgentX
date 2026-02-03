@@ -279,6 +279,7 @@ Then("the agent list should include {string}", function (this: AgentXWorld, agen
 
 When(
   "I send message {string} to agent {string}",
+  { timeout: 60000 },
   async function (this: AgentXWorld, content: string, agentId: string) {
     const resolvedAgentId = resolvePlaceholder(this, agentId);
     const response = await this.agentx!.sendMessage(resolvedAgentId, content);

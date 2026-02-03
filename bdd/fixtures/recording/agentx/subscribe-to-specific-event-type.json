@@ -1,75 +1,47 @@
 {
   "name": "subscribe-to-specific-event-type",
   "description": "BDD scenario: subscribe-to-specific-event-type",
-  "recordedAt": 1770109492882,
+  "recordedAt": 1770116176273,
   "events": [
     {
       "type": "message_start",
-      "delay": 5320,
+      "delay": 7536,
       "data": {
-        "message": {
-          "id": "msg_b20af046-ca6f-433f-ba",
-          "model": "claude-haiku-4-5-20251001"
-        }
+        "messageId": "msg_be39538d-60af-437e-9d",
+        "model": "claude-haiku-4-5-20251001"
       }
-    },
-    {
-      "type": "text_content_block_start",
-      "delay": 0,
-      "data": {},
-      "index": 0
     },
     {
       "type": "text_delta",
       "delay": 0,
       "data": {
-        "text": "Hello"
+        "text": "I'm"
       }
     },
     {
       "type": "text_delta",
-      "delay": 107,
+      "delay": 0,
       "data": {
-        "text": "! I'm ready"
+        "text": " ready to help!"
       }
     },
     {
       "type": "text_delta",
-      "delay": 3,
-      "data": {
-        "text": " to help you."
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 20,
+      "delay": 0,
       "data": {
         "text": " What"
       }
     },
     {
       "type": "text_delta",
-      "delay": 345,
-      "data": {
-        "text": " would you like me"
-      }
-    },
-    {
-      "type": "text_delta",
       "delay": 0,
       "data": {
-        "text": " to do?"
+        "text": " would you like me to do?"
       }
-    },
-    {
-      "type": "text_content_block_stop",
-      "delay": 191,
-      "data": {},
-      "index": 0
     },
     {
       "type": "message_stop",
-      "delay": 1,
+      "delay": 62,
       "data": {
         "stopReason": "end_turn"
       }

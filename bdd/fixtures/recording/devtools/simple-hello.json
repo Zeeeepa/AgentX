@@ -1,23 +1,15 @@
 {
   "name": "simple-hello",
   "description": "Test fixture",
-  "recordedAt": 1770109508624,
+  "recordedAt": 1770116225776,
   "events": [
     {
       "type": "message_start",
       "delay": 0,
       "data": {
-        "message": {
-          "id": "msg_test",
-          "model": "test"
-        }
+        "messageId": "msg_test",
+        "model": "test"
       }
-    },
-    {
-      "type": "text_content_block_start",
-      "delay": 5,
-      "data": {},
-      "index": 0
     },
     {
       "type": "text_delta",
@@ -32,12 +24,6 @@
       "data": {
         "text": "How can I help?"
       }
-    },
-    {
-      "type": "text_content_block_stop",
-      "delay": 5,
-      "data": {},
-      "index": 0
     },
     {
       "type": "message_stop",

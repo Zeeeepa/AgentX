@@ -9,15 +9,15 @@ import { strict as assert } from "node:assert";
 import { existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import type { AgentXWorld } from "../support/world";
-import type { Driver, DriverFactory } from "@agentxjs/core/driver";
-import type { Devtools, Fixture, MockDriver, RecordingDriver } from "@agentxjs/devtools";
+import type { Driver, CreateDriver } from "@agentxjs/core/driver";
+import type { Devtools, Fixture, RecordingDriver } from "@agentxjs/devtools";
 
 // Extended world for devtools tests
 interface DevtoolsWorld extends AgentXWorld {
   devtools?: Devtools;
   fixturesDir?: string;
   driver?: Driver;
-  factory?: DriverFactory;
+  createDriver?: CreateDriver;
   recorder?: RecordingDriver;
   collectedTextDeltas?: string[];
   fixtureExistedBefore?: boolean;
@@ -64,11 +64,9 @@ Given(
       description: "Test fixture",
       recordedAt: Date.now(),
       events: [
-        { type: "message_start", delay: 0, data: { message: { id: "msg_test", model: "test" } } },
-        { type: "text_content_block_start", delay: 5, data: {}, index: 0 },
+        { type: "message_start", delay: 0, data: { messageId: "msg_test", model: "test" } },
         { type: "text_delta", delay: 5, data: { text: "Hello! " } },
         { type: "text_delta", delay: 5, data: { text: "How can I help?" } },
-        { type: "text_content_block_stop", delay: 5, data: {}, index: 0 },
         { type: "message_stop", delay: 5, data: { stopReason: "end_turn" } },
       ],
     };
@@ -100,10 +98,8 @@ Given(
     const fixture: Fixture = {
       name,
       events: [
-        { type: "message_start", delay: 0, data: { message: { id: "msg_test", model: "test" } } },
-        { type: "text_content_block_start", delay: 0, data: {}, index: 0 },
+        { type: "message_start", delay: 0, data: { messageId: "msg_test", model: "test" } },
         { type: "text_delta", delay: 0, data: { text } },
-        { type: "text_content_block_stop", delay: 0, data: {}, index: 0 },
         { type: "message_stop", delay: 0, data: { stopReason: "end_turn" } },
       ],
     };
@@ -156,42 +152,29 @@ When(
   }
 );
 
-When("I connect the driver and send a user message", async function (this: DevtoolsWorld) {
-  const { EventBusImpl } = await import("@agentxjs/core/event");
-  const bus = new EventBusImpl();
+When("I initialize and receive a message", async function (this: DevtoolsWorld) {
+  // Initialize driver
+  await this.driver!.initialize();
 
   // Collect text deltas
   this.collectedTextDeltas = [];
-  bus.on("text_delta", (evt) => {
-    const data = evt.data as { text: string };
-    this.collectedTextDeltas!.push(data.text);
-  });
 
-  // Connect driver
-  this.driver!.connect(bus.asConsumer(), bus.asProducer());
-
-  // Send user message
-  bus.emit({
-    type: "user_message",
+  // Build user message
+  const userMessage = {
+    id: `msg_${Date.now()}`,
+    role: "user" as const,
+    subtype: "user" as const,
+    content: "Test message",
     timestamp: Date.now(),
-    source: "test",
-    category: "message",
-    intent: "request",
-    data: {
-      id: `msg_${Date.now()}`,
-      role: "user",
-      subtype: "user",
-      content: "Test message",
-      timestamp: Date.now(),
-    },
-    context: {
-      agentId: "mock-agent",
-      sessionId: "test-session",
-    },
-  } as never);
+  };
 
-  // Wait for events to process
-  await new Promise((r) => setTimeout(r, 100));
+  // Use new receive() API
+  for await (const event of this.driver!.receive(userMessage)) {
+    if (event.type === "text_delta") {
+      const data = event.data as { text: string };
+      this.collectedTextDeltas!.push(data.text);
+    }
+  }
 });
 
 When(
@@ -203,17 +186,14 @@ When(
     }
 
     const { createRecordingDriver } = await import("@agentxjs/devtools");
-    const { createClaudeDriverFactory } = await import("@agentxjs/claude-driver");
+    const { createClaudeDriver } = await import("@agentxjs/claude-driver");
 
-    const claudeFactory = createClaudeDriverFactory();
-    const realDriver = claudeFactory.createDriver({
+    const realDriver = createClaudeDriver({
+      apiKey: process.env.DEEPRACTICE_API_KEY!,
+      baseUrl: process.env.DEEPRACTICE_BASE_URL,
       agentId: "recording-agent",
-      config: {
-        apiKey: process.env.DEEPRACTICE_API_KEY!,
-        baseUrl: process.env.DEEPRACTICE_BASE_URL,
-        model: process.env.DEEPRACTICE_MODEL || "claude-haiku-4-5-20251001",
-        systemPrompt: "You are a helpful assistant. Keep responses brief.",
-      },
+      model: process.env.DEEPRACTICE_MODEL || "claude-haiku-4-5-20251001",
+      systemPrompt: "You are a helpful assistant. Keep responses brief.",
     });
 
     this.recorder = createRecordingDriver({
@@ -233,51 +213,47 @@ When(
       return "skipped";
     }
 
-    const { EventBusImpl } = await import("@agentxjs/core/event");
-    const bus = new EventBusImpl();
+    // Initialize recorder
+    await this.recorder.initialize();
 
-    // Connect recorder
-    this.recorder.connect(bus.asConsumer(), bus.asProducer());
-
-    // Wait for completion
-    let completed = false;
-    bus.on("message_stop", (evt) => {
-      const data = evt.data as { stopReason?: string };
-      if (data.stopReason === "end_turn") {
-        completed = true;
-      }
-    });
-
-    // Send message
-    bus.emit({
-      type: "user_message",
+    // Build user message
+    const userMessage = {
+      id: `msg_${Date.now()}`,
+      role: "user" as const,
+      subtype: "user" as const,
+      content: message,
       timestamp: Date.now(),
-      source: "test",
-      category: "message",
-      intent: "request",
-      data: {
-        id: `msg_${Date.now()}`,
-        role: "user",
-        subtype: "user",
-        content: message,
-        timestamp: Date.now(),
-      },
-      context: {
-        agentId: "recording-agent",
-        sessionId: "test-session",
-      },
-    } as never);
+    };
 
-    // Wait for completion
-    const start = Date.now();
-    while (!completed && Date.now() - start < 30000) {
-      await new Promise((r) => setTimeout(r, 100));
+    // Use new receive() API
+    for await (const event of this.recorder.receive(userMessage)) {
+      // Just consume events, they are recorded automatically
+      if (event.type === "message_stop") {
+        break;
+      }
     }
   }
 );
 
-When("I get a DriverFactory for {string}", function (this: DevtoolsWorld, name: string) {
-  this.factory = this.devtools!.factory(name, { message: "Test" });
+When("I get a CreateDriver for {string}", async function (this: DevtoolsWorld, name: string) {
+  // createDriverForFixture requires the fixture to exist
+  const fixturePath = join(this.fixturesDir!, `${name}.json`);
+  if (!existsSync(fixturePath)) {
+    // Create a simple fixture first
+    const { mkdir, writeFile } = await import("node:fs/promises");
+    await mkdir(this.fixturesDir!, { recursive: true });
+    const fixture: Fixture = {
+      name,
+      events: [
+        { type: "message_start", delay: 0, data: { messageId: "msg_test", model: "test" } },
+        { type: "text_delta", delay: 0, data: { text: "Test response" } },
+        { type: "message_stop", delay: 0, data: { stopReason: "end_turn" } },
+      ],
+    };
+    await writeFile(fixturePath, JSON.stringify(fixture, null, 2), "utf-8");
+  }
+
+  this.createDriver = this.devtools!.createDriverForFixture(name);
 });
 
 // ============================================================================
@@ -360,24 +336,22 @@ Then("I can save the fixture to a file", async function (this: DevtoolsWorld) {
   assert.ok(existsSync(path));
 
   // Cleanup
-  this.recorder.dispose();
+  await this.recorder.dispose();
 });
 
 Then("I can use it to create drivers", function (this: DevtoolsWorld) {
-  assert.ok(this.factory);
-  const driver = this.factory.createDriver({ agentId: "test-agent", config: {} });
+  assert.ok(this.createDriver);
+  const driver = this.createDriver({ apiKey: "test", agentId: "test-agent" });
   assert.ok(driver);
 });
 
 Then("the drivers use the fixture for playback", async function (this: DevtoolsWorld) {
   // Create driver from factory
-  const driver = this.factory!.createDriver({ agentId: "test-agent", config: {} });
+  const driver = this.createDriver!({ apiKey: "test", agentId: "test-agent" });
 
-  // Wait for lazy loading
-  await new Promise((r) => setTimeout(r, 100));
-
-  // Should be a LazyDriver wrapping MockDriver
+  // Should be a MockDriver
   assert.ok(driver);
+  assert.strictEqual(driver.name, "MockDriver");
 });
 
 // ============================================================================
@@ -388,6 +362,6 @@ import { After } from "@cucumber/cucumber";
 
 After({ tags: "@devtools" }, async function (this: DevtoolsWorld) {
   // Dispose driver (fixtures are kept for reuse)
-  this.driver?.dispose();
-  this.recorder?.dispose();
+  await this.driver?.dispose();
+  await this.recorder?.dispose();
 });

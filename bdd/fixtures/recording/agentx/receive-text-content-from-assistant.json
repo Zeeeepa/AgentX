@@ -1,23 +1,15 @@
 {
   "name": "receive-text-content-from-assistant",
   "description": "BDD scenario: receive-text-content-from-assistant",
-  "recordedAt": 1770109241083,
+  "recordedAt": 1770116159714,
   "events": [
     {
       "type": "message_start",
-      "delay": 4405,
+      "delay": 7731,
       "data": {
-        "message": {
-          "id": "msg_d4a54df9-e420-4fe3-a8",
-          "model": "claude-haiku-4-5-20251001"
-        }
+        "messageId": "msg_73a19cd2-77de-47fc-9d",
+        "model": "claude-haiku-4-5-20251001"
       }
-    },
-    {
-      "type": "text_content_block_start",
-      "delay": 1,
-      "data": {},
-      "index": 0
     },
     {
       "type": "text_delta",
@@ -28,41 +20,28 @@
     },
     {
       "type": "text_delta",
-      "delay": 147,
+      "delay": 88,
       "data": {
         "text": "! "
       }
     },
     {
       "type": "text_delta",
-      "delay": 1,
+      "delay": 40,
       "data": {
         "text": "👋 How"
       }
     },
     {
       "type": "text_delta",
-      "delay": 0,
+      "delay": 41,
       "data": {
-        "text": " can I help you today"
+        "text": " can I help you today?"
       }
-    },
-    {
-      "type": "text_delta",
-      "delay": 5,
-      "data": {
-        "text": "?"
-      }
-    },
-    {
-      "type": "text_content_block_stop",
-      "delay": 165,
-      "data": {},
-      "index": 0
     },
     {
       "type": "message_stop",
-      "delay": 1,
+      "delay": 146,
       "data": {
         "stopReason": "end_turn"
       }

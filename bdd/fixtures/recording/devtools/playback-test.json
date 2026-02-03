@@ -5,17 +5,9 @@
       "type": "message_start",
       "delay": 0,
       "data": {
-        "message": {
-          "id": "msg_test",
-          "model": "test"
-        }
+        "messageId": "msg_test",
+        "model": "test"
       }
-    },
-    {
-      "type": "text_content_block_start",
-      "delay": 0,
-      "data": {},
-      "index": 0
     },
     {
       "type": "text_delta",
@@ -23,12 +15,6 @@
       "data": {
         "text": "Hello, world!"
       }
-    },
-    {
-      "type": "text_content_block_stop",
-      "delay": 0,
-      "data": {},
-      "index": 0
     },
     {
       "type": "message_stop",

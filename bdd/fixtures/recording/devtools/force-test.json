@@ -1,103 +1,47 @@
 {
   "name": "force-test",
   "description": "Recording of: \"Hello again!\"",
-  "recordedAt": 1770109515086,
+  "recordedAt": 1770116232935,
   "events": [
     {
       "type": "message_start",
-      "delay": 4096,
+      "delay": 8255,
       "data": {
-        "message": {
-          "id": "msg_01E8Ki4oipWtoi8G4rRhEsHz",
-          "model": "claude-haiku-4-5-20251001"
-        }
+        "messageId": "msg_84e6fbc6-eeee-405e-89",
+        "model": "claude-haiku-4-5-20251001"
       }
     },
     {
-      "type": "text_content_block_start",
+      "type": "text_delta",
       "delay": 1,
-      "data": {},
-      "index": 0
+      "data": {
+        "text": "Hello"
+      }
     },
     {
       "type": "text_delta",
       "delay": 0,
       "data": {
-        "text": "Hello! "
+        "text": "! "
       }
     },
     {
       "type": "text_delta",
-      "delay": 14,
+      "delay": 48,
       "data": {
-        "text": "👋 It"
+        "text": "👋 How"
       }
     },
     {
       "type": "text_delta",
-      "delay": 21,
+      "delay": 111,
       "data": {
-        "text": "'s nice to see"
+        "text": " can I help you today?"
       }
-    },
-    {
-      "type": "text_delta",
-      "delay": 20,
-      "data": {
-        "text": " you again!"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 31,
-      "data": {
-        "text": " How can I help you today?"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 23,
-      "data": {
-        "text": " Whether"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 29,
-      "data": {
-        "text": " you need assistance with coding"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 26,
-      "data": {
-        "text": ", debugging, planning"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 30,
-      "data": {
-        "text": ", or anything"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 24,
-      "data": {
-        "text": " else, I'm here to help."
-      }
-    },
-    {
-      "type": "text_content_block_stop",
-      "delay": 70,
-      "data": {},
-      "index": 0
     },
     {
       "type": "message_stop",
-      "delay": 1,
+      "delay": 99,
       "data": {
         "stopReason": "end_turn"
       }

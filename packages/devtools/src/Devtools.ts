@@ -30,7 +30,7 @@ import type { Fixture } from "./types";
 import { MockDriver } from "./mock/MockDriver";
 import { RecordingDriver } from "./recorder/RecordingDriver";
 import { createLogger } from "commonxjs/logger";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join, dirname } from "node:path";
 
@@ -144,7 +144,6 @@ export class Devtools {
    */
   createDriverForFixture(fixturePath: string): CreateDriver {
     // Load fixture synchronously (requires existing fixture)
-    const { readFileSync } = require("node:fs") as typeof import("node:fs");
     const content = readFileSync(this.getFixturePath(fixturePath), "utf-8");
     const fixture = JSON.parse(content) as Fixture;
 

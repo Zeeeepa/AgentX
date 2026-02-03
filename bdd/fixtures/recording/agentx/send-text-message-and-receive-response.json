@@ -1,138 +1,54 @@
 {
   "name": "send-text-message-and-receive-response",
   "description": "BDD scenario: send-text-message-and-receive-response",
-  "recordedAt": 1770109236324,
+  "recordedAt": 1770116150144,
   "events": [
     {
       "type": "message_start",
-      "delay": 4517,
+      "delay": 9340,
       "data": {
-        "message": {
-          "id": "msg_01JUvFwRKhTddtTVTFFxNtfK",
-          "model": "claude-haiku-4-5-20251001"
-        }
-      }
-    },
-    {
-      "type": "text_content_block_start",
-      "delay": 1,
-      "data": {},
-      "index": 0
-    },
-    {
-      "type": "text_delta",
-      "delay": 1,
-      "data": {
-        "text": "Hello! "
+        "messageId": "msg_84a9908f-0afc-420c-a1",
+        "model": "claude-haiku-4-5-20251001"
       }
     },
     {
       "type": "text_delta",
       "delay": 0,
       "data": {
-        "text": "👋 I"
+        "text": "Hello"
       }
     },
     {
       "type": "text_delta",
       "delay": 0,
       "data": {
-        "text": "'m Claude"
+        "text": "! "
       }
     },
     {
       "type": "text_delta",
       "delay": 0,
       "data": {
-        "text": ", an AI assistant built on"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 0,
-      "data": {
-        "text": " Anthropic's Claude Agent SDK."
+        "text": "👋 How"
       }
     },
     {
       "type": "text_delta",
       "delay": 1,
       "data": {
-        "text": " How can I help you today?"
+        "text": " can I help you today"
       }
     },
     {
       "type": "text_delta",
-      "delay": 0,
+      "delay": 83,
       "data": {
-        "text": "\n\nWhether"
+        "text": "?"
       }
-    },
-    {
-      "type": "text_delta",
-      "delay": 1,
-      "data": {
-        "text": " you need help with coding"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 0,
-      "data": {
-        "text": ", writing"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 158,
-      "data": {
-        "text": ", analysis, debugging"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 1,
-      "data": {
-        "text": ", or anything"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 0,
-      "data": {
-        "text": " else, just"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 0,
-      "data": {
-        "text": " let me know what you"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 1,
-      "data": {
-        "text": "'d like to work"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 0,
-      "data": {
-        "text": " on!"
-      }
-    },
-    {
-      "type": "text_content_block_stop",
-      "delay": 15,
-      "data": {},
-      "index": 0
     },
     {
       "type": "message_stop",
-      "delay": 2,
+      "delay": 136,
       "data": {
         "stopReason": "end_turn"
       }

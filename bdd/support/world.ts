@@ -20,7 +20,7 @@ import {
 import type { AgentX, BaseResponse } from "agentxjs";
 import type { BusEvent, Unsubscribe } from "@agentxjs/core/event";
 import type { AgentXServer } from "@agentxjs/server";
-import type { Driver, DriverFactory } from "@agentxjs/core/driver";
+import type { Driver, DriverConfig, CreateDriver } from "@agentxjs/core/driver";
 
 // ============================================================================
 // VCR Configuration
@@ -74,92 +74,77 @@ BeforeAll({ timeout: 60000 }, async function () {
 
   // Pre-load modules for VCR
   const { MockDriver, createRecordingDriver } = await import("@agentxjs/devtools");
-  const { createClaudeDriverFactory } = await import("@agentxjs/claude-driver");
-  const claudeFactory = createClaudeDriverFactory();
+  const { createClaudeDriver } = await import("@agentxjs/claude-driver");
 
-  // Create VCR-aware DriverFactory
-  const vcrDriverFactory: DriverFactory = {
-    name: "vcr-driver",
-    createDriver: (options: { agentId: string; config: Record<string, unknown> }): Driver => {
-      const { agentId, config } = options;
+  // Create VCR-aware CreateDriver function
+  const vcrCreateDriver: CreateDriver = (config: DriverConfig): Driver => {
+    const { agentId } = config;
 
-      // Get fixture name from registry or use current scenario's fixture
-      const fixtureName = fixtureRegistry.get(agentId) || currentFixtureName || agentId;
-      const fixturePath = join(fixturesPath, `${fixtureName}.json`);
+    // Get fixture name from registry or use current scenario's fixture
+    const fixtureName = fixtureRegistry.get(agentId || "") || currentFixtureName || agentId || "unknown";
+    const fixturePath = join(fixturesPath, `${fixtureName}.json`);
 
-      if (existsSync(fixturePath)) {
-        // Fixture exists → MockDriver (playback)
-        console.log(`[VCR] Playback: ${fixtureName}`);
+    if (existsSync(fixturePath)) {
+      // Fixture exists → MockDriver (playback)
+      console.log(`[VCR] Playback: ${fixtureName}`);
 
-        const fixture = JSON.parse(readFileSync(fixturePath, "utf-8"));
-        return new MockDriver({ fixture });
-      } else {
-        // No fixture → RecordingDriver (record)
-        if (!apiKey) {
-          throw new Error(
-            `No fixture found for "${fixtureName}" and DEEPRACTICE_API_KEY not set. ` +
-              `Either create the fixture or set API key to record.`
-          );
-        }
-
-        console.log(`[VCR] Recording: ${fixtureName}`);
-
-        const realDriver = claudeFactory.createDriver({
-          agentId,
-          config: {
-            ...config,
-            apiKey,
-            baseUrl,
-            model,
-          },
-        });
-
-        const recorder = createRecordingDriver({
-          driver: realDriver,
-          name: fixtureName,
-          description: `BDD scenario: ${fixtureName}`,
-        });
-
-        // Save fixture when driver disconnects or disposes
-        let fixtureSaved = false;
-        const saveFixture = () => {
-          if (fixtureSaved) return;
-          if (recorder.eventCount > 0) {
-            try {
-              const fixture = recorder.getFixture();
-              writeFileSync(fixturePath, JSON.stringify(fixture, null, 2), "utf-8");
-              console.log(`[VCR] Saved: ${fixtureName} (${recorder.eventCount} events)`);
-              fixtureSaved = true;
-            } catch (e) {
-              console.error(`[VCR] Failed to save: ${fixtureName}`, e);
-            }
-          }
-        };
-
-        // Hook into disconnect event to save fixture
-        const originalDisconnect = recorder.disconnect?.bind(recorder);
-        if (originalDisconnect) {
-          recorder.disconnect = () => {
-            saveFixture();
-            return originalDisconnect();
-          };
-        }
-
-        // Also save on dispose as fallback
-        const originalDispose = recorder.dispose.bind(recorder);
-        recorder.dispose = async () => {
-          saveFixture();
-          return originalDispose();
-        };
-
-        return recorder;
+      const fixture = JSON.parse(readFileSync(fixturePath, "utf-8"));
+      return new MockDriver({ fixture });
+    } else {
+      // No fixture → RecordingDriver (record)
+      if (!apiKey) {
+        throw new Error(
+          `No fixture found for "${fixtureName}" and DEEPRACTICE_API_KEY not set. ` +
+            `Either create the fixture or set API key to record.`
+        );
       }
-    },
+
+      console.log(`[VCR] Recording: ${fixtureName}`);
+
+      // Create real driver with merged config
+      const realDriver = createClaudeDriver({
+        ...config,
+        apiKey,
+        baseUrl,
+        model,
+      });
+
+      const recorder = createRecordingDriver({
+        driver: realDriver,
+        name: fixtureName,
+        description: `BDD scenario: ${fixtureName}`,
+      });
+
+      // Save fixture on dispose
+      let fixtureSaved = false;
+      const saveFixture = () => {
+        if (fixtureSaved) return;
+        if (recorder.eventCount > 0) {
+          try {
+            const fixture = recorder.getFixture();
+            writeFileSync(fixturePath, JSON.stringify(fixture, null, 2), "utf-8");
+            console.log(`[VCR] Saved: ${fixtureName} (${recorder.eventCount} events)`);
+            fixtureSaved = true;
+          } catch (e) {
+            console.error(`[VCR] Failed to save: ${fixtureName}`, e);
+          }
+        }
+      };
+
+      // Hook into dispose to save fixture
+      const originalDispose = recorder.dispose.bind(recorder);
+      recorder.dispose = async () => {
+        saveFixture();
+        return originalDispose();
+      };
+
+      return recorder;
+    }
   };
 
   const provider = await createNodeProvider({
     dataPath: tempDir,
-    driverFactory: vcrDriverFactory,
+    createDriver: vcrCreateDriver,
   });
 
   testServer = await createServer({

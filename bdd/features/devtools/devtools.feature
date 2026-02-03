@@ -32,7 +32,7 @@ Feature: Devtools SDK
   Scenario: MockDriver plays back fixture events
     Given a fixture "playback-test" with text response "Hello, world!"
     When I create a MockDriver with fixture "playback-test"
-    And I connect the driver and send a user message
+    And I initialize and receive a message
     Then I should receive text_delta events
     And the combined text should be "Hello, world!"
 
@@ -45,8 +45,8 @@ Feature: Devtools SDK
     And I can save the fixture to a file
 
   @factory
-  Scenario: Get DriverFactory from devtools
+  Scenario: Get CreateDriver from devtools
     Given a fixture "factory-test" exists with a simple reply
-    When I get a DriverFactory for "factory-test"
+    When I get a CreateDriver for "factory-test"
     Then I can use it to create drivers
     And the drivers use the fixture for playback
