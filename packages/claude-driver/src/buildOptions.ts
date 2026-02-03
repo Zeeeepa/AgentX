@@ -5,7 +5,7 @@
  */
 
 import type { Options, McpServerConfig } from "@anthropic-ai/claude-agent-sdk";
-import { createLogger } from "@agentxjs/core/common";
+import { createLogger } from "commonxjs/logger";
 
 const logger = createLogger("claude-driver/buildOptions");
 

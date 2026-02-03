@@ -1,7 +1,8 @@
 /**
  * Common utilities module
  *
- * Provides shared utilities for the AgentX platform.
+ * Re-exports from commonxjs for backward compatibility.
+ * Prefer importing directly from "commonxjs/logger".
  */
 
-export * from "./logger";
+export * from "commonxjs/logger";

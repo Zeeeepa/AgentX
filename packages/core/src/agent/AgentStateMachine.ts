@@ -21,7 +21,7 @@ import type {
   Unsubscribe,
 } from "./types";
 import { isStateEvent } from "./types";
-import { createLogger } from "../common";
+import { createLogger } from "commonxjs/logger";
 
 const logger = createLogger("agent/AgentStateMachine");
 

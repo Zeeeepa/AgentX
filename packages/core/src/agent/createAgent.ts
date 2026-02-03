@@ -42,7 +42,7 @@ import type {
 } from "./types";
 import { MealyMachine } from "./engine/MealyMachine";
 import { AgentStateMachine } from "./AgentStateMachine";
-import { createLogger } from "../common";
+import { createLogger } from "commonxjs/logger";
 import { isDriveableEvent } from "../event";
 
 const logger = createLogger("agent/AgentEngine");

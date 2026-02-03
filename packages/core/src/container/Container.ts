@@ -5,7 +5,7 @@
  * Each container can have multiple Images (conversations).
  */
 
-import { createLogger } from "../common";
+import { createLogger } from "commonxjs/logger";
 import type { ContainerRecord } from "../persistence/types";
 import type {
   Container,

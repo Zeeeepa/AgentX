@@ -3,16 +3,21 @@
   "version": "0.0.1",
   "description": "AgentX Server - WebSocket server with Provider support",
   "type": "module",
+  "bin": {
+    "agentx-server": "./bin/server.ts"
+  },
   "exports": {
     ".": "./src/index.ts"
   },
   "scripts": {
+    "dev": "bun run bin/server.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test"
   },
   "dependencies": {
     "@agentxjs/core": "workspace:*",
     "@agentxjs/node-provider": "workspace:*",
+    "@agentxjs/claude-driver": "workspace:*",
     "commonxjs": "^0.1.0"
   },
   "devDependencies": {

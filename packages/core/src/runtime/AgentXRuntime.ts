@@ -5,7 +5,7 @@
  * Uses Provider dependencies to coordinate Session, Image, Container, etc.
  */
 
-import { createLogger } from "../common";
+import { createLogger } from "commonxjs/logger";
 import type {
   AgentXProvider,
   AgentXRuntime,
@@ -17,6 +17,7 @@ import type {
 } from "./types";
 import type { UserContentPart } from "../agent/types";
 import type { BusEvent } from "../event/types";
+import type { Driver, DriverConfig } from "../driver/types";
 
 const logger = createLogger("runtime/AgentXRuntime");
 
@@ -27,6 +28,7 @@ interface AgentState {
   agent: RuntimeAgent;
   lifecycle: AgentLifecycle;
   subscriptions: Set<() => void>;
+  driver: Driver;
 }
 
 /**
@@ -101,6 +103,31 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     });
     await workspace.initialize();
 
+    // Create driver for this agent
+    const driverConfig: DriverConfig = {
+      apiKey: process.env.ANTHROPIC_API_KEY ?? "",
+      baseUrl: process.env.ANTHROPIC_BASE_URL,
+      systemPrompt: imageRecord.systemPrompt,
+      cwd: workspace.path,
+      mcpServers: imageRecord.mcpServers,
+    };
+
+    const driver = this.provider.driverFactory.createDriver({
+      agentId,
+      config: driverConfig,
+      resumeSessionId: imageRecord.metadata?.claudeSdkSessionId,
+      onSessionIdCaptured: async (claudeSdkSessionId) => {
+        // Persist SDK session ID for resume
+        await this.provider.imageRepository.updateMetadata(imageId, { claudeSdkSessionId });
+      },
+    });
+
+    // Connect driver to EventBus
+    driver.connect(
+      this.provider.eventBus.asConsumer(),
+      this.provider.eventBus.asProducer()
+    );
+
     // Create runtime agent
     const agent: RuntimeAgent = {
       agentId,
@@ -112,11 +139,12 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
       createdAt: Date.now(),
     };
 
-    // Store agent state
+    // Store agent state with driver
     const state: AgentState = {
       agent,
       lifecycle: "running",
       subscriptions: new Set(),
+      driver,
     };
     this.agents.set(agentId, state);
 
@@ -231,6 +259,10 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     if (!state) {
       throw new Error(`Agent not found: ${agentId}`);
     }
+
+    // Disconnect and dispose driver
+    state.driver.disconnect();
+    state.driver.dispose();
 
     // Cleanup subscriptions
     for (const unsub of state.subscriptions) {

@@ -34,7 +34,7 @@
 import type { Processor } from "./Processor";
 import type { Store } from "./Store";
 import type { Sink, SinkDefinition } from "./Sink";
-import { createLogger } from "../../../common";
+import { createLogger } from "commonxjs/logger";
 
 const logger = createLogger("engine/Mealy");
 

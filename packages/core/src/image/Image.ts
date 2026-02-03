@@ -5,7 +5,7 @@
  * Agent is a transient runtime instance created from Image.
  */
 
-import { createLogger } from "../common";
+import { createLogger } from "commonxjs/logger";
 import type {
   Image,
   ImageRecord,

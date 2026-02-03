@@ -36,7 +36,7 @@ import type {
   ToolExecutingEvent,
   ErrorOccurredEvent,
 } from "../../types";
-import { createLogger } from "../../../common";
+import { createLogger } from "commonxjs/logger";
 
 const logger = createLogger("engine/stateEventProcessor");
 

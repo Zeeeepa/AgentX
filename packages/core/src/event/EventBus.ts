@@ -20,7 +20,7 @@ import type {
   CommandRequestResponseMap,
 } from "./types";
 import { Subject } from "rxjs";
-import { createLogger } from "../common";
+import { createLogger } from "commonxjs/logger";
 
 const logger = createLogger("event/EventBus");
 

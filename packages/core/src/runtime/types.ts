@@ -10,9 +10,9 @@
  * │                      AgentXProvider                         │
  * │  (Dependency Injection - Platform provides implementations) │
  * │                                                             │
- * │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
- * │  │ Repositories│ │  Workspace  │ │   Driver    │           │
- * │  │  Container  │ │  Provider   │ │ (Claude etc)│           │
+ * │  ┌─────────────┐ ┌─────────────┐ ┌───────────────┐         │
+ * │  │ Repositories│ │  Workspace  │ │ DriverFactory │         │
+ * │  │  Container  │ │  Provider   │ │ (per-Agent)   │         │
  * │  │  Image      │ │             │ │             │           │
  * │  │  Session    │ │             │ │             │           │
  * │  └─────────────┘ └─────────────┘ └─────────────┘           │
@@ -36,7 +36,7 @@ import type { ContainerRepository } from "../container/types";
 import type { ImageRepository } from "../image/types";
 import type { SessionRepository } from "../session/types";
 import type { WorkspaceProvider } from "../workspace/types";
-import type { Driver } from "../driver/types";
+import type { DriverFactory } from "../driver/types";
 import type { EventBus } from "../event/types";
 import type { UserContentPart } from "../agent/types";
 import type { BusEvent } from "../event/types";
@@ -95,9 +95,9 @@ export interface AgentXProvider {
   readonly workspaceProvider: WorkspaceProvider;
 
   /**
-   * LLM Driver (e.g., ClaudeDriver)
+   * LLM Driver Factory - creates Driver per Agent
    */
-  readonly driver: Driver;
+  readonly driverFactory: DriverFactory;
 
   /**
    * Event bus for pub/sub

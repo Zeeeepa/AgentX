@@ -17,8 +17,12 @@
     "@opentui/solid": "^0.1.77",
     "solid-js": "^1.9.10",
     "agentxjs": "workspace:*",
+    "@agentxjs/server": "workspace:*",
+    "@agentxjs/node-provider": "workspace:*",
+    "@agentxjs/claude-driver": "workspace:*",
     "yargs": "^18.0.0",
-    "clipboardy": "^4.0.0"
+    "clipboardy": "^4.0.0",
+    "dotenv": "^16.6.1"
   },
   "devDependencies": {
     "@types/yargs": "^17.0.33",

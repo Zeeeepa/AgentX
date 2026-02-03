@@ -12,9 +12,12 @@ import {
 } from "solid-js";
 import { createStore } from "solid-js/store";
 import { useTheme } from "./theme";
+import { createLogger } from "commonxjs/logger";
+
+const logger = createLogger("cli/dialog");
 
 interface DialogEntry {
-  element: JSX.Element;
+  element: () => JSX.Element;
   onClose?: () => void;
 }
 
@@ -46,22 +49,26 @@ export function DialogProvider(props: ParentProps) {
       return store.stack;
     },
     show(element, onClose) {
-      setStore("stack", [...store.stack, { element: element(), onClose }]);
+      logger.debug("dialog.show called", { currentStackSize: store.stack.length });
+      setStore("stack", [...store.stack, { element, onClose }]);
+      logger.debug("dialog.show completed", { newStackSize: store.stack.length });
     },
     replace(element, onClose) {
-      // Close all existing dialogs
+      logger.debug("dialog.replace called");
       for (const entry of store.stack) {
         entry.onClose?.();
       }
-      setStore("stack", [{ element: element(), onClose }]);
+      setStore("stack", [{ element, onClose }]);
     },
     clear() {
+      logger.debug("dialog.clear called", { stackSize: store.stack.length });
       for (const entry of store.stack) {
         entry.onClose?.();
       }
       setStore("stack", []);
     },
     pop() {
+      logger.debug("dialog.pop called", { stackSize: store.stack.length });
       const current = store.stack.at(-1);
       current?.onClose?.();
       setStore("stack", store.stack.slice(0, -1));
@@ -91,7 +98,7 @@ export function DialogProvider(props: ParentProps) {
             paddingLeft={2}
             paddingRight={2}
           >
-            {store.stack.at(-1)?.element}
+            {store.stack.at(-1)?.element()}
           </box>
         </box>
       </Show>

@@ -18,7 +18,7 @@ import {
   type McpServerConfig,
 } from "@anthropic-ai/claude-agent-sdk";
 import { Subject } from "rxjs";
-import { createLogger } from "@agentxjs/core/common";
+import { createLogger } from "commonxjs/logger";
 import { buildOptions, type EnvironmentContext } from "./buildOptions";
 import { observableToAsyncIterable } from "./observableToAsyncIterable";
 

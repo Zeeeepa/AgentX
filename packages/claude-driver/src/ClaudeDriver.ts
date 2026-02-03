@@ -40,7 +40,7 @@ import type { UserMessage } from "@agentxjs/core/agent";
 import type { SDKMessage, SDKPartialAssistantMessage } from "@anthropic-ai/claude-agent-sdk";
 import { Subject, Subscription, TimeoutError } from "rxjs";
 import { timeout } from "rxjs/operators";
-import { createLogger } from "@agentxjs/core/common";
+import { createLogger } from "commonxjs/logger";
 import { buildSDKUserMessage } from "./helpers";
 import { SDKQueryLifecycle } from "./SDKQueryLifecycle";
 

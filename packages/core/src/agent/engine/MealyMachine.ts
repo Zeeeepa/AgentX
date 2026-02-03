@@ -52,7 +52,7 @@ import {
 } from "./AgentProcessor";
 import { MemoryStore } from "./mealy";
 import type { AgentOutput, StreamEvent } from "../types";
-import { createLogger } from "../../common";
+import { createLogger } from "commonxjs/logger";
 
 const logger = createLogger("engine/MealyMachine");
 

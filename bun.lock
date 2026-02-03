@@ -50,10 +50,14 @@
         "agentx": "./bin/agentx",
       },
       "dependencies": {
+        "@agentxjs/claude-driver": "workspace:*",
+        "@agentxjs/node-provider": "workspace:*",
+        "@agentxjs/server": "workspace:*",
         "@opentui/core": "^0.1.77",
         "@opentui/solid": "^0.1.77",
         "agentxjs": "workspace:*",
         "clipboardy": "^4.0.0",
+        "dotenv": "^16.6.1",
         "solid-js": "^1.9.10",
         "yargs": "^18.0.0",
       },
@@ -115,7 +119,11 @@
     "packages/server": {
       "name": "@agentxjs/server",
       "version": "0.0.1",
+      "bin": {
+        "agentx-server": "./bin/server.ts",
+      },
       "dependencies": {
+        "@agentxjs/claude-driver": "workspace:*",
         "@agentxjs/core": "workspace:*",
         "@agentxjs/node-provider": "workspace:*",
         "commonxjs": "^0.1.0",

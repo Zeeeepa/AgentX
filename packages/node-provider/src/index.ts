@@ -9,28 +9,25 @@
  * // Function style (recommended)
  * import { createServer } from "@agentxjs/server";
  * import { nodeProvider } from "@agentxjs/node-provider";
+ * import { createClaudeDriverFactory } from "@agentxjs/claude-driver";
  *
  * const server = await createServer({
  *   provider: nodeProvider({
  *     dataPath: "./data",
- *     driver: claudeDriver,
+ *     driverFactory: createClaudeDriverFactory(),
  *   }),
- * });
- *
- * // Or use createNodeProvider for more control
- * import { createNodeProvider } from "@agentxjs/node-provider";
- *
- * const provider = await createNodeProvider({
- *   dataPath: "./data",
  * });
  * ```
  */
 
 import type { AgentXProvider } from "@agentxjs/core/runtime";
-import type { Driver } from "@agentxjs/core/driver";
+import type { DriverFactory } from "@agentxjs/core/driver";
+import type { LogLevel } from "commonxjs/logger";
+import { setLoggerFactory } from "commonxjs/logger";
 import { EventBusImpl } from "@agentxjs/core/event";
 import { createPersistence, sqliteDriver } from "./persistence";
 import { FileWorkspaceProvider } from "./workspace/FileWorkspaceProvider";
+import { FileLoggerFactory } from "./logger";
 import { join } from "node:path";
 
 /**
@@ -44,10 +41,23 @@ export interface NodeProviderOptions {
   dataPath?: string;
 
   /**
-   * LLM Driver instance
-   * If not provided, you need to set it before using runtime
+   * LLM Driver Factory - creates Driver per Agent
+   * Required for running agents
    */
-  driver?: Driver;
+  driverFactory?: DriverFactory;
+
+  /**
+   * Directory for log files
+   * If provided, enables file logging instead of console
+   * @example ".agentx/logs"
+   */
+  logDir?: string;
+
+  /**
+   * Log level
+   * @default "debug" for file logging, "info" for console
+   */
+  logLevel?: LogLevel;
 }
 
 /**
@@ -93,6 +103,15 @@ export async function createNodeProvider(
 ): Promise<AgentXProvider> {
   const dataPath = options.dataPath ?? "./data";
 
+  // Configure file logging if logDir is provided
+  if (options.logDir) {
+    const loggerFactory = new FileLoggerFactory({
+      logDir: options.logDir,
+      level: options.logLevel ?? "debug",
+    });
+    setLoggerFactory(loggerFactory);
+  }
+
   // Create persistence with SQLite
   const persistence = await createPersistence(
     sqliteDriver({ path: join(dataPath, "agentx.db") })
@@ -106,14 +125,12 @@ export async function createNodeProvider(
   // Create event bus
   const eventBus = new EventBusImpl();
 
-  // Create placeholder driver if not provided
-  const driver: Driver = options.driver ?? {
+  // Create placeholder factory if not provided
+  const driverFactory: DriverFactory = options.driverFactory ?? {
     name: "placeholder",
-    connect: () => {
-      throw new Error("Driver not configured. Please provide a driver in NodeProviderOptions.");
+    createDriver: () => {
+      throw new Error("DriverFactory not configured. Please provide a driverFactory in NodeProviderOptions.");
     },
-    disconnect: () => {},
-    dispose: () => {},
   };
 
   return {
@@ -121,7 +138,7 @@ export async function createNodeProvider(
     imageRepository: persistence.images,
     sessionRepository: persistence.sessions,
     workspaceProvider,
-    driver,
+    driverFactory,
     eventBus,
   };
 }
@@ -149,3 +166,6 @@ export { SqliteMessageQueue, OffsetGenerator } from "./mq";
 
 // Re-export network
 export { WebSocketServer, WebSocketConnection } from "./network";
+
+// Re-export logger
+export { FileLoggerFactory, type FileLoggerFactoryOptions } from "./logger";
