@@ -1,0 +1,64 @@
+{
+  "name": "event-stream-contains-required-fields",
+  "description": "BDD scenario: event-stream-contains-required-fields",
+  "recordedAt": 1770109245867,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 5072,
+      "data": {
+        "message": {
+          "id": "msg_deb798b2-1caa-4d3b-b7",
+          "model": "claude-haiku-4-5-20251001"
+        }
+      }
+    },
+    {
+      "type": "text_content_block_start",
+      "delay": 1,
+      "data": {},
+      "index": 0
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "Hello"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 13,
+      "data": {
+        "text": "! How"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": " can I help you today"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 98,
+      "data": {
+        "text": "?"
+      }
+    },
+    {
+      "type": "text_content_block_stop",
+      "delay": 40,
+      "data": {},
+      "index": 0
+    },
+    {
+      "type": "message_stop",
+      "delay": 1,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    }
+  ]
+}

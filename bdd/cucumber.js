@@ -30,7 +30,7 @@ if (existsSync(envPath)) {
 }
 
 export default {
-  format: ["progress-bar", "html:reports/cucumber-report.html"],
+  format: ["progress"],
   formatOptions: { snippetInterface: "async-await" },
   import: ["support/**/*.ts", "steps/**/*.ts"],
   paths: ["features/**/*.feature", "journeys/**/*.feature"],

@@ -11,11 +11,15 @@ This directory contains recorded LLM API responses for BDD tests.
 
 ```
 fixtures/recording/
-├── devtools/           # devtools feature fixtures
-│   ├── hello-test.json
-│   └── tool-call.json
-├── client/             # agentxjs client fixtures
-└── server/             # server fixtures
+├── devtools/               # devtools feature fixtures
+│   ├── simple-hello.json
+│   ├── new-greeting.json
+│   ├── force-test.json
+│   ├── playback-test.json
+│   ├── recorded-fixture.json
+│   └── factory-test.json
+├── client/                 # future: agentxjs client fixtures
+└── server/                 # future: server fixtures
 ```
 
 ## Committing fixtures

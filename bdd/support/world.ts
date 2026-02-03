@@ -1,11 +1,11 @@
 /**
  * BDD World - Shared context for all step definitions
  *
- * Environment Variables:
- * - USE_REAL_API: Set to "true" to use real Claude API
- * - DEEPRACTICE_API_KEY: API key for Claude
- * - DEEPRACTICE_BASE_URL: Base URL for API
- * - DEEPRACTICE_MODEL: Model to use
+ * VCR Mode:
+ * - Fixture exists → playback (MockDriver)
+ * - Fixture missing → record (real API + RecordingDriver)
+ *
+ * To re-record a scenario, delete its fixture file.
  */
 
 import {
@@ -20,8 +20,27 @@ import {
 import type { AgentX, BaseResponse } from "agentxjs";
 import type { BusEvent, Unsubscribe } from "@agentxjs/core/event";
 import type { AgentXServer } from "@agentxjs/server";
+import type { Driver, DriverFactory } from "@agentxjs/core/driver";
 
-// Environment is auto-loaded by scripts/env-loader.ts via bunfig.toml preload
+// ============================================================================
+// VCR Configuration
+// ============================================================================
+
+const FIXTURES_DIR = "fixtures/recording/agentx";
+
+// Global registry: agentId → fixtureName
+const fixtureRegistry = new Map<string, string>();
+
+// Current scenario's fixture name (set by Before hook)
+let currentFixtureName: string | null = null;
+
+export function setCurrentFixture(name: string): void {
+  currentFixtureName = name;
+}
+
+export function registerAgentFixture(agentId: string, fixtureName: string): void {
+  fixtureRegistry.set(agentId, fixtureName);
+}
 
 // ============================================================================
 // Test Server Management
@@ -31,59 +50,115 @@ let testServer: AgentXServer | null = null;
 let testPort: number = 15300;
 
 BeforeAll({ timeout: 60000 }, async function () {
-  const useRealApi = process.env.USE_REAL_API === "true";
-
   const { createServer } = await import("@agentxjs/server");
   const { createNodeProvider } = await import("@agentxjs/node-provider");
   const { tmpdir } = await import("node:os");
-  const { join } = await import("node:path");
-  const { mkdtempSync } = await import("node:fs");
+  const { join, resolve } = await import("node:path");
+  const { mkdtempSync, existsSync, readFileSync, writeFileSync, mkdirSync } = await import("node:fs");
 
   const tempDir = mkdtempSync(join(tmpdir(), "agentx-bdd-"));
+  const fixturesPath = resolve(process.cwd(), FIXTURES_DIR);
 
-  let driverFactory;
+  // Ensure fixtures directory exists
+  if (!existsSync(fixturesPath)) {
+    mkdirSync(fixturesPath, { recursive: true });
+  }
 
-  if (useRealApi) {
-    // Use real Claude Driver
-    const { createClaudeDriverFactory } = await import("@agentxjs/claude-driver");
+  // API config for recording
+  const apiKey = process.env.DEEPRACTICE_API_KEY;
+  const baseUrl = process.env.DEEPRACTICE_BASE_URL;
+  const model = process.env.DEEPRACTICE_MODEL || "claude-haiku-4-5-20251001";
 
-    const apiKey = process.env.DEEPRACTICE_API_KEY;
-    const baseUrl = process.env.DEEPRACTICE_BASE_URL;
-    const model = process.env.DEEPRACTICE_MODEL || "claude-haiku-4-5-20251001";
+  console.log(`\n[BDD] VCR Mode - fixtures: ${FIXTURES_DIR}/\n`);
 
-    if (!apiKey) {
-      throw new Error("DEEPRACTICE_API_KEY is required when USE_REAL_API=true");
-    }
+  // Pre-load modules for VCR
+  const { MockDriver, createRecordingDriver } = await import("@agentxjs/devtools");
+  const { createClaudeDriverFactory } = await import("@agentxjs/claude-driver");
+  const claudeFactory = createClaudeDriverFactory();
 
-    console.log(`\n[BDD] Using REAL Claude API (${model})\n`);
+  // Create VCR-aware DriverFactory
+  const vcrDriverFactory: DriverFactory = {
+    name: "vcr-driver",
+    createDriver: (options: { agentId: string; config: Record<string, unknown> }): Driver => {
+      const { agentId, config } = options;
 
-    const claudeFactory = createClaudeDriverFactory();
-    driverFactory = {
-      name: "claude-driver",
-      createDriver: (options: { agentId: string; config: Record<string, unknown> }) => {
-        return claudeFactory.createDriver({
-          ...options,
+      // Get fixture name from registry or use current scenario's fixture
+      const fixtureName = fixtureRegistry.get(agentId) || currentFixtureName || agentId;
+      const fixturePath = join(fixturesPath, `${fixtureName}.json`);
+
+      if (existsSync(fixturePath)) {
+        // Fixture exists → MockDriver (playback)
+        console.log(`[VCR] Playback: ${fixtureName}`);
+
+        const fixture = JSON.parse(readFileSync(fixturePath, "utf-8"));
+        return new MockDriver({ fixture });
+      } else {
+        // No fixture → RecordingDriver (record)
+        if (!apiKey) {
+          throw new Error(
+            `No fixture found for "${fixtureName}" and DEEPRACTICE_API_KEY not set. ` +
+            `Either create the fixture or set API key to record.`
+          );
+        }
+
+        console.log(`[VCR] Recording: ${fixtureName}`);
+
+        const realDriver = claudeFactory.createDriver({
+          agentId,
           config: {
-            ...options.config,
+            ...config,
             apiKey,
             baseUrl,
             model,
           },
         });
-      },
-    };
-  } else {
-    // Use devtools MockDriver
-    const { createMockDriverFactory } = await import("@agentxjs/devtools");
 
-    console.log("\n[BDD] Using devtools MockDriver\n");
+        const recorder = createRecordingDriver({
+          driver: realDriver,
+          name: fixtureName,
+          description: `BDD scenario: ${fixtureName}`,
+        });
 
-    driverFactory = createMockDriverFactory();
-  }
+        // Save fixture when driver disconnects or disposes
+        let fixtureSaved = false;
+        const saveFixture = () => {
+          if (fixtureSaved) return;
+          if (recorder.eventCount > 0) {
+            try {
+              const fixture = recorder.getFixture();
+              writeFileSync(fixturePath, JSON.stringify(fixture, null, 2), "utf-8");
+              console.log(`[VCR] Saved: ${fixtureName} (${recorder.eventCount} events)`);
+              fixtureSaved = true;
+            } catch (e) {
+              console.error(`[VCR] Failed to save: ${fixtureName}`, e);
+            }
+          }
+        };
+
+        // Hook into disconnect event to save fixture
+        const originalDisconnect = recorder.disconnect?.bind(recorder);
+        if (originalDisconnect) {
+          recorder.disconnect = () => {
+            saveFixture();
+            return originalDisconnect();
+          };
+        }
+
+        // Also save on dispose as fallback
+        const originalDispose = recorder.dispose.bind(recorder);
+        recorder.dispose = async () => {
+          saveFixture();
+          return originalDispose();
+        };
+
+        return recorder;
+      }
+    },
+  };
 
   const provider = await createNodeProvider({
     dataPath: tempDir,
-    driverFactory,
+    driverFactory: vcrDriverFactory,
   });
 
   testServer = await createServer({
@@ -113,11 +188,10 @@ export class AgentXWorld extends World {
   collectedEvents: BusEvent[] = [];
   private eventHandlers: Unsubscribe[] = [];
   savedValues: Map<string, string> = new Map();
-  scenarioId: string;
+  scenarioName: string = "";
 
   constructor(options: IWorldOptions) {
     super(options);
-    this.scenarioId = `test_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
   }
 
   static getTestServerPort(): number {
@@ -181,7 +255,15 @@ export class AgentXWorld extends World {
 
 setWorldConstructor(AgentXWorld);
 
-Before(async function (this: AgentXWorld) {
+Before(async function (this: AgentXWorld, scenario) {
+  // Set current fixture name from scenario
+  const name = scenario.pickle.name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  this.scenarioName = name;
+  setCurrentFixture(name);
+
   this.collectedEvents = [];
   this.savedValues.clear();
   this.lastResponse = undefined;
@@ -189,4 +271,6 @@ Before(async function (this: AgentXWorld) {
 
 After(async function (this: AgentXWorld) {
   await this.cleanup();
+  setCurrentFixture(null as unknown as string);
+  fixtureRegistry.clear();
 });

@@ -1,14 +1,14 @@
 {
-  "name": "new-greeting",
-  "description": "Recording of: \"Hi there!\"",
-  "recordedAt": 1770108339081,
+  "name": "subscribe-to-specific-event-type",
+  "description": "BDD scenario: subscribe-to-specific-event-type",
+  "recordedAt": 1770109492882,
   "events": [
     {
       "type": "message_start",
-      "delay": 6782,
+      "delay": 5320,
       "data": {
         "message": {
-          "id": "msg_d0eec87f-b675-415f-81",
+          "id": "msg_b20af046-ca6f-433f-ba",
           "model": "claude-haiku-4-5-20251001"
         }
       }
@@ -21,48 +21,55 @@
     },
     {
       "type": "text_delta",
-      "delay": 1,
+      "delay": 0,
       "data": {
         "text": "Hello"
       }
     },
     {
       "type": "text_delta",
-      "delay": 22,
+      "delay": 107,
       "data": {
-        "text": "! "
+        "text": "! I'm ready"
       }
     },
     {
       "type": "text_delta",
-      "delay": 70,
+      "delay": 3,
       "data": {
-        "text": "👋 How"
+        "text": " to help you."
       }
     },
     {
       "type": "text_delta",
-      "delay": 36,
+      "delay": 20,
       "data": {
-        "text": " can I help you today"
+        "text": " What"
       }
     },
     {
       "type": "text_delta",
-      "delay": 428,
+      "delay": 345,
       "data": {
-        "text": "?"
+        "text": " would you like me"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " to do?"
       }
     },
     {
       "type": "text_content_block_stop",
-      "delay": 15,
+      "delay": 191,
       "data": {},
       "index": 0
     },
     {
       "type": "message_stop",
-      "delay": 4,
+      "delay": 1,
       "data": {
         "stopReason": "end_turn"
       }

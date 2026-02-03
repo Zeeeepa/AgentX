@@ -1,47 +1,47 @@
 {
-  "name": "factory-test",
-  "description": "Test fixture",
-  "recordedAt": 1770108356127,
+  "name": "record-test",
+  "description": "BDD test recording",
+  "recordedAt": 1770109519584,
   "events": [
     {
       "type": "message_start",
-      "delay": 0,
+      "delay": 6272,
       "data": {
         "message": {
-          "id": "msg_test",
-          "model": "test"
+          "id": "msg_c01c0788-c390-43a6-a4",
+          "model": "claude-haiku-4-5-20251001"
         }
       }
     },
     {
       "type": "text_content_block_start",
-      "delay": 5,
+      "delay": 0,
       "data": {},
       "index": 0
     },
     {
       "type": "text_delta",
-      "delay": 5,
+      "delay": 0,
       "data": {
-        "text": "Hello! "
+        "text": "2 "
       }
     },
     {
       "type": "text_delta",
       "delay": 5,
       "data": {
-        "text": "How can I help?"
+        "text": "+ 2 = 4"
       }
     },
     {
       "type": "text_content_block_stop",
-      "delay": 5,
+      "delay": 58,
       "data": {},
       "index": 0
     },
     {
       "type": "message_stop",
-      "delay": 5,
+      "delay": 1,
       "data": {
         "stopReason": "end_turn"
       }
