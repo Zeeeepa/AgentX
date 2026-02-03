@@ -2,19 +2,25 @@
  * Cucumber.js configuration
  *
  * Usage:
- *   bun bdd                           # All tests (excluding @integration, @browser, @stress)
- *   bun bdd --tags @local             # Only local mode tests
- *   bun bdd --tags @reliability       # Only reliability tests
- *   bun bdd --tags "@container"       # Only container tests
- *   bun bdd --tags "not @server"      # Exclude server tests
+ *   bun test                              # All tests (excluding @integration, @pending)
+ *   bun test --tags @container            # Only container tests
+ *   bun test --tags @image                # Only image tests
+ *   bun test --tags @agent                # Only agent tests
+ *   bun test --tags @message              # Only message tests
+ *   bun test --tags @event                # Only event tests
+ *   bun test --tags @agentx               # Only agentx client tests
+ *   bun test --tags @journey              # Only journey tests
+ *   bun test --tags @developer            # Only developer journey tests
+ *   bun test --tags @operator             # Only operator journey tests
+ *   bun test features/container/          # Specific feature directory
  */
 
 export default {
   format: ["progress-bar", "html:reports/cucumber-report.html"],
   formatOptions: { snippetInterface: "async-await" },
-  import: ["steps/**/*.ts"],
-  paths: ["features/**/*.feature"],
-  tags: "not @integration and not @pending and not @browser and not @stress",
+  import: ["support/**/*.ts", "steps/**/*.ts"],
+  paths: ["features/**/*.feature", "journeys/**/*.feature"],
+  tags: "not @integration and not @pending and not @skip",
   worldParameters: {
     defaultTimeout: 30000,
   },
