@@ -6,22 +6,10 @@
  */
 
 import type { Message } from "../agent/types";
+import type { McpServerConfig } from "../driver/types";
 
-// ============================================================================
-// MCP Server Config (for ImageRecord)
-// ============================================================================
-
-/**
- * MCP Server configuration
- */
-export interface McpServerConfig {
-  /** Server command (e.g., "npx", "node") */
-  command: string;
-  /** Command arguments */
-  args?: string[];
-  /** Environment variables */
-  env?: Record<string, string>;
-}
+// Re-export McpServerConfig for convenience
+export type { McpServerConfig } from "../driver/types";
 
 // ============================================================================
 // Container Record

@@ -233,6 +233,33 @@
         "typescript": "^5.3.3",
       },
     },
+    "packages/node-provider": {
+      "name": "@agentxjs/node-provider",
+      "version": "0.0.1",
+      "dependencies": {
+        "@agentxjs/core": "workspace:*",
+        "commonxjs": "^0.1.0",
+        "rxjs": "^7.8.2",
+        "unstorage": "^1.10.2",
+        "ws": "^8.18.0",
+      },
+      "devDependencies": {
+        "@types/ws": "^8.5.10",
+        "typescript": "^5.3.3",
+      },
+    },
+    "packages/server": {
+      "name": "@agentxjs/server",
+      "version": "0.0.1",
+      "dependencies": {
+        "@agentxjs/core": "workspace:*",
+        "@agentxjs/node-provider": "workspace:*",
+        "commonxjs": "^0.1.0",
+      },
+      "devDependencies": {
+        "typescript": "^5.3.3",
+      },
+    },
   },
   "packages": {
     "@adobe/css-tools": ["@adobe/css-tools@4.4.4", "", {}, "sha512-Elp+iwUx5rN5+Y8xLt5/GRoG20WGoDCQ/1Fb+1LiGtvwbDavuSk0jhD/eZdckHAuzcDzccnkv+rEjyWfRx18gg=="],
@@ -251,6 +278,8 @@
 
     "@agentxjs/network": ["@agentxjs/network@workspace:packages-old/network"],
 
+    "@agentxjs/node-provider": ["@agentxjs/node-provider@workspace:packages/node-provider"],
+
     "@agentxjs/persistence": ["@agentxjs/persistence@workspace:packages-old/persistence"],
 
     "@agentxjs/portagent": ["@agentxjs/portagent@workspace:apps/portagent"],
@@ -258,6 +287,8 @@
     "@agentxjs/queue": ["@agentxjs/queue@workspace:packages-old/queue"],
 
     "@agentxjs/runtime": ["@agentxjs/runtime@workspace:packages-old/runtime"],
+
+    "@agentxjs/server": ["@agentxjs/server@workspace:packages/server"],
 
     "@agentxjs/types": ["@agentxjs/types@workspace:packages-old/types"],
 
@@ -1034,6 +1065,8 @@
     "comma-separated-tokens": ["comma-separated-tokens@2.0.3", "", {}, "sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg=="],
 
     "commander": ["commander@12.1.0", "", {}, "sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA=="],
+
+    "commonxjs": ["commonxjs@0.1.0", "", {}, "sha512-s+F1XFQbLZXCBhB57fLPmvternmzXNzkTMuNEy57To8fkrVJVMgcmCau9Wo6zhj6GTlw1NkJN8WxZAKyr198VQ=="],
 
     "compare-func": ["compare-func@2.0.0", "", { "dependencies": { "array-ify": "^1.0.0", "dot-prop": "^5.1.0" } }, "sha512-zHig5N+tPWARooBnb0Zx1MFcdfpyJrfTJ3Y5L+IFvUm8rM74hHz66z0gw0x4tijh5CorKkKUCnW82R2vmpeCRA=="],
 

@@ -6,7 +6,7 @@
  */
 
 import type {
-  EventBusInterface,
+  EventBus,
   EventProducer,
   EventConsumer,
   Unsubscribe,
@@ -52,9 +52,9 @@ interface Subscription {
 }
 
 /**
- * EventBus implementation using RxJS Subject
+ * EventBusImpl - EventBus implementation using RxJS Subject
  */
-export class EventBus implements EventBusInterface {
+export class EventBusImpl implements EventBus {
   private readonly subject = new Subject<BusEvent>();
   private subscriptions: Subscription[] = [];
   private nextId = 0;

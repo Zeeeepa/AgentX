@@ -7,17 +7,19 @@
  * ## Architecture
  *
  * ```
- * EventBus (full access)
+ * EventBus (interface)
  * ├── EventProducer (write-only view)
  * └── EventConsumer (read-only view)
+ *
+ * EventBusImpl (implementation)
  * ```
  *
  * ## Usage
  *
  * ```typescript
- * import { EventBus, type EventBusInterface } from "@agentxjs/core/event";
+ * import { EventBusImpl, type EventBus } from "@agentxjs/core/event";
  *
- * const bus = new EventBus();
+ * const bus: EventBus = new EventBusImpl();
  *
  * // Subscribe to events
  * bus.on("text_delta", (event) => {
@@ -41,4 +43,4 @@
 export * from "./types";
 
 // Implementation
-export { EventBus } from "./EventBus";
+export { EventBusImpl } from "./EventBus";

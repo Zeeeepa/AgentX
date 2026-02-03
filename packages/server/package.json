@@ -1,0 +1,21 @@
+{
+  "name": "@agentxjs/server",
+  "version": "0.0.1",
+  "description": "AgentX Server - WebSocket server with Provider support",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@agentxjs/core": "workspace:*",
+    "@agentxjs/node-provider": "workspace:*",
+    "commonxjs": "^0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

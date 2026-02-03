@@ -256,7 +256,7 @@ export interface EventConsumer {
  * bus.emit({ type: 'text_chunk', data: { text: 'Hello' } });
  * ```
  */
-export interface EventBusInterface {
+export interface EventBus {
   /**
    * Emit an event to the bus.
    *

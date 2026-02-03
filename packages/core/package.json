@@ -8,6 +8,11 @@
     "./agent": "./src/agent/index.ts",
     "./driver": "./src/driver/index.ts",
     "./event": "./src/event/index.ts",
+    "./session": "./src/session/index.ts",
+    "./image": "./src/image/index.ts",
+    "./container": "./src/container/index.ts",
+    "./workspace": "./src/workspace/index.ts",
+    "./runtime": "./src/runtime/index.ts",
     "./mq": "./src/mq/index.ts",
     "./persistence": "./src/persistence/index.ts",
     "./network": "./src/network/index.ts"

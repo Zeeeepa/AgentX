@@ -1,0 +1,26 @@
+{
+  "name": "@agentxjs/node-provider",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./persistence": "./src/persistence/index.ts",
+    "./mq": "./src/mq/index.ts",
+    "./network": "./src/network/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@agentxjs/core": "workspace:*",
+    "commonxjs": "^0.1.0",
+    "rxjs": "^7.8.2",
+    "unstorage": "^1.10.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.3.3"
+  }
+}
