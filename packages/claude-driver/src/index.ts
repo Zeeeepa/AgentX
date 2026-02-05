@@ -33,7 +33,12 @@
  */
 
 // Main exports
-export { ClaudeDriver, createClaudeDriver } from "./ClaudeDriver";
+export {
+  ClaudeDriver,
+  createClaudeDriver,
+  type ClaudeDriverOptions,
+  type ClaudeDriverConfig,
+} from "./ClaudeDriver";
 
 // Re-export types from core for convenience
 export type {

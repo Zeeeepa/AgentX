@@ -6,8 +6,29 @@
 
 import type { Options, McpServerConfig } from "@anthropic-ai/claude-agent-sdk";
 import { createLogger } from "commonxjs/logger";
+import { createRequire } from "node:module";
 
 const logger = createLogger("claude-driver/buildOptions");
+
+/**
+ * Get the default Claude Code CLI path from the installed package
+ *
+ * Resolves the path to `@anthropic-ai/claude-code/cli.js` using Node.js module resolution.
+ * This allows zero-config deployment when claude-code is installed as a dependency.
+ *
+ * @returns The resolved path to cli.js, or undefined if resolution fails
+ */
+function getDefaultClaudeCodePath(): string | undefined {
+  try {
+    const require = createRequire(import.meta.url);
+    const cliPath = require.resolve("@anthropic-ai/claude-code/cli.js");
+    logger.debug("Resolved default Claude Code path", { path: cliPath });
+    return cliPath;
+  } catch (error) {
+    logger.warn("Failed to resolve @anthropic-ai/claude-code/cli.js", { error });
+    return undefined;
+  }
+}
 
 /**
  * Environment context for Claude SDK
@@ -85,10 +106,15 @@ export function buildOptions(
     logger.info("SDK stderr", { data: data.trim() });
   };
 
-  // Set Claude Code executable path if provided
-  if (context.claudeCodePath) {
-    options.pathToClaudeCodeExecutable = context.claudeCodePath;
-    logger.info("Claude Code path configured", { path: context.claudeCodePath });
+  // Set Claude Code executable path
+  // Priority: user-provided path > auto-resolved from installed package
+  const claudeCodePath = context.claudeCodePath || getDefaultClaudeCodePath();
+  if (claudeCodePath) {
+    options.pathToClaudeCodeExecutable = claudeCodePath;
+    logger.info("Claude Code path configured", {
+      path: claudeCodePath,
+      source: context.claudeCodePath ? "user-provided" : "auto-resolved",
+    });
   }
 
   // Model configuration

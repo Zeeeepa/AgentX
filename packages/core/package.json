@@ -1,6 +1,6 @@
 {
   "name": "@agentxjs/core",
-  "version": "1.9.6-dev",
+  "version": "1.9.10-dev",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

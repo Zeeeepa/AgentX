@@ -1,6 +1,6 @@
 {
   "name": "agentxjs",
-  "version": "1.9.6-dev",
+  "version": "1.9.10-dev",
   "description": "AgentX Client SDK - Connect to AgentX servers",
   "license": "MIT",
   "type": "module",
@@ -23,7 +23,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@agentxjs/core": "1.9.5-dev",
+    "@agentxjs/core": "workspace:*",
     "reconnecting-websocket": "^4.4.0",
     "ws": "^8.18.0"
   },

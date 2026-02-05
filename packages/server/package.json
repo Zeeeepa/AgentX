@@ -1,6 +1,6 @@
 {
   "name": "@agentxjs/server",
-  "version": "1.9.6-dev",
+  "version": "1.9.10-dev",
   "description": "AgentX Server - WebSocket server with Provider support",
   "type": "module",
   "main": "./dist/index.js",

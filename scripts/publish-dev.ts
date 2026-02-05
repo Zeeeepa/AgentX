@@ -2,22 +2,24 @@
 /**
  * Dev Package Publisher
  *
- * Publishes all packages with -dev tag, replacing workspace:* with actual versions.
+ * Publishes all packages with -dev tag, replacing workspace:* with unified version.
  *
  * Usage:
- *   bun scripts/publish-dev.ts <otp>
- *   bun scripts/publish-dev.ts <otp1> <otp2> <otp3> ...
+ *   bun scripts/publish-dev.ts <version> <otp1> [otp2] [otp3] ...
+ *
+ * Example:
+ *   bun scripts/publish-dev.ts 1.9.7-dev abc123 def456 ...
  */
 
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { $ } from "bun";
 
-// Packages in dependency order
+// Packages in dependency order (dependencies first)
 const PACKAGES = [
   "core",
   "claude-driver",
-  "devtools",
+  // "devtools",  // Excluded - has optional peer dependency issues
   "node-provider",
   "server",
   "agentx",
@@ -64,38 +66,57 @@ function replaceWorkspaceRefs(
   return result;
 }
 
-async function publishPackage(pkg: string, otp: string): Promise<boolean> {
+async function setAllVersions(version: string): Promise<void> {
+  console.log(`\n📝 Setting all package versions to ${version}...`);
+
+  for (const pkg of PACKAGES) {
+    const pkgJson = readPackageJson(pkg);
+    pkgJson.version = version;
+    writePackageJson(pkg, pkgJson);
+    console.log(`   ${pkgJson.name} → ${version}`);
+  }
+}
+
+async function publishPackage(
+  pkg: string,
+  version: string,
+  otp: string
+): Promise<boolean> {
   const pkgPath = getPackagePath(pkg);
   const pkgJson = readPackageJson(pkg);
 
-  console.log(`\n📦 Publishing ${pkgJson.name}@${pkgJson.version}...`);
+  console.log(`\n📦 Publishing ${pkgJson.name}@${version}...`);
 
   // Backup original package.json
   const originalContent = readFileSync(join(pkgPath, "package.json"), "utf-8");
 
   try {
-    // Replace workspace:* with actual version
+    // Replace workspace:* with unified version
     const modified: PackageJson = {
       ...pkgJson,
-      dependencies: replaceWorkspaceRefs(pkgJson.dependencies, pkgJson.version),
-      devDependencies: replaceWorkspaceRefs(pkgJson.devDependencies, pkgJson.version),
-      peerDependencies: replaceWorkspaceRefs(pkgJson.peerDependencies, pkgJson.version),
+      version,
+      dependencies: replaceWorkspaceRefs(pkgJson.dependencies, version),
+      devDependencies: replaceWorkspaceRefs(pkgJson.devDependencies, version),
+      peerDependencies: replaceWorkspaceRefs(pkgJson.peerDependencies, version),
     };
 
     writePackageJson(pkg, modified);
 
     // Publish
-    const result = await $`cd ${pkgPath} && npm publish --tag dev --access public --otp=${otp} 2>&1`.text();
+    const result =
+      await $`cd ${pkgPath} && npm publish --tag dev --access public --otp=${otp} 2>&1`.text();
     console.log(result);
 
-    if (result.includes(`+ ${pkgJson.name}@${pkgJson.version}`)) {
-      console.log(`✅ ${pkgJson.name}@${pkgJson.version} published!`);
+    if (result.includes(`+ ${pkgJson.name}@${version}`)) {
+      console.log(`✅ ${pkgJson.name}@${version} published!`);
       return true;
     } else if (result.includes("EOTP")) {
       console.log(`❌ OTP expired or invalid for ${pkgJson.name}`);
       return false;
     } else if (result.includes("already exists")) {
-      console.log(`⚠️ ${pkgJson.name}@${pkgJson.version} already exists, skipping...`);
+      console.log(
+        `⚠️ ${pkgJson.name}@${version} already exists, skipping...`
+      );
       return true;
     } else {
       console.log(`❌ Failed to publish ${pkgJson.name}`);
@@ -108,23 +129,40 @@ async function publishPackage(pkg: string, otp: string): Promise<boolean> {
 }
 
 async function main() {
-  const otps = process.argv.slice(2);
+  const args = process.argv.slice(2);
 
-  if (otps.length === 0) {
-    console.log("Usage: bun scripts/publish-dev.ts <otp1> [otp2] [otp3] ...");
+  if (args.length < 2) {
+    console.log("Usage: bun scripts/publish-dev.ts <version> <otp1> [otp2] ...");
     console.log("");
-    console.log("Provide OTP codes or recovery codes for npm 2FA.");
-    console.log("If you have enough codes, provide one per package (6 total).");
-    console.log("If you only have one, it will be reused (may fail for multiple packages).");
+    console.log("Arguments:");
+    console.log("  version  - The version to publish (e.g., 1.9.7-dev)");
+    console.log("  otp      - OTP codes for npm 2FA (one per package)");
+    console.log("");
+    console.log("Example:");
+    console.log("  bun scripts/publish-dev.ts 1.9.7-dev abc123 def456 ghi789 ...");
+    console.log("");
+    console.log(`Packages to publish (${PACKAGES.length}):`);
+    PACKAGES.forEach((p, i) => console.log(`  ${i + 1}. ${p}`));
+    process.exit(1);
+  }
+
+  const version = args[0];
+  const otps = args.slice(1);
+
+  if (!version.endsWith("-dev")) {
+    console.error("❌ Version must end with -dev");
     process.exit(1);
   }
 
   console.log("🚀 Publishing dev packages...");
-  console.log(`   Version: ${readPackageJson("core").version}`);
+  console.log(`   Version: ${version}`);
   console.log(`   Packages: ${PACKAGES.length}`);
   console.log(`   OTPs provided: ${otps.length}`);
 
-  // Build first
+  // Set all versions first
+  await setAllVersions(version);
+
+  // Build
   console.log("\n🔨 Building packages...");
   await $`bun run build`;
 
@@ -133,17 +171,17 @@ async function main() {
 
   for (let i = 0; i < PACKAGES.length; i++) {
     const pkg = PACKAGES[i];
-    // Use corresponding OTP or last available one
     const otp = otps[Math.min(i, otps.length - 1)];
 
-    const success = await publishPackage(pkg, otp);
+    const success = await publishPackage(pkg, version, otp);
     if (success) {
       successCount++;
     } else {
       failCount++;
-      // If OTP failed, likely all subsequent will fail too
       if (i < PACKAGES.length - 1) {
-        console.log(`\n⚠️ Stopping due to OTP failure. Provide more OTPs to continue.`);
+        console.log(
+          `\n⚠️ Stopping due to failure. Provide more OTPs to continue.`
+        );
         break;
       }
     }
@@ -153,6 +191,9 @@ async function main() {
   console.log(`✅ Published: ${successCount}`);
   console.log(`❌ Failed: ${failCount}`);
   console.log(`📦 Total: ${PACKAGES.length}`);
+  console.log("");
+  console.log("Install command:");
+  console.log(`  pnpm add agentxjs@${version}`);
 
   if (failCount > 0) {
     process.exit(1);

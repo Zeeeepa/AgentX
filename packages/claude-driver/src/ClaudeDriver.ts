@@ -40,6 +40,59 @@ import { SDKQueryLifecycle } from "./SDKQueryLifecycle";
 
 const logger = createLogger("claude-driver/ClaudeDriver");
 
+// ============================================================================
+// ClaudeDriver-specific Options
+// ============================================================================
+
+/**
+ * ClaudeDriver-specific options
+ *
+ * These options are specific to the Claude SDK and are passed via
+ * the `options` field of DriverConfig.
+ *
+ * @example
+ * ```typescript
+ * // Zero-config: claudeCodePath is auto-resolved from installed package
+ * const config: DriverConfig<ClaudeDriverOptions> = {
+ *   apiKey: "...",
+ *   agentId: "my-agent",
+ * };
+ *
+ * // Custom path (optional, only if needed)
+ * const config: DriverConfig<ClaudeDriverOptions> = {
+ *   apiKey: "...",
+ *   agentId: "my-agent",
+ *   options: {
+ *     claudeCodePath: "/custom/path/to/claude",
+ *   }
+ * };
+ * ```
+ */
+export interface ClaudeDriverOptions {
+  /**
+   * Path to Claude Code executable
+   *
+   * If not provided, will automatically resolve from the installed
+   * `@anthropic-ai/claude-code` package (zero-config).
+   *
+   * Only specify this when you need to use a custom Claude Code installation
+   * (e.g., a different version or a custom binary location).
+   */
+  claudeCodePath?: string;
+
+  /**
+   * Maximum number of turns (agentic loops) before stopping
+   *
+   * Default is determined by the SDK.
+   */
+  maxTurns?: number;
+}
+
+/**
+ * ClaudeDriverConfig - DriverConfig with ClaudeDriverOptions
+ */
+export type ClaudeDriverConfig = DriverConfig<ClaudeDriverOptions>;
+
 /**
  * ClaudeDriver - Driver implementation for Claude SDK
  *
@@ -54,13 +107,13 @@ export class ClaudeDriver implements Driver {
   private _sessionId: string | null = null;
   private _state: DriverState = "idle";
 
-  private readonly config: DriverConfig;
+  private readonly config: ClaudeDriverConfig;
   private queryLifecycle: SDKQueryLifecycle | null = null;
 
   // For interrupt handling
   private currentTurnSubject: Subject<DriverStreamEvent> | null = null;
 
-  constructor(config: DriverConfig) {
+  constructor(config: ClaudeDriverConfig) {
     this.config = config;
   }
 
@@ -236,7 +289,7 @@ export class ClaudeDriver implements Driver {
       return;
     }
 
-    // Create new lifecycle
+    // Create new lifecycle with driver-specific options
     this.queryLifecycle = new SDKQueryLifecycle(
       {
         apiKey: this.config.apiKey,
@@ -246,6 +299,8 @@ export class ClaudeDriver implements Driver {
         cwd: this.config.cwd,
         resumeSessionId: this.config.resumeSessionId,
         mcpServers: this.config.mcpServers,
+        // Pass driver-specific options
+        claudeCodePath: this.config.options?.claudeCodePath,
       },
       {
         onSessionIdCaptured: (sessionId) => {
@@ -580,6 +635,9 @@ export class ClaudeDriver implements Driver {
  *   apiKey: process.env.ANTHROPIC_API_KEY!,
  *   agentId: "my-agent",
  *   systemPrompt: "You are helpful",
+ *   options: {
+ *     claudeCodePath: "/usr/local/bin/claude",
+ *   },
  * });
  *
  * await driver.initialize();
@@ -593,6 +651,6 @@ export class ClaudeDriver implements Driver {
  * await driver.dispose();
  * ```
  */
-export function createClaudeDriver(config: DriverConfig): Driver {
+export function createClaudeDriver(config: ClaudeDriverConfig): Driver {
   return new ClaudeDriver(config);
 }

@@ -314,7 +314,11 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
       agentId,
       requestId: actualRequestId,
       contentPreview:
-        typeof content === "string" ? content.substring(0, 50) : `[${content.length} parts]`,
+        typeof content === "string"
+          ? content.substring(0, 50)
+          : Array.isArray(content)
+            ? `[${content.length} parts]`
+            : `[${typeof content}]`,
     });
 
     // Mark as receiving

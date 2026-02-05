@@ -185,8 +185,29 @@ export type DriverStreamEventType = DriverStreamEvent["type"];
  *
  * This is our capability boundary - we define what we support.
  * Specific implementations (Claude, OpenAI) must work within this.
+ *
+ * @typeParam TOptions - Driver-specific options type. Each driver implementation
+ * can define its own options interface and pass it as a type parameter.
+ *
+ * @example
+ * ```typescript
+ * // Define driver-specific options
+ * interface ClaudeDriverOptions {
+ *   claudeCodePath?: string;
+ *   maxTurns?: number;
+ * }
+ *
+ * // Use with type parameter
+ * const config: DriverConfig<ClaudeDriverOptions> = {
+ *   apiKey: "...",
+ *   agentId: "my-agent",
+ *   options: {
+ *     claudeCodePath: "/usr/local/bin/claude"
+ *   }
+ * };
+ * ```
  */
-export interface DriverConfig {
+export interface DriverConfig<TOptions = Record<string, unknown>> {
   // === Provider Configuration ===
 
   /**
@@ -248,6 +269,30 @@ export interface DriverConfig {
    * Save this ID to enable session resume later.
    */
   onSessionIdCaptured?: (sessionId: string) => void;
+
+  // === Driver-Specific Options ===
+
+  /**
+   * Driver-specific options
+   *
+   * Each driver implementation can define its own options type.
+   * This allows drivers to have custom configuration without
+   * polluting the base DriverConfig interface.
+   *
+   * @example
+   * ```typescript
+   * // ClaudeDriver options
+   * interface ClaudeDriverOptions {
+   *   claudeCodePath?: string;
+   * }
+   *
+   * const config: DriverConfig<ClaudeDriverOptions> = {
+   *   apiKey: "...",
+   *   options: { claudeCodePath: "/usr/bin/claude" }
+   * };
+   * ```
+   */
+  options?: TOptions;
 }
 
 // ============================================================================
@@ -352,12 +397,16 @@ export interface Driver {
  *
  * Each implementation package exports a function of this type.
  *
+ * @typeParam TOptions - Driver-specific options type
+ *
  * @example
  * ```typescript
  * // @agentxjs/claude-driver
- * export const createDriver: CreateDriver = (config) => {
- *   return new ClaudeDriverImpl(config);
+ * export const createClaudeDriver: CreateDriver<ClaudeDriverOptions> = (config) => {
+ *   return new ClaudeDriver(config);
  * };
  * ```
  */
-export type CreateDriver = (config: DriverConfig) => Driver;
+export type CreateDriver<TOptions = Record<string, unknown>> = (
+  config: DriverConfig<TOptions>
+) => Driver;
