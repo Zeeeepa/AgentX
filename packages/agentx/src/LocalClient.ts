@@ -55,7 +55,7 @@ export class LocalClient implements AgentX {
 
   async createContainer(containerId: string): Promise<ContainerCreateResponse> {
     const { getOrCreateContainer } = await import("@agentxjs/core/container");
-    const { containerRepository, imageRepository, sessionRepository } = this.provider;
+    const { containerRepository, imageRepository, sessionRepository } = this.platform;
 
     const container = await getOrCreateContainer(containerId, {
       containerRepository,
@@ -85,7 +85,7 @@ export class LocalClient implements AgentX {
     systemPrompt?: string;
     mcpServers?: Record<string, unknown>;
   }): Promise<ImageCreateResponse> {
-    const { imageRepository, sessionRepository } = this.provider;
+    const { imageRepository, sessionRepository } = this.platform;
     const { createImage } = await import("@agentxjs/core/image");
 
     const image = await createImage(
@@ -129,7 +129,7 @@ export class LocalClient implements AgentX {
 
   async deleteImage(imageId: string): Promise<BaseResponse> {
     const { loadImage } = await import("@agentxjs/core/image");
-    const { imageRepository, sessionRepository } = this.provider;
+    const { imageRepository, sessionRepository } = this.platform;
 
     const image = await loadImage(imageId, { imageRepository, sessionRepository });
     if (image) {

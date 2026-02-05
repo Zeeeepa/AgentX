@@ -1,13 +1,13 @@
 {
   "name": "record-test",
   "description": "BDD test recording",
-  "recordedAt": 1770269947368,
+  "recordedAt": 1770270204680,
   "events": [
     {
       "type": "message_start",
-      "delay": 6948,
+      "delay": 7143,
       "data": {
-        "messageId": "msg_894e5b47-e18c-4bf1-81",
+        "messageId": "msg_788593b7-e41d-4846-ba",
         "model": "claude-haiku-4-5-20251001"
       }
     },
@@ -20,14 +20,14 @@
     },
     {
       "type": "text_delta",
-      "delay": 19,
+      "delay": 23,
       "data": {
         "text": "+ 2 = 4"
       }
     },
     {
       "type": "message_stop",
-      "delay": 105,
+      "delay": 113,
       "data": {
         "stopReason": "end_turn"
       }

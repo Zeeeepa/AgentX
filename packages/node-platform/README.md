@@ -314,10 +314,10 @@ The package exposes additional entry points for direct access to individual modu
 
 | Import path                         | Exports                                          |
 |-------------------------------------|--------------------------------------------------|
-| `@agentxjs/node-provider`           | Everything (main entry)                          |
-| `@agentxjs/node-provider/persistence` | `createPersistence`, `sqliteDriver`, `memoryDriver`, repository classes |
-| `@agentxjs/node-provider/mq`       | `SqliteMessageQueue`, `OffsetGenerator`          |
-| `@agentxjs/node-provider/network`  | `WebSocketServer`, `WebSocketConnection`         |
+| `@agentxjs/node-platform`           | Everything (main entry)                          |
+| `@agentxjs/node-platform/persistence` | `createPersistence`, `sqliteDriver`, `memoryDriver`, repository classes |
+| `@agentxjs/node-platform/mq`       | `SqliteMessageQueue`, `OffsetGenerator`          |
+| `@agentxjs/node-platform/network`  | `WebSocketServer`, `WebSocketConnection`         |
 
 ## Dependencies
 
