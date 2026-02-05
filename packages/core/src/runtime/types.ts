@@ -1,13 +1,13 @@
 /**
  * Runtime Types
  *
- * AgentXProvider - Dependency injection container
+ * AgentXPlatform - Dependency injection container
  * AgentXRuntime - Runtime integration layer
  *
  * Architecture:
  * ```
  * ┌─────────────────────────────────────────────────────────────┐
- * │                      AgentXProvider                         │
+ * │                      AgentXPlatform                         │
  * │  (Dependency Injection - Platform provides implementations) │
  * │                                                             │
  * │  ┌─────────────┐ ┌─────────────┐                           │
@@ -21,7 +21,7 @@
  *                              ▼
  * ┌─────────────────────────────────────────────────────────────┐
  * │                      AgentXRuntime                          │
- * │           (Integration - Uses Provider dependencies)        │
+ * │           (Integration - Uses Platform dependencies)        │
  * │                                                             │
  * │  ┌─────────────────────────────────────────────────────┐   │
  * │  │  Agent Lifecycle: create / get / destroy            │   │
@@ -63,16 +63,16 @@ export interface RuntimeAgent {
 }
 
 // ============================================================================
-// AgentXProvider - Dependency Injection
+// AgentXPlatform - Dependency Injection
 // ============================================================================
 
 /**
- * AgentXProvider - Collects all dependencies for runtime
+ * AgentXPlatform - Collects all dependencies for runtime
  *
  * Platform packages provide implementations of these interfaces.
- * The provider is passed to AgentXRuntime for integration.
+ * The platform is passed to AgentXRuntime for integration.
  */
-export interface AgentXProvider {
+export interface AgentXPlatform {
   /**
    * Container repository for persistence
    */
@@ -138,9 +138,9 @@ export interface Subscription {
  */
 export interface AgentXRuntime {
   /**
-   * The provider containing all dependencies
+   * The platform containing all dependencies
    */
-  readonly provider: AgentXProvider;
+  readonly platform: AgentXPlatform;
 
   // ==================== Agent Lifecycle ====================
 
@@ -221,7 +221,7 @@ export interface AgentXRuntime {
  * Configuration for creating AgentXRuntime
  */
 export interface AgentXRuntimeConfig {
-  provider: AgentXProvider;
+  platform: AgentXPlatform;
 }
 
 /**

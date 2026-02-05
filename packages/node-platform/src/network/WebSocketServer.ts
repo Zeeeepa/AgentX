@@ -17,7 +17,7 @@ import type {
 import { createLogger } from "commonxjs/logger";
 import { WebSocketConnection } from "./WebSocketConnection";
 
-const logger = createLogger("node-provider/WebSocketServer");
+const logger = createLogger("node-platform/WebSocketServer");
 
 /**
  * WebSocket Server

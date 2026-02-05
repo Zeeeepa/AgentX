@@ -104,14 +104,14 @@ Deletes a fixture file.
 
 #### devtools.createDriverForFixture(name)
 
-Returns a `CreateDriver` factory function that always produces a `MockDriver` loaded with the named fixture. Useful when you need a `CreateDriver` compatible with server/provider setup. The fixture must exist (loaded synchronously).
+Returns a `CreateDriver` factory function that always produces a `MockDriver` loaded with the named fixture. Useful when you need a `CreateDriver` compatible with server/platform setup. The fixture must exist (loaded synchronously).
 
 ```typescript
 const createDriver = devtools.createDriverForFixture("my-scenario");
 
-// Use with server or provider
+// Use with server or platform
 const server = await createServer({
-  provider,
+  platform,
   createDriver,
 });
 ```
@@ -120,7 +120,7 @@ const server = await createServer({
 
 ### createVcrCreateDriver(config)
 
-Creates a `CreateDriver` function with built-in VCR logic. This is the preferred approach when integrating with `@agentxjs/server` or `@agentxjs/node-provider`, because the VCR behavior is transparently embedded in the driver factory itself.
+Creates a `CreateDriver` function with built-in VCR logic. This is the preferred approach when integrating with `@agentxjs/server` or `@agentxjs/node-platform`, because the VCR behavior is transparently embedded in the driver factory itself.
 
 ```typescript
 import { createVcrCreateDriver } from "@agentxjs/devtools";
@@ -140,7 +140,7 @@ const vcrCreateDriver = createVcrCreateDriver({
 
 // Use with server
 const server = await createServer({
-  provider,
+  platform,
   createDriver: vcrCreateDriver,
 });
 
@@ -214,7 +214,7 @@ import { createMockDriver } from "@agentxjs/devtools/mock";
 
 const createDriver = createMockDriver({ fixture: "simple-reply" });
 
-// Compatible with server/provider APIs
+// Compatible with server/platform APIs
 const driver = createDriver({ apiKey: "test", agentId: "test-agent" });
 ```
 
@@ -392,7 +392,7 @@ BeforeAll(async function () {
   });
 
   const server = await createServer({
-    provider,
+    platform,
     createDriver: vcrCreateDriver,
   });
   await server.listen();

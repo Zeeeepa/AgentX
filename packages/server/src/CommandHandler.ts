@@ -119,7 +119,7 @@ export class CommandHandler {
   private async handleContainerCreate(params: unknown): Promise<RpcResponse> {
     const { containerId } = params as { containerId: string };
     const { getOrCreateContainer } = await import("@agentxjs/core/container");
-    const { containerRepository, imageRepository, sessionRepository } = this.runtime.provider;
+    const { containerRepository, imageRepository, sessionRepository } = this.runtime.platform;
 
     const container = await getOrCreateContainer(containerId, {
       containerRepository,
@@ -132,12 +132,12 @@ export class CommandHandler {
 
   private async handleContainerGet(params: unknown): Promise<RpcResponse> {
     const { containerId } = params as { containerId: string };
-    const exists = await this.runtime.provider.containerRepository.containerExists(containerId);
+    const exists = await this.runtime.platform.containerRepository.containerExists(containerId);
     return ok({ containerId, exists });
   }
 
   private async handleContainerList(_params: unknown): Promise<RpcResponse> {
-    const containers = await this.runtime.provider.containerRepository.findAllContainers();
+    const containers = await this.runtime.platform.containerRepository.findAllContainers();
     return ok({ containerIds: containers.map((c) => c.containerId) });
   }
 
@@ -152,7 +152,7 @@ export class CommandHandler {
       mcpServers?: Record<string, unknown>;
     };
 
-    const { imageRepository, sessionRepository } = this.runtime.provider;
+    const { imageRepository, sessionRepository } = this.runtime.platform;
     const { createImage } = await import("@agentxjs/core/image");
 
     const image = await createImage(
@@ -168,7 +168,7 @@ export class CommandHandler {
 
   private async handleImageGet(params: unknown): Promise<RpcResponse> {
     const { imageId } = params as { imageId: string };
-    const record = await this.runtime.provider.imageRepository.findImageById(imageId);
+    const record = await this.runtime.platform.imageRepository.findImageById(imageId);
     return ok({
       record,
       __subscriptions: record?.sessionId ? [record.sessionId] : undefined,
@@ -178,8 +178,8 @@ export class CommandHandler {
   private async handleImageList(params: unknown): Promise<RpcResponse> {
     const { containerId } = params as { containerId?: string };
     const records = containerId
-      ? await this.runtime.provider.imageRepository.findImagesByContainerId(containerId)
-      : await this.runtime.provider.imageRepository.findAllImages();
+      ? await this.runtime.platform.imageRepository.findImagesByContainerId(containerId)
+      : await this.runtime.platform.imageRepository.findAllImages();
 
     return ok({
       records,
@@ -190,7 +190,7 @@ export class CommandHandler {
   private async handleImageDelete(params: unknown): Promise<RpcResponse> {
     const { imageId } = params as { imageId: string };
     const { loadImage } = await import("@agentxjs/core/image");
-    const { imageRepository, sessionRepository } = this.runtime.provider;
+    const { imageRepository, sessionRepository } = this.runtime.platform;
 
     const image = await loadImage(imageId, { imageRepository, sessionRepository });
     if (image) {
@@ -269,7 +269,7 @@ export class CommandHandler {
     };
 
     // Get existing image
-    const imageRecord = await this.runtime.provider.imageRepository.findImageById(imageId);
+    const imageRecord = await this.runtime.platform.imageRepository.findImageById(imageId);
     if (!imageRecord) {
       return err(404, `Image not found: ${imageId}`);
     }
@@ -281,7 +281,7 @@ export class CommandHandler {
       updatedAt: Date.now(),
     };
 
-    await this.runtime.provider.imageRepository.saveImage(updatedRecord);
+    await this.runtime.platform.imageRepository.saveImage(updatedRecord);
 
     logger.info("Updated image", { imageId, updates });
 
@@ -292,13 +292,13 @@ export class CommandHandler {
     const { imageId } = params as { imageId: string };
 
     // Get image record to find sessionId
-    const imageRecord = await this.runtime.provider.imageRepository.findImageById(imageId);
+    const imageRecord = await this.runtime.platform.imageRepository.findImageById(imageId);
     if (!imageRecord) {
       return err(404, `Image not found: ${imageId}`);
     }
 
     // Get messages from session
-    const messages = await this.runtime.provider.sessionRepository.getMessages(
+    const messages = await this.runtime.platform.sessionRepository.getMessages(
       imageRecord.sessionId
     );
 

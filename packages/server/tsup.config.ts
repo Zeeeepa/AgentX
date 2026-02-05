@@ -8,7 +8,7 @@ export default defineConfig({
   clean: true,
   external: [
     "@agentxjs/core",
-    "@agentxjs/node-provider",
+    "@agentxjs/node-platform",
     "@agentxjs/claude-driver",
     "commonxjs",
   ],

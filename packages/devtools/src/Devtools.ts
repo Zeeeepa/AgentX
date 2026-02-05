@@ -381,8 +381,10 @@ export interface VcrCreateDriverConfig {
  * // Before each test:
  * currentFixture = "test-scenario-name";
  *
- * // Use with server/provider:
- * const provider = await createNodeProvider({
+ * // Use with server:
+ * const platform = await createNodePlatform({...});
+ * const server = await createServer({
+ *   platform,
  *   createDriver: vcrCreateDriver,
  * });
  * ```

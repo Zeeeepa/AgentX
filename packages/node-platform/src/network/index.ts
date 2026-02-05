@@ -5,7 +5,7 @@
  *
  * @example
  * ```typescript
- * import { WebSocketServer } from "@agentxjs/node-provider/network";
+ * import { WebSocketServer } from "@agentxjs/node-platform/network";
  *
  * const server = new WebSocketServer();
  * await server.listen(5200);

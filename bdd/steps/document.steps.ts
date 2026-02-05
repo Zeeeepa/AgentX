@@ -312,49 +312,49 @@ Then(
 );
 
 // ============================================================================
-// NodeProvider Document Steps
+// NodePlatform Document Steps
 // ============================================================================
 
 When(
-  "I create a NodeProvider with default options",
+  "I create a NodePlatform with default options",
   async function (this: AgentXWorld) {
-    const { createNodeProvider } = await import("@agentxjs/node-provider");
-    this.docProvider = await createNodeProvider({ dataPath: ":memory:" });
+    const { createNodePlatform } = await import("@agentxjs/node-platform");
+    this.docPlatform = await createNodePlatform({ dataPath: ":memory:" });
   }
 );
 
 Then(
-  "the provider should have a containerRepository",
+  "the platform should have a containerRepository",
   function (this: AgentXWorld) {
-    assert.ok(this.docProvider!.containerRepository, "Should have containerRepository");
+    assert.ok(this.docPlatform!.containerRepository, "Should have containerRepository");
   }
 );
 
 Then(
-  "the provider should have an imageRepository",
+  "the platform should have an imageRepository",
   function (this: AgentXWorld) {
-    assert.ok(this.docProvider!.imageRepository, "Should have imageRepository");
+    assert.ok(this.docPlatform!.imageRepository, "Should have imageRepository");
   }
 );
 
 Then(
-  "the provider should have a sessionRepository",
+  "the platform should have a sessionRepository",
   function (this: AgentXWorld) {
-    assert.ok(this.docProvider!.sessionRepository, "Should have sessionRepository");
+    assert.ok(this.docPlatform!.sessionRepository, "Should have sessionRepository");
   }
 );
 
 Then(
-  "the provider should have a workspaceProvider",
+  "the platform should have a workspaceProvider",
   function (this: AgentXWorld) {
-    assert.ok(this.docProvider!.workspaceProvider, "Should have workspaceProvider");
+    assert.ok(this.docPlatform!.workspaceProvider, "Should have workspaceProvider");
   }
 );
 
 Then(
-  "the provider should have an eventBus",
+  "the platform should have an eventBus",
   function (this: AgentXWorld) {
-    assert.ok(this.docProvider!.eventBus, "Should have eventBus");
+    assert.ok(this.docPlatform!.eventBus, "Should have eventBus");
   }
 );
 
@@ -366,17 +366,17 @@ Given(
 );
 
 When(
-  "I create a NodeProvider with dataPath set to the temp directory",
+  "I create a NodePlatform with dataPath set to the temp directory",
   async function (this: AgentXWorld) {
-    const { createNodeProvider } = await import("@agentxjs/node-provider");
-    this.docProvider = await createNodeProvider({ dataPath: this.tempDir! });
+    const { createNodePlatform } = await import("@agentxjs/node-platform");
+    this.docPlatform = await createNodePlatform({ dataPath: this.tempDir! });
   }
 );
 
 Then(
-  "the provider should be created successfully",
+  "the platform should be created successfully",
   function (this: AgentXWorld) {
-    assert.ok(this.docProvider, "Provider should exist");
+    assert.ok(this.docPlatform, "Provider should exist");
   }
 );
 
@@ -389,10 +389,10 @@ Then(
 );
 
 Then(
-  "the provider should NOT have a createDriver property",
+  "the platform should NOT have a createDriver property",
   function (this: AgentXWorld) {
     assert.ok(
-      !("createDriver" in this.docProvider!),
+      !("createDriver" in this.docPlatform!),
       "Provider should NOT have createDriver"
     );
   }
@@ -403,20 +403,20 @@ Then(
 // ============================================================================
 
 Given(
-  "I create a server with nodeProvider and MonoDriver on a random port",
+  "I create a server with nodePlatform and MonoDriver on a random port",
   { timeout: 10000 },
   async function (this: AgentXWorld) {
     const { createServer } = await import("@agentxjs/server");
-    const { createNodeProvider } = await import("@agentxjs/node-provider");
+    const { createNodePlatform } = await import("@agentxjs/node-platform");
     const { createMonoDriver } = await import("@agentxjs/mono-driver");
-    const provider = await createNodeProvider({ dataPath: ":memory:" });
+    const platform = await createNodePlatform({ dataPath: ":memory:" });
     const wrappedCreateDriver = (config: any) => {
       return createMonoDriver({ ...config, apiKey: "test-key", options: { provider: "anthropic" } });
     };
 
     // Use a random port
     const port = 15400 + Math.floor(Math.random() * 100);
-    this.docServer = await createServer({ provider, createDriver: wrappedCreateDriver, port });
+    this.docServer = await createServer({ platform, createDriver: wrappedCreateDriver, port });
     this.docServerPort = port;
     await this.docServer!.listen();
   }

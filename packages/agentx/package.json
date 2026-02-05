@@ -25,7 +25,7 @@
   "dependencies": {
     "@agentxjs/core": "workspace:*",
     "@agentxjs/mono-driver": "workspace:*",
-    "@agentxjs/node-provider": "workspace:*",
+    "@agentxjs/node-platform": "workspace:*",
     "reconnecting-websocket": "^4.4.0",
     "ws": "^8.18.0"
   },

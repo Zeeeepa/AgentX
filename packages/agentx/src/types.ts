@@ -4,7 +4,7 @@
 
 import type { BusEvent, EventBus, Unsubscribe, BusEventHandler } from "@agentxjs/core/event";
 import type { CreateDriver } from "@agentxjs/core/driver";
-import type { AgentXProvider } from "@agentxjs/core/runtime";
+import type { AgentXPlatform } from "@agentxjs/core/runtime";
 import type { Presentation, PresentationOptions } from "./presentation";
 
 // ============================================================================
@@ -72,10 +72,10 @@ export interface AgentXConfig {
   createDriver?: CreateDriver;
 
   /**
-   * Custom AgentXProvider (local mode, advanced)
-   * If provided, overrides the default NodeProvider
+   * Custom AgentXPlatform (local mode, advanced)
+   * If provided, overrides the default NodePlatform
    */
-  customProvider?: AgentXProvider;
+  customPlatform?: AgentXPlatform;
 
   // ===== Remote Mode =====
 

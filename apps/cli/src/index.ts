@@ -11,7 +11,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { tui } from "./app";
 import { createServer } from "@agentxjs/server";
-import { nodeProvider, FileLoggerFactory } from "@agentxjs/node-provider";
+import { nodePlatform, FileLoggerFactory } from "@agentxjs/node-platform";
 import { createMonoDriver } from "@agentxjs/mono-driver";
 import type { CreateDriver } from "@agentxjs/core/driver";
 import { createLogger, setLoggerFactory } from "commonxjs/logger";
@@ -74,7 +74,7 @@ async function getServerUrl(port: number): Promise<{ url: string; cleanup?: () =
   };
 
   const server = await createServer({
-    provider: nodeProvider({
+    platform: nodePlatform({
       dataPath,
       // logDir already configured at startup
     }),

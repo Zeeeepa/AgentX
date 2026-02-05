@@ -97,22 +97,22 @@ The orchestration layer that integrates all components for agent lifecycle manag
 
 **Key types:**
 - `AgentXRuntime` -- Runtime interface for agent lifecycle, messaging, and event subscription
-- `AgentXProvider` -- Dependency injection container holding repositories, workspace provider, and event bus
+- `AgentXPlatform` -- Dependency injection container holding repositories, workspace provider, and event bus
 - `CreateAgentXRuntime` -- Factory function type
 - `RuntimeAgent` -- Active agent instance metadata
 - `CreateAgentOptions` -- Options for creating agents (imageId, optional agentId)
 - `AgentLifecycle` -- Agent lifecycle states: `"running" | "stopped" | "destroyed"`
 - `Subscription` -- Handle for unsubscribing from events
 
-**Important:** `createAgentXRuntime` takes `provider` and `createDriver` as **separate** parameters. `AgentXProvider` does **not** contain `createDriver`.
+**Important:** `createAgentXRuntime` takes `platform` and `createDriver` as **separate** parameters. `AgentXPlatform` does **not** contain `createDriver`.
 
 ```typescript
 import { createAgentXRuntime } from "@agentxjs/core/runtime";
-import type { AgentXProvider, AgentXRuntime } from "@agentxjs/core/runtime";
+import type { AgentXPlatform, AgentXRuntime } from "@agentxjs/core/runtime";
 import type { CreateDriver } from "@agentxjs/core/driver";
 
 // Platform provides the implementation
-const provider: AgentXProvider = {
+const platform: AgentXPlatform = {
   containerRepository,
   imageRepository,
   sessionRepository,
@@ -122,8 +122,8 @@ const provider: AgentXProvider = {
 
 const createDriver: CreateDriver = (config) => new MyLLMDriver(config);
 
-// Create runtime with provider AND createDriver as separate params
-const runtime: AgentXRuntime = createAgentXRuntime(provider, createDriver);
+// Create runtime with platform AND createDriver as separate params
+const runtime: AgentXRuntime = createAgentXRuntime(platform, createDriver);
 
 // Create an agent from an image
 const agent = await runtime.createAgent({ imageId: "img_xxx" });
@@ -558,12 +558,12 @@ Drivers are created via a `CreateDriver` factory function. Each driver implement
 
 **Driver lifecycle:** `createDriver(config)` -> `driver.initialize()` -> `driver.receive(message)` -> `driver.dispose()`
 
-### Provider
+### Platform
 
-`AgentXProvider` is a dependency injection container that collects all platform-specific implementations needed by the runtime:
+`AgentXPlatform` is a dependency injection container that collects all platform-specific implementations needed by the runtime:
 
 ```typescript
-interface AgentXProvider {
+interface AgentXPlatform {
   containerRepository: ContainerRepository;
   imageRepository: ImageRepository;
   sessionRepository: SessionRepository;
@@ -572,7 +572,7 @@ interface AgentXProvider {
 }
 ```
 
-The provider is **separate** from the driver factory. `createAgentXRuntime` accepts both as distinct parameters.
+The platform is **separate** from the driver factory. `createAgentXRuntime` accepts both as distinct parameters.
 
 ### Runtime
 
@@ -641,7 +641,7 @@ This design enables:
 | `CreateDriver<TOptions>` | `driver` | Factory function for creating drivers |
 | `DriverConfig<TOptions>` | `driver` | Configuration for driver creation |
 | `AgentXRuntime` | `runtime` | Agent lifecycle and message orchestration |
-| `AgentXProvider` | `runtime` | Dependency injection container |
+| `AgentXPlatform` | `runtime` | Dependency injection container |
 | `RuntimeAgent` | `runtime` | Active agent instance metadata |
 | `AgentEngine` | `agent` | Event processing unit |
 | `EventBus` | `event` | Central pub/sub event bus |

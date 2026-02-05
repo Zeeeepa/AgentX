@@ -1,28 +1,27 @@
 /**
  * Runtime Module
  *
- * AgentXProvider and AgentXRuntime interfaces.
+ * AgentXPlatform and AgentXRuntime interfaces.
  * Platform packages provide concrete implementations.
  *
  * Usage:
  * ```typescript
  * import type {
- *   AgentXProvider,
+ *   AgentXPlatform,
  *   AgentXRuntime,
  *   RuntimeAgent,
  * } from "@agentxjs/core/runtime";
  *
  * // Platform provides implementation
- * const provider: AgentXProvider = {
+ * const platform: AgentXPlatform = {
  *   containerRepository,
  *   imageRepository,
  *   sessionRepository,
  *   workspaceProvider,
- *   driver,
  *   eventBus,
  * };
  *
- * const runtime: AgentXRuntime = createRuntime({ provider });
+ * const runtime = createAgentXRuntime(platform, createDriver);
  *
  * // Create agent from image
  * const agent = await runtime.createAgent({ imageId: "img_xxx" });
@@ -44,7 +43,7 @@
 export type {
   AgentLifecycle,
   RuntimeAgent,
-  AgentXProvider,
+  AgentXPlatform,
   CreateAgentOptions,
   AgentEventHandler,
   Subscription,

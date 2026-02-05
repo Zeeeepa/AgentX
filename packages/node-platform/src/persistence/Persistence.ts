@@ -12,7 +12,7 @@ import { StorageContainerRepository } from "./StorageContainerRepository";
 import { StorageImageRepository } from "./StorageImageRepository";
 import { StorageSessionRepository } from "./StorageSessionRepository";
 
-const logger = createLogger("node-provider/Persistence");
+const logger = createLogger("node-platform/Persistence");
 
 /**
  * PersistenceImpl - Internal implementation
@@ -37,7 +37,7 @@ class PersistenceImpl implements Persistence {
  *
  * @example
  * ```typescript
- * import { createPersistence, memoryDriver } from "@agentxjs/node-provider/persistence";
+ * import { createPersistence, memoryDriver } from "@agentxjs/node-platform/persistence";
  *
  * const persistence = await createPersistence(memoryDriver());
  * ```

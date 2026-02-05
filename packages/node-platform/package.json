@@ -1,5 +1,5 @@
 {
-  "name": "@agentxjs/node-provider",
+  "name": "@agentxjs/node-platform",
   "version": "1.9.10-dev",
   "type": "module",
   "main": "./dist/index.js",

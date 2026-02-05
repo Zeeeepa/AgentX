@@ -15,7 +15,7 @@
  */
 
 import { createServer } from "../src";
-import { nodeProvider } from "@agentxjs/node-provider";
+import { nodePlatform } from "@agentxjs/node-platform";
 import { createMonoDriver } from "@agentxjs/mono-driver";
 import type { CreateDriver } from "@agentxjs/core/driver";
 import { createLogger } from "commonxjs/logger";
@@ -59,9 +59,9 @@ async function main() {
     });
   };
 
-  // Create server with nodeProvider + driver
+  // Create server with nodePlatform + driver
   const server = await createServer({
-    provider: nodeProvider({
+    platform: nodePlatform({
       dataPath,
       logDir,
     }),

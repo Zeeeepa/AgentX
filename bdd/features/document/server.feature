@@ -3,8 +3,8 @@ Feature: AgentX Server (Documentation)
   Validates code examples from the @agentxjs/server README.
   The server exposes AgentX capabilities via WebSocket + JSON-RPC.
 
-  Scenario: Create server with provider and driver
-    Given I create a server with nodeProvider and MonoDriver on a random port
+  Scenario: Create server with platform and driver
+    Given I create a server with nodePlatform and MonoDriver on a random port
     Then the server should be listening
     When I connect a client to the server
     Then the client should be connected

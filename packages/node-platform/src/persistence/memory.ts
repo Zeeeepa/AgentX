@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { createPersistence, memoryDriver } from "@agentxjs/node-provider/persistence";
+ * import { createPersistence, memoryDriver } from "@agentxjs/node-platform/persistence";
  *
  * const persistence = await createPersistence(memoryDriver());
  * ```

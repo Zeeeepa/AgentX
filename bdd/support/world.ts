@@ -20,7 +20,7 @@ import {
 import type { AgentX, BaseResponse, Presentation, PresentationState } from "agentxjs";
 import type { BusEvent, Unsubscribe } from "@agentxjs/core/event";
 import type { Driver, DriverStreamEvent } from "@agentxjs/core/driver";
-import type { AgentXProvider } from "@agentxjs/core/runtime";
+import type { AgentXPlatform } from "@agentxjs/core/runtime";
 import type { AgentXServer } from "@agentxjs/server";
 
 // ============================================================================
@@ -45,7 +45,7 @@ let testPort: number = 15300;
 
 BeforeAll({ timeout: 60000 }, async function () {
   const { createServer } = await import("@agentxjs/server");
-  const { createNodeProvider } = await import("@agentxjs/node-provider");
+  const { createNodePlatform } = await import("@agentxjs/node-platform");
   const { tmpdir } = await import("node:os");
   const { join, resolve } = await import("node:path");
   const { mkdtempSync, mkdirSync, existsSync } = await import("node:fs");
@@ -84,12 +84,12 @@ BeforeAll({ timeout: 60000 }, async function () {
     onSaved: (name, count) => console.log(`[VCR] Saved: ${name} (${count} events)`),
   });
 
-  const provider = await createNodeProvider({
+  const platform = await createNodePlatform({
     dataPath: tempDir,
   });
 
   testServer = await createServer({
-    provider,
+    platform,
     createDriver: vcrCreateDriver,
     port: testPort,
   });
@@ -146,7 +146,7 @@ export class AgentXWorld extends World {
 
   // Document test support - Package-specific
   docDriver?: Driver;
-  docProvider?: AgentXProvider;
+  docPlatform?: AgentXPlatform;
   tempDir?: string;
   docServer?: AgentXServer;
   docServerPort?: number;
@@ -245,7 +245,7 @@ export class AgentXWorld extends World {
       await this.remoteAgentX.dispose();
       this.remoteAgentX = undefined;
     }
-    this.docProvider = undefined;
+    this.docPlatform = undefined;
     this.localEvents = undefined;
     this.remoteEvents = undefined;
     this.lastContainerId = undefined;

@@ -14,7 +14,7 @@
     "@agentxjs/core": "workspace:*",
     "@agentxjs/devtools": "workspace:*",
     "@agentxjs/mono-driver": "workspace:*",
-    "@agentxjs/node-provider": "workspace:*",
+    "@agentxjs/node-platform": "workspace:*",
     "@agentxjs/server": "workspace:*",
     "@cucumber/cucumber": "^11.2.0",
     "@types/node": "^24.9.2",

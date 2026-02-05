@@ -1,16 +1,16 @@
 /**
  * @agentxjs/server
  *
- * AgentX Server - WebSocket server with Provider support.
+ * AgentX Server - WebSocket server with Platform support.
  *
  * @example
  * ```typescript
  * import { createServer } from "@agentxjs/server";
- * import { nodeProvider } from "@agentxjs/node-provider";
+ * import { nodePlatform } from "@agentxjs/node-platform";
  * import { createMonoDriver } from "@agentxjs/mono-driver";
  *
  * const server = await createServer({
- *   provider: nodeProvider({ dataPath: "./data" }),
+ *   platform: nodePlatform({ dataPath: "./data" }),
  *   createDriver: createMonoDriver,
  *   port: 5200,
  * });

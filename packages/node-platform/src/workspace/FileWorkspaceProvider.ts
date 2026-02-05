@@ -9,7 +9,7 @@ import { mkdir, access, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { createLogger } from "commonxjs/logger";
 
-const logger = createLogger("node-provider/FileWorkspaceProvider");
+const logger = createLogger("node-platform/FileWorkspaceProvider");
 
 /**
  * Options for FileWorkspaceProvider

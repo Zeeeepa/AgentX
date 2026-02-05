@@ -54,7 +54,7 @@
       "dependencies": {
         "@agentxjs/core": "workspace:*",
         "@agentxjs/mono-driver": "workspace:*",
-        "@agentxjs/node-provider": "workspace:*",
+        "@agentxjs/node-platform": "workspace:*",
         "@agentxjs/server": "workspace:*",
         "@opentui/core": "^0.1.77",
         "@opentui/solid": "^0.1.77",
@@ -77,7 +77,7 @@
         "@agentxjs/core": "workspace:*",
         "@agentxjs/devtools": "workspace:*",
         "@agentxjs/mono-driver": "workspace:*",
-        "@agentxjs/node-provider": "workspace:*",
+        "@agentxjs/node-platform": "workspace:*",
         "@agentxjs/server": "workspace:*",
         "@cucumber/cucumber": "^11.2.0",
         "@types/node": "^24.9.2",
@@ -93,7 +93,7 @@
       "dependencies": {
         "@agentxjs/core": "workspace:*",
         "@agentxjs/mono-driver": "workspace:*",
-        "@agentxjs/node-provider": "workspace:*",
+        "@agentxjs/node-platform": "workspace:*",
         "reconnecting-websocket": "^4.4.0",
         "ws": "^8.18.0",
       },
@@ -164,8 +164,8 @@
         "typescript": "^5.3.3",
       },
     },
-    "packages/node-provider": {
-      "name": "@agentxjs/node-provider",
+    "packages/node-platform": {
+      "name": "@agentxjs/node-platform",
       "version": "1.9.10-dev",
       "dependencies": {
         "@agentxjs/core": "workspace:*",
@@ -188,7 +188,7 @@
       "dependencies": {
         "@agentxjs/core": "workspace:*",
         "@agentxjs/mono-driver": "workspace:*",
-        "@agentxjs/node-provider": "workspace:*",
+        "@agentxjs/node-platform": "workspace:*",
         "commonxjs": "^0.1.1",
       },
       "devDependencies": {
@@ -209,7 +209,7 @@
 
     "@agentxjs/mono-driver": ["@agentxjs/mono-driver@workspace:packages/mono-driver"],
 
-    "@agentxjs/node-provider": ["@agentxjs/node-provider@workspace:packages/node-provider"],
+    "@agentxjs/node-platform": ["@agentxjs/node-platform@workspace:packages/node-platform"],
 
     "@agentxjs/server": ["@agentxjs/server@workspace:packages/server"],
 

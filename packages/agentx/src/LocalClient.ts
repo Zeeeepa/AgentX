@@ -6,7 +6,7 @@
  */
 
 import type { BusEvent, EventBus, BusEventHandler, Unsubscribe } from "@agentxjs/core/event";
-import type { AgentXRuntime, AgentXProvider } from "@agentxjs/core/runtime";
+import type { AgentXRuntime, AgentXPlatform } from "@agentxjs/core/runtime";
 import type { UserContentPart } from "@agentxjs/core/agent";
 import { createLogger } from "commonxjs/logger";
 import type {
@@ -32,12 +32,12 @@ const logger = createLogger("agentx/LocalClient");
  */
 export class LocalClient implements AgentX {
   private readonly runtime: AgentXRuntime;
-  private readonly provider: AgentXProvider;
+  private readonly platform: AgentXPlatform;
   private isDisposed = false;
 
   constructor(runtime: AgentXRuntime) {
     this.runtime = runtime;
-    this.provider = runtime.provider;
+    this.platform = runtime.platform;
     logger.info("LocalClient initialized");
   }
 
@@ -48,7 +48,7 @@ export class LocalClient implements AgentX {
   }
 
   get events(): EventBus {
-    return this.provider.eventBus;
+    return this.platform.eventBus;
   }
 
   // ==================== Container Operations ====================
@@ -67,12 +67,12 @@ export class LocalClient implements AgentX {
   }
 
   async getContainer(containerId: string): Promise<ContainerGetResponse> {
-    const exists = await this.provider.containerRepository.containerExists(containerId);
+    const exists = await this.platform.containerRepository.containerExists(containerId);
     return { containerId, exists, requestId: "" };
   }
 
   async listContainers(): Promise<ContainerListResponse> {
-    const containers = await this.provider.containerRepository.findAllContainers();
+    const containers = await this.platform.containerRepository.findAllContainers();
     return { containerIds: containers.map((c) => c.containerId), requestId: "" };
   }
 
@@ -107,7 +107,7 @@ export class LocalClient implements AgentX {
   }
 
   async getImage(imageId: string): Promise<ImageGetResponse> {
-    const record = await this.provider.imageRepository.findImageById(imageId);
+    const record = await this.platform.imageRepository.findImageById(imageId);
     return {
       record,
       __subscriptions: record?.sessionId ? [record.sessionId] : undefined,
@@ -117,8 +117,8 @@ export class LocalClient implements AgentX {
 
   async listImages(containerId?: string): Promise<ImageListResponse> {
     const records = containerId
-      ? await this.provider.imageRepository.findImagesByContainerId(containerId)
-      : await this.provider.imageRepository.findAllImages();
+      ? await this.platform.imageRepository.findImagesByContainerId(containerId)
+      : await this.platform.imageRepository.findAllImages();
 
     return {
       records,
@@ -228,11 +228,11 @@ export class LocalClient implements AgentX {
   // ==================== Event Subscription ====================
 
   on<T extends string>(type: T, handler: BusEventHandler<BusEvent & { type: T }>): Unsubscribe {
-    return this.provider.eventBus.on(type, handler);
+    return this.platform.eventBus.on(type, handler);
   }
 
   onAny(handler: BusEventHandler): Unsubscribe {
-    return this.provider.eventBus.onAny(handler);
+    return this.platform.eventBus.onAny(handler);
   }
 
   subscribe(_sessionId: string): void {

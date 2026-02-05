@@ -5,7 +5,7 @@
  *
  * @example
  * ```typescript
- * import { SqliteMessageQueue } from "@agentxjs/node-provider/mq";
+ * import { SqliteMessageQueue } from "@agentxjs/node-platform/mq";
  *
  * const queue = SqliteMessageQueue.create("./data/queue.db");
  *

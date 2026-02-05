@@ -17,7 +17,7 @@ import type {
 import { isAckMessage, type ReliableWrapper } from "@agentxjs/core/network";
 import { createLogger } from "commonxjs/logger";
 
-const logger = createLogger("node-provider/WebSocketConnection");
+const logger = createLogger("node-platform/WebSocketConnection");
 
 /**
  * WebSocket connection implementation

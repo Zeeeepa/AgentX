@@ -8,7 +8,7 @@ import type { Storage } from "unstorage";
 import type { ContainerRepository, ContainerRecord } from "@agentxjs/core/persistence";
 import { createLogger } from "commonxjs/logger";
 
-const logger = createLogger("node-provider/ContainerRepository");
+const logger = createLogger("node-platform/ContainerRepository");
 
 /** Key prefix for containers */
 const PREFIX = "containers";

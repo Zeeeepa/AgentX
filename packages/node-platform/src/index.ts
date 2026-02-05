@@ -1,18 +1,18 @@
 /**
- * @agentxjs/node-provider
+ * @agentxjs/node-platform
  *
- * Node.js platform provider for AgentX.
+ * Node.js platform for AgentX.
  * Provides implementations for persistence, workspace, and network.
  *
  * @example
  * ```typescript
- * import { createNodeProvider } from "@agentxjs/node-provider";
+ * import { createNodePlatform } from "@agentxjs/node-platform";
  *
- * const provider = await createNodeProvider({ dataPath: "./data" });
+ * const platform = await createNodePlatform({ dataPath: "./data" });
  * ```
  */
 
-import type { AgentXProvider } from "@agentxjs/core/runtime";
+import type { AgentXPlatform } from "@agentxjs/core/runtime";
 import type { LogLevel } from "commonxjs/logger";
 import { setLoggerFactory } from "commonxjs/logger";
 import { EventBusImpl } from "@agentxjs/core/event";
@@ -22,9 +22,9 @@ import { FileLoggerFactory } from "./logger";
 import { join } from "node:path";
 
 /**
- * Options for creating a Node provider
+ * Options for creating a Node platform
  */
-export interface NodeProviderOptions {
+export interface NodePlatformOptions {
   /**
    * Base path for data storage
    * @default "./data"
@@ -46,46 +46,46 @@ export interface NodeProviderOptions {
 }
 
 /**
- * Deferred provider config - resolved lazily
+ * Deferred platform config - resolved lazily
  */
-export interface DeferredProviderConfig {
+export interface DeferredPlatformConfig {
   readonly __deferred: true;
-  readonly options: NodeProviderOptions;
-  resolve(): Promise<AgentXProvider>;
+  readonly options: NodePlatformOptions;
+  resolve(): Promise<AgentXPlatform>;
 }
 
 /**
- * Create a Node.js provider configuration (deferred initialization)
+ * Create a Node.js platform configuration (deferred initialization)
  *
- * Use this for function-style API. The provider is initialized lazily.
+ * Use this for function-style API. The platform is initialized lazily.
  *
- * @param options - Provider options
- * @returns Deferred provider config
+ * @param options - Platform options
+ * @returns Deferred platform config
  *
  * @example
  * ```typescript
  * const server = await createServer({
- *   provider: nodeProvider({ dataPath: "./data" }),
+ *   platform: nodePlatform({ dataPath: "./data" }),
  * });
  * ```
  */
-export function nodeProvider(options: NodeProviderOptions = {}): DeferredProviderConfig {
+export function nodePlatform(options: NodePlatformOptions = {}): DeferredPlatformConfig {
   return {
     __deferred: true,
     options,
-    resolve: () => createNodeProvider(options),
+    resolve: () => createNodePlatform(options),
   };
 }
 
 /**
- * Create a Node.js provider for AgentX (immediate initialization)
+ * Create a Node.js platform for AgentX (immediate initialization)
  *
- * @param options - Provider options
- * @returns AgentXProvider instance
+ * @param options - Platform options
+ * @returns AgentXPlatform instance
  */
-export async function createNodeProvider(
-  options: NodeProviderOptions = {}
-): Promise<AgentXProvider> {
+export async function createNodePlatform(
+  options: NodePlatformOptions = {}
+): Promise<AgentXPlatform> {
   const dataPath = options.dataPath ?? "./data";
 
   // Configure file logging if logDir is provided
@@ -118,14 +118,14 @@ export async function createNodeProvider(
 }
 
 /**
- * Check if value is a deferred provider config
+ * Check if value is a deferred platform config
  */
-export function isDeferredProvider(value: unknown): value is DeferredProviderConfig {
+export function isDeferredPlatform(value: unknown): value is DeferredPlatformConfig {
   return (
     typeof value === "object" &&
     value !== null &&
     "__deferred" in value &&
-    (value as DeferredProviderConfig).__deferred === true
+    (value as DeferredPlatformConfig).__deferred === true
   );
 }
 

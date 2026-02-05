@@ -55,7 +55,7 @@ export async function createAgentX(config: AgentXConfig): Promise<AgentX> {
     return client;
   }
 
-  if (config.apiKey || config.createDriver || config.customProvider) {
+  if (config.apiKey || config.createDriver || config.customPlatform) {
     // Local mode
     return createLocalClient(config);
   }
@@ -71,13 +71,13 @@ export async function createAgentX(config: AgentXConfig): Promise<AgentX> {
 async function createLocalClient(config: AgentXConfig): Promise<AgentX> {
   const { createAgentXRuntime } = await import("@agentxjs/core/runtime");
 
-  // Resolve provider
-  let provider;
-  if (config.customProvider) {
-    provider = config.customProvider;
+  // Resolve platform
+  let platform;
+  if (config.customPlatform) {
+    platform = config.customPlatform;
   } else {
-    const { createNodeProvider } = await import("@agentxjs/node-provider");
-    provider = await createNodeProvider({
+    const { createNodePlatform } = await import("@agentxjs/node-platform");
+    platform = await createNodePlatform({
       dataPath: config.dataPath ?? ":memory:",
     });
   }
@@ -102,7 +102,7 @@ async function createLocalClient(config: AgentXConfig): Promise<AgentX> {
   }
 
   // Create runtime
-  const runtime = createAgentXRuntime(provider, createDriver);
+  const runtime = createAgentXRuntime(platform, createDriver);
 
   return new LocalClient(runtime);
 }

@@ -5,7 +5,7 @@
  *
  * @example
  * ```typescript
- * import { createPersistence, sqliteDriver, memoryDriver } from "@agentxjs/node-provider/persistence";
+ * import { createPersistence, sqliteDriver, memoryDriver } from "@agentxjs/node-platform/persistence";
  *
  * // SQLite (persistent)
  * const persistence = await createPersistence(

@@ -12,7 +12,7 @@ bun add @agentxjs/server
 
 ```typescript
 import { createServer } from "@agentxjs/server";
-import { nodeProvider } from "@agentxjs/node-provider";
+import { nodePlatform } from "@agentxjs/node-platform";
 import { createMonoDriver } from "@agentxjs/mono-driver";
 import type { CreateDriver } from "@agentxjs/core/driver";
 
@@ -25,7 +25,7 @@ const wrappedCreateDriver: CreateDriver = (config) => {
 };
 
 const server = await createServer({
-  provider: nodeProvider({ dataPath: "./data" }),
+  platform: nodePlatform({ dataPath: "./data" }),
   createDriver: wrappedCreateDriver,
   port: 5200,
 });
@@ -39,8 +39,8 @@ The `createServer` function accepts a `ServerConfig` object:
 
 ```typescript
 interface ServerConfig {
-  /** AgentX Provider (immediate or deferred) */
-  provider: AgentXProvider | DeferredProviderConfig;
+  /** AgentX Platform (immediate or deferred) */
+  platform: AgentXPlatform | DeferredPlatformConfig;
 
   /** LLM Driver factory function - creates a Driver per Agent */
   createDriver: CreateDriver;
@@ -62,13 +62,13 @@ interface ServerConfig {
 }
 ```
 
-### provider
+### platform
 
-An `AgentXProvider` supplies the repositories (container, image, session), event bus, and workspace provider that the runtime needs. Use `nodeProvider()` from `@agentxjs/node-provider` for Node.js/Bun environments. A `DeferredProviderConfig` is also supported for lazy initialization.
+An `AgentXPlatform` supplies the repositories (container, image, session), event bus, and workspace provider that the runtime needs. Use `nodePlatform()` from `@agentxjs/node-platform` for Node.js/Bun environments. A `DeferredPlatformConfig` is also supported for lazy initialization.
 
 ### createDriver
 
-A `CreateDriver` factory function that creates a `Driver` instance for each agent. The driver handles LLM communication. This is configured separately from the provider so you can inject API keys and driver-specific options:
+A `CreateDriver` factory function that creates a `Driver` instance for each agent. The driver handles LLM communication. This is configured separately from the platform so you can inject API keys and driver-specific options:
 
 ```typescript
 const createDriver: CreateDriver = (config) => {
@@ -111,7 +111,7 @@ Client (WebSocket)
 
 **CommandHandler** receives an RPC method and params, invokes the corresponding operation on the `AgentXRuntime`, and returns a structured result (success or error).
 
-**AgentXRuntime** orchestrates agent creation, message processing, and lifecycle management. It uses the `CreateDriver` factory to spin up a `Driver` per agent and emits all stream events through the provider's `EventBus`.
+**AgentXRuntime** orchestrates agent creation, message processing, and lifecycle management. It uses the `CreateDriver` factory to spin up a `Driver` per agent and emits all stream events through the platform's `EventBus`.
 
 ## RPC Methods
 
@@ -178,7 +178,7 @@ Returns `{ agentId, imageId }`.
 
 ## Event Broadcasting
 
-When an agent processes a message, the runtime emits stream events (e.g., `text_delta`, `tool_use_start`, `message_stop`) to the provider's `EventBus`. The server listens to all events on the bus and broadcasts them to connected clients as JSON-RPC notifications.
+When an agent processes a message, the runtime emits stream events (e.g., `text_delta`, `tool_use_start`, `message_stop`) to the platform's `EventBus`. The server listens to all events on the bus and broadcasts them to connected clients as JSON-RPC notifications.
 
 ### Subscription Model
 
@@ -234,7 +234,7 @@ The server creates its own WebSocket server and listens on a port:
 
 ```typescript
 const server = await createServer({
-  provider: nodeProvider({ dataPath: "./data" }),
+  platform: nodePlatform({ dataPath: "./data" }),
   createDriver: wrappedCreateDriver,
   port: 5200,
   host: "0.0.0.0",
@@ -255,7 +255,7 @@ import { createServer as createHttpServer } from "http";
 const httpServer = createHttpServer();
 
 const server = await createServer({
-  provider: nodeProvider({ dataPath: "./data" }),
+  platform: nodePlatform({ dataPath: "./data" }),
   createDriver: wrappedCreateDriver,
   server: httpServer,
   wsPath: "/ws",
@@ -310,7 +310,7 @@ ANTHROPIC_API_KEY=sk-ant-xxx bun --filter @agentxjs/server dev
 | `LOG_DIR` | No | `<DATA_PATH>/logs` | Log file directory |
 | `LOG_LEVEL` | No | `info` | Log level (debug, info, warn, error) |
 
-The CLI creates a `MonoDriver` with the Anthropic provider and uses `nodeProvider` for storage. It handles `SIGINT` and `SIGTERM` for graceful shutdown.
+The CLI creates a `MonoDriver` with the Anthropic provider and uses `nodePlatform` for storage. It handles `SIGINT` and `SIGTERM` for graceful shutdown.
 
 ## Exports
 

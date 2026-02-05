@@ -11,7 +11,7 @@
  * - RPC Notification (no id): Server → Client (stream events)
  */
 
-import type { AgentXProvider } from "@agentxjs/core/runtime";
+import type { AgentXPlatform } from "@agentxjs/core/runtime";
 import type { CreateDriver } from "@agentxjs/core/driver";
 import type { ChannelConnection } from "@agentxjs/core/network";
 import type { BusEvent, SystemEvent } from "@agentxjs/core/event";
@@ -28,9 +28,9 @@ import {
 } from "@agentxjs/core/network";
 import {
   WebSocketServer,
-  isDeferredProvider,
-  type DeferredProviderConfig,
-} from "@agentxjs/node-provider";
+  isDeferredPlatform,
+  type DeferredPlatformConfig,
+} from "@agentxjs/node-platform";
 import { createLogger } from "commonxjs/logger";
 import { CommandHandler } from "./CommandHandler";
 import type { AgentXServer } from "./types";
@@ -46,13 +46,13 @@ interface ConnectionState {
 }
 
 /**
- * Server configuration (supports both immediate and deferred providers)
+ * Server configuration (supports both immediate and deferred platforms)
  */
 export interface ServerConfig {
   /**
-   * AgentX Provider (can be AgentXProvider or DeferredProviderConfig)
+   * AgentX Platform (can be AgentXPlatform or DeferredPlatformConfig)
    */
-  provider: AgentXProvider | DeferredProviderConfig;
+  platform: AgentXPlatform | DeferredPlatformConfig;
 
   /**
    * LLM Driver factory function - creates Driver per Agent
@@ -91,13 +91,13 @@ export interface ServerConfig {
 export async function createServer(config: ServerConfig): Promise<AgentXServer> {
   const { wsPath = "/ws" } = config;
 
-  // Resolve deferred provider if needed
-  const provider: AgentXProvider = isDeferredProvider(config.provider)
-    ? await config.provider.resolve()
-    : config.provider;
+  // Resolve deferred platform if needed
+  const platform: AgentXPlatform = isDeferredPlatform(config.platform)
+    ? await config.platform.resolve()
+    : config.platform;
 
-  // Create runtime from provider + driver
-  const runtime = createAgentXRuntime(provider, config.createDriver);
+  // Create runtime from platform + driver
+  const runtime = createAgentXRuntime(platform, config.createDriver);
 
   // Create WebSocket server
   const wsServer = new WebSocketServer({
@@ -267,7 +267,7 @@ export async function createServer(config: ServerConfig): Promise<AgentXServer> 
   }
 
   // Route internal events to connected clients as JSON-RPC notifications
-  provider.eventBus.onAny((event) => {
+  platform.eventBus.onAny((event) => {
     // Only broadcast broadcastable events
     if (!shouldBroadcastEvent(event)) {
       return;

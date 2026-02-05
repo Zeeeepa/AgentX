@@ -8,7 +8,7 @@ import type { Storage } from "unstorage";
 import type { ImageRepository, ImageRecord, ImageMetadata } from "@agentxjs/core/persistence";
 import { createLogger } from "commonxjs/logger";
 
-const logger = createLogger("node-provider/ImageRepository");
+const logger = createLogger("node-platform/ImageRepository");
 
 /** Key prefix for images */
 const PREFIX = "images";

@@ -2,7 +2,7 @@
  * AgentXRuntimeImpl - Runtime integration implementation
  *
  * Integrates all components to provide agent lifecycle management.
- * Uses Provider dependencies to coordinate Session, Image, Container, etc.
+ * Uses Platform dependencies to coordinate Session, Image, Container, etc.
  *
  * New Design:
  * - Driver.receive() returns AsyncIterable<DriverStreamEvent>
@@ -12,7 +12,7 @@
 
 import { createLogger } from "commonxjs/logger";
 import type {
-  AgentXProvider,
+  AgentXPlatform,
   AgentXRuntime,
   RuntimeAgent,
   CreateAgentOptions,
@@ -43,15 +43,15 @@ interface AgentState {
  * AgentXRuntimeImpl - Runtime implementation
  */
 export class AgentXRuntimeImpl implements AgentXRuntime {
-  readonly provider: AgentXProvider;
+  readonly platform: AgentXPlatform;
   private readonly createDriver: CreateDriver;
 
   private agents = new Map<string, AgentState>();
   private globalSubscriptions = new Set<() => void>();
   private isShutdown = false;
 
-  constructor(provider: AgentXProvider, createDriver: CreateDriver) {
-    this.provider = provider;
+  constructor(platform: AgentXPlatform, createDriver: CreateDriver) {
+    this.platform = platform;
     this.createDriver = createDriver;
     logger.info("AgentXRuntime initialized");
   }
@@ -66,7 +66,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     const { imageId } = options;
 
     // Load image
-    const imageRecord = await this.provider.imageRepository.findImageById(imageId);
+    const imageRecord = await this.platform.imageRepository.findImageById(imageId);
     if (!imageRecord) {
       throw new Error(`Image not found: ${imageId}`);
     }
@@ -75,7 +75,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     const agentId = options.agentId ?? this.generateAgentId();
 
     // Ensure container exists
-    const containerExists = await this.provider.containerRepository.containerExists(
+    const containerExists = await this.platform.containerRepository.containerExists(
       imageRecord.containerId
     );
     if (!containerExists) {
@@ -83,7 +83,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     }
 
     // Create workspace
-    const workspace = await this.provider.workspaceProvider.create({
+    const workspace = await this.platform.workspaceProvider.create({
       containerId: imageRecord.containerId,
       imageId,
     });
@@ -94,7 +94,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
       sessionId: imageRecord.sessionId,
       imageId,
       containerId: imageRecord.containerId,
-      repository: this.provider.sessionRepository,
+      repository: this.platform.sessionRepository,
     });
 
     // Create driver config (apiKey/baseUrl are provided by the createDriver closure)
@@ -108,7 +108,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
       resumeSessionId: imageRecord.metadata?.claudeSdkSessionId as string | undefined,
       onSessionIdCaptured: async (claudeSdkSessionId: string) => {
         // Persist SDK session ID for resume
-        await this.provider.imageRepository.updateMetadata(imageId, { claudeSdkSessionId });
+        await this.platform.imageRepository.updateMetadata(imageId, { claudeSdkSessionId });
       },
     };
 
@@ -140,7 +140,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     this.agents.set(agentId, state);
 
     // Emit agent_created event
-    this.provider.eventBus.emit({
+    this.platform.eventBus.emit({
       type: "agent_created",
       timestamp: Date.now(),
       source: "runtime",
@@ -196,7 +196,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     state.lifecycle = "stopped";
 
     // Emit agent_stopped event
-    this.provider.eventBus.emit({
+    this.platform.eventBus.emit({
       type: "agent_stopped",
       timestamp: Date.now(),
       source: "runtime",
@@ -227,7 +227,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     state.lifecycle = "running";
 
     // Emit agent_resumed event
-    this.provider.eventBus.emit({
+    this.platform.eventBus.emit({
       type: "agent_resumed",
       timestamp: Date.now(),
       source: "runtime",
@@ -263,7 +263,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     state.lifecycle = "destroyed";
 
     // Emit agent_destroyed event
-    this.provider.eventBus.emit({
+    this.platform.eventBus.emit({
       type: "agent_destroyed",
       timestamp: Date.now(),
       source: "runtime",
@@ -316,7 +316,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     };
 
     // Persist to session
-    await this.provider.sessionRepository.addMessage(state.agent.sessionId, userMessage);
+    await this.platform.sessionRepository.addMessage(state.agent.sessionId, userMessage);
 
     // Emit user_message event (for external subscribers)
     this.emitEvent(state, "user_message", userMessage, actualRequestId);
@@ -386,7 +386,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
       throw new Error(`Agent not found: ${agentId}`);
     }
 
-    const unsub = this.provider.eventBus.onAny((event) => {
+    const unsub = this.platform.eventBus.onAny((event) => {
       const context = (event as BusEvent & { context?: { agentId?: string } }).context;
       if (context?.agentId === agentId) {
         handler(event);
@@ -404,7 +404,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
   }
 
   subscribeAll(handler: AgentEventHandler): Subscription {
-    const unsub = this.provider.eventBus.onAny(handler);
+    const unsub = this.platform.eventBus.onAny(handler);
     this.globalSubscriptions.add(unsub);
 
     return {
@@ -461,7 +461,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     data: unknown,
     requestId: string
   ): void {
-    this.provider.eventBus.emit({
+    this.platform.eventBus.emit({
       type,
       timestamp: Date.now(),
       source: "runtime",
@@ -511,9 +511,9 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
 /**
  * Create an AgentXRuntime instance
  *
- * @param provider - AgentXProvider with repositories and event bus
+ * @param platform - AgentXPlatform with repositories and event bus
  * @param createDriver - Factory function for creating Driver instances per Agent
  */
-export function createAgentXRuntime(provider: AgentXProvider, createDriver: CreateDriver): AgentXRuntime {
-  return new AgentXRuntimeImpl(provider, createDriver);
+export function createAgentXRuntime(platform: AgentXPlatform, createDriver: CreateDriver): AgentXRuntime {
+  return new AgentXRuntimeImpl(platform, createDriver);
 }

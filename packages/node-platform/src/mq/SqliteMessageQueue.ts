@@ -13,7 +13,7 @@ import { createLogger } from "commonxjs/logger";
 import { openDatabase, type Database } from "commonxjs/sqlite";
 import { OffsetGenerator } from "./OffsetGenerator";
 
-const logger = createLogger("node-provider/SqliteMessageQueue");
+const logger = createLogger("node-platform/SqliteMessageQueue");
 
 interface ResolvedConfig {
   path: string;

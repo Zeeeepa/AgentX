@@ -9,7 +9,7 @@ import type { SessionRepository, SessionRecord } from "@agentxjs/core/persistenc
 import type { Message } from "@agentxjs/core/agent";
 import { createLogger } from "commonxjs/logger";
 
-const logger = createLogger("node-provider/SessionRepository");
+const logger = createLogger("node-platform/SessionRepository");
 
 /** Key prefix for sessions */
 const PREFIX = "sessions";

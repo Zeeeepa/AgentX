@@ -20,7 +20,7 @@ const PACKAGES = [
   "core",
   "claude-driver",
   // "devtools",  // Excluded - has optional peer dependency issues
-  "node-provider",
+  "node-platform",
   "server",
   "agentx",
 ];

@@ -1,45 +1,45 @@
-# @agentxjs/node-provider
+# @agentxjs/node-platform
 
-Node.js platform provider for AgentX. Supplies concrete implementations of persistence, workspace, network, message queue, and logging for server-side environments. The provider assembles these components into an `AgentXProvider` that can be passed to the AgentX runtime.
+Node.js platform for AgentX. Supplies concrete implementations of persistence, workspace, network, message queue, and logging for server-side environments. The platform assembles these components into an `AgentXPlatform` that can be passed to the AgentX runtime.
 
 ## Installation
 
 ```bash
-bun add @agentxjs/node-provider
+bun add @agentxjs/node-platform
 ```
 
 ## Quick Start
 
 ```typescript
-import { createNodeProvider } from "@agentxjs/node-provider";
+import { createNodePlatform } from "@agentxjs/node-platform";
 
-const provider = await createNodeProvider({
+const platform = await createNodePlatform({
   dataPath: "./data",
 });
 
-// provider.containerRepository  - SQLite-backed container storage
-// provider.imageRepository      - SQLite-backed image storage
-// provider.sessionRepository    - SQLite-backed session storage
-// provider.workspaceProvider    - File system workspace isolation
-// provider.eventBus             - In-memory event bus
+// platform.containerRepository  - SQLite-backed container storage
+// platform.imageRepository      - SQLite-backed image storage
+// platform.sessionRepository    - SQLite-backed session storage
+// platform.workspaceProvider    - File system workspace isolation
+// platform.eventBus             - In-memory event bus
 ```
 
 ### Deferred Initialization
 
-Use `nodeProvider()` when you need lazy initialization, for example when passing configuration to a server factory:
+Use `nodePlatform()` when you need lazy initialization, for example when passing configuration to a server factory:
 
 ```typescript
-import { nodeProvider } from "@agentxjs/node-provider";
+import { nodePlatform } from "@agentxjs/node-platform";
 
-const config = nodeProvider({ dataPath: "./data" });
+const config = nodePlatform({ dataPath: "./data" });
 
-// Provider is not created until resolve() is called
-const provider = await config.resolve();
+// Platform is not created until resolve() is called
+const platform = await config.resolve();
 ```
 
 ## Configuration
 
-### NodeProviderOptions
+### NodePlatformOptions
 
 | Option     | Type       | Default    | Description                                                    |
 |------------|------------|------------|----------------------------------------------------------------|
@@ -48,7 +48,7 @@ const provider = await config.resolve();
 | `logLevel` | `LogLevel` | `"debug"` (file) / `"info"` (console) | Log verbosity: `"debug"`, `"info"`, `"warn"`, `"error"`, or `"silent"` |
 
 ```typescript
-const provider = await createNodeProvider({
+const platform = await createNodePlatform({
   dataPath: "./data",
   logDir: ".agentx/logs",
   logLevel: "info",
@@ -68,7 +68,7 @@ tail -f .agentx/logs/app.log
 SQLite-backed repositories for containers, images, and sessions. Built on [unstorage](https://unstorage.unjs.io/) with a custom SQLite driver powered by `commonxjs/sqlite` for cross-runtime support (Bun via `bun:sqlite`, Node.js 22+ via `node:sqlite`).
 
 ```typescript
-import { createPersistence, sqliteDriver, memoryDriver } from "@agentxjs/node-provider/persistence";
+import { createPersistence, sqliteDriver, memoryDriver } from "@agentxjs/node-platform/persistence";
 
 // SQLite persistence (production)
 const persistence = await createPersistence(
@@ -108,7 +108,7 @@ await persistence.sessions.getMessages(sessionId);
 `FileWorkspaceProvider` creates isolated file system directories for each agent, organized by container and image.
 
 ```typescript
-import { FileWorkspaceProvider } from "@agentxjs/node-provider";
+import { FileWorkspaceProvider } from "@agentxjs/node-platform";
 
 const workspaceProvider = new FileWorkspaceProvider({
   basePath: "./data/workspaces",
@@ -143,7 +143,7 @@ Each workspace provides:
 WebSocket server and connection management built on the `ws` library. Implements the `ChannelServer` and `ChannelConnection` interfaces from `@agentxjs/core`.
 
 ```typescript
-import { WebSocketServer } from "@agentxjs/node-provider/network";
+import { WebSocketServer } from "@agentxjs/node-platform/network";
 
 const server = new WebSocketServer({ heartbeat: true, heartbeatInterval: 30000 });
 
@@ -199,7 +199,7 @@ await server.close();
 `SqliteMessageQueue` combines RxJS-based in-memory pub/sub for real-time delivery with SQLite persistence for recovery after disconnections.
 
 ```typescript
-import { SqliteMessageQueue } from "@agentxjs/node-provider/mq";
+import { SqliteMessageQueue } from "@agentxjs/node-platform/mq";
 
 const queue = SqliteMessageQueue.create("./data/queue.db", {
   retentionMs: 86400000, // 24 hours (default)
@@ -242,7 +242,7 @@ await queue.close();
 `FileLoggerFactory` writes structured log output to a file, useful for TUI applications or production deployments where console output is not practical.
 
 ```typescript
-import { FileLoggerFactory } from "@agentxjs/node-provider";
+import { FileLoggerFactory } from "@agentxjs/node-platform";
 import { setLoggerFactory } from "commonxjs/logger";
 
 const factory = new FileLoggerFactory({
@@ -258,22 +258,22 @@ setLoggerFactory(factory);
 Log format:
 
 ```
-2025-01-15T10:30:00.000Z INFO  [node-provider/WebSocketServer] WebSocket server listening {"port":5200,"host":"0.0.0.0"}
+2025-01-15T10:30:00.000Z INFO  [node-platform/WebSocketServer] WebSocket server listening {"port":5200,"host":"0.0.0.0"}
 ```
 
-When using `createNodeProvider` with `logDir` set, file logging is configured automatically.
+When using `createNodePlatform` with `logDir` set, file logging is configured automatically.
 
 ## API Reference
 
-### createNodeProvider(options?)
+### createNodePlatform(options?)
 
-Creates and returns an `AgentXProvider` with all components initialized. This is the primary entry point.
+Creates and returns an `AgentXPlatform` with all components initialized. This is the primary entry point.
 
 ```typescript
-function createNodeProvider(options?: NodeProviderOptions): Promise<AgentXProvider>
+function createNodePlatform(options?: NodePlatformOptions): Promise<AgentXPlatform>
 ```
 
-The returned `AgentXProvider` contains:
+The returned `AgentXPlatform` contains:
 
 | Property                | Type                        | Description                     |
 |-------------------------|-----------------------------|---------------------------------|
@@ -283,29 +283,29 @@ The returned `AgentXProvider` contains:
 | `workspaceProvider`     | `WorkspaceProvider`         | File system workspace manager   |
 | `eventBus`              | `EventBus`                  | In-memory event pub/sub         |
 
-The provider handles persistence, workspace, and event bus concerns only. The AI driver (e.g., Claude) is injected separately at the runtime level.
+The platform handles persistence, workspace, and event bus concerns only. The AI driver (e.g., Claude) is injected separately at the runtime level.
 
-### nodeProvider(options?)
+### nodePlatform(options?)
 
-Creates a deferred provider configuration. The provider is not initialized until `resolve()` is called.
+Creates a deferred platform configuration. The platform is not initialized until `resolve()` is called.
 
 ```typescript
-function nodeProvider(options?: NodeProviderOptions): DeferredProviderConfig
+function nodePlatform(options?: NodePlatformOptions): DeferredPlatformConfig
 ```
 
 ```typescript
-const deferred = nodeProvider({ dataPath: "./data" });
+const deferred = nodePlatform({ dataPath: "./data" });
 
 // Later, when needed:
-const provider = await deferred.resolve();
+const platform = await deferred.resolve();
 ```
 
-### isDeferredProvider(value)
+### isDeferredPlatform(value)
 
-Type guard to check whether a value is a `DeferredProviderConfig`.
+Type guard to check whether a value is a `DeferredPlatformConfig`.
 
 ```typescript
-function isDeferredProvider(value: unknown): value is DeferredProviderConfig
+function isDeferredPlatform(value: unknown): value is DeferredPlatformConfig
 ```
 
 ## Sub-path Exports

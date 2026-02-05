@@ -79,7 +79,7 @@ await agentx.sendMessage(agentId, "Hello!");
 | `serverUrl`       | Remote   | Connects to an AgentX WebSocket server   |
 | `apiKey`          | Local    | Starts an embedded runtime with a driver |
 | `createDriver`    | Local    | Uses a custom driver factory             |
-| `customProvider`  | Local    | Uses a custom AgentXProvider             |
+| `customPlatform`  | Local    | Uses a custom AgentXPlatform             |
 
 If none of these fields are present, `createAgentX` throws an error.
 
@@ -96,7 +96,7 @@ interface AgentXConfig {
   baseUrl?: string;         // Custom API endpoint for proxies or private deployments
   dataPath?: string;        // Storage path (default: ":memory:" for in-memory)
   createDriver?: CreateDriver;      // Advanced: custom driver factory
-  customProvider?: AgentXProvider;   // Advanced: custom provider
+  customPlatform?: AgentXPlatform;   // Advanced: custom platform
 
   // ----- Remote Mode -----
   serverUrl?: string;       // WebSocket server URL
@@ -120,7 +120,7 @@ interface AgentXConfig {
 | `baseUrl`        | `string`        | --             | Custom base URL for the LLM API                   |
 | `dataPath`       | `string`        | `":memory:"`   | Path for SQLite persistence, or `:memory:`        |
 | `createDriver`   | `CreateDriver`  | --             | Override the default MonoDriver with a custom one  |
-| `customProvider` | `AgentXProvider` | --            | Override the default NodeProvider                  |
+| `customPlatform` | `AgentXPlatform` | --            | Override the default NodePlatform                  |
 
 ### Remote Mode Fields
 
