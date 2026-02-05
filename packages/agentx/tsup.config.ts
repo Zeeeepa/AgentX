@@ -7,5 +7,5 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   target: "es2022",
-  external: ["@agentxjs/core", "reconnecting-websocket", "ws"],
+  external: ["@agentxjs/core", "@agentxjs/mono-driver", "@agentxjs/node-provider", "reconnecting-websocket", "ws", "commonxjs"],
 });

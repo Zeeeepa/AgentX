@@ -10,12 +10,12 @@
  * │                      AgentXProvider                         │
  * │  (Dependency Injection - Platform provides implementations) │
  * │                                                             │
- * │  ┌─────────────┐ ┌─────────────┐ ┌───────────────┐         │
- * │  │ Repositories│ │  Workspace  │ │ DriverFactory │         │
- * │  │  Container  │ │  Provider   │ │ (per-Agent)   │         │
- * │  │  Image      │ │             │ │             │           │
- * │  │  Session    │ │             │ │             │           │
- * │  └─────────────┘ └─────────────┘ └─────────────┘           │
+ * │  ┌─────────────┐ ┌─────────────┐                           │
+ * │  │ Repositories│ │  Workspace  │                           │
+ * │  │  Container  │ │  Provider   │                           │
+ * │  │  Image      │ │             │                           │
+ * │  │  Session    │ │             │                           │
+ * │  └─────────────┘ └─────────────┘                           │
  * └─────────────────────────────────────────────────────────────┘
  *                              │
  *                              ▼
@@ -36,7 +36,6 @@ import type { ContainerRepository } from "../container/types";
 import type { ImageRepository } from "../image/types";
 import type { SessionRepository } from "../session/types";
 import type { WorkspaceProvider } from "../workspace/types";
-import type { CreateDriver } from "../driver/types";
 import type { EventBus } from "../event/types";
 import type { UserContentPart } from "../agent/types";
 import type { BusEvent } from "../event/types";
@@ -93,11 +92,6 @@ export interface AgentXProvider {
    * Workspace provider for isolated environments
    */
   readonly workspaceProvider: WorkspaceProvider;
-
-  /**
-   * LLM Driver factory function - creates Driver per Agent
-   */
-  readonly createDriver: CreateDriver;
 
   /**
    * Event bus for pub/sub

@@ -12,6 +12,7 @@
  */
 
 import type { AgentXProvider } from "@agentxjs/core/runtime";
+import type { CreateDriver } from "@agentxjs/core/driver";
 import type { ChannelConnection } from "@agentxjs/core/network";
 import type { BusEvent, SystemEvent } from "@agentxjs/core/event";
 import { createAgentXRuntime } from "@agentxjs/core/runtime";
@@ -54,6 +55,11 @@ export interface ServerConfig {
   provider: AgentXProvider | DeferredProviderConfig;
 
   /**
+   * LLM Driver factory function - creates Driver per Agent
+   */
+  createDriver: CreateDriver;
+
+  /**
    * Port to listen on (standalone mode)
    */
   port?: number;
@@ -90,8 +96,8 @@ export async function createServer(config: ServerConfig): Promise<AgentXServer> 
     ? await config.provider.resolve()
     : config.provider;
 
-  // Create runtime from provider
-  const runtime = createAgentXRuntime(provider);
+  // Create runtime from provider + driver
+  const runtime = createAgentXRuntime(provider, config.createDriver);
 
   // Create WebSocket server
   const wsServer = new WebSocketServer({

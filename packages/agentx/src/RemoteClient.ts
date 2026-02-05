@@ -42,7 +42,7 @@ export class RemoteClient implements AgentX {
 
     // Create RPC client
     this.rpcClient = new RpcClient({
-      url: config.serverUrl,
+      url: config.serverUrl!,
       timeout: config.timeout ?? 30000,
       autoReconnect: config.autoReconnect ?? true,
       headers: config.headers as Record<string, string> | undefined,

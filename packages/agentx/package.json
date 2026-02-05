@@ -1,7 +1,7 @@
 {
   "name": "agentxjs",
   "version": "1.9.10-dev",
-  "description": "AgentX Client SDK - Connect to AgentX servers",
+  "description": "AgentX Client SDK - Local and remote AI agent management",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -24,6 +24,8 @@
   },
   "dependencies": {
     "@agentxjs/core": "workspace:*",
+    "@agentxjs/mono-driver": "workspace:*",
+    "@agentxjs/node-provider": "workspace:*",
     "reconnecting-websocket": "^4.4.0",
     "ws": "^8.18.0"
   },

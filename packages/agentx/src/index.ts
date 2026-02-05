@@ -1,78 +1,117 @@
 /**
  * agentxjs - AgentX Client SDK
  *
- * Connect to AgentX servers from Node.js and browsers.
+ * Unified entry point supporting local and remote modes.
  *
- * @example
+ * @example Local mode (embedded runtime)
  * ```typescript
  * import { createAgentX } from "agentxjs";
  *
- * // Connect to server
  * const agentx = await createAgentX({
- *   serverUrl: "ws://localhost:5200",
- *   headers: { Authorization: "Bearer sk-xxx" },
- *   context: { userId: "123", tenantId: "abc" },
+ *   apiKey: process.env.ANTHROPIC_API_KEY,
+ *   provider: "anthropic",
  * });
  *
- * // Create container and image
- * await agentx.createContainer("my-container");
+ * await agentx.createContainer("my-app");
  * const { record: image } = await agentx.createImage({
- *   containerId: "my-container",
- *   name: "Assistant",
- *   systemPrompt: "You are a helpful assistant",
+ *   containerId: "my-app",
+ *   systemPrompt: "You are helpful",
  * });
- *
- * // Create agent and send message
  * const { agentId } = await agentx.createAgent({ imageId: image.imageId });
  *
- * // Subscribe to events
- * agentx.on("text_delta", (event) => {
- *   process.stdout.write(event.data.text);
- * });
- *
- * agentx.on("assistant_message", (event) => {
- *   console.log("Complete:", event.data.content);
- * });
- *
- * // Send message
+ * agentx.on("text_delta", (e) => process.stdout.write(e.data.text));
  * await agentx.sendMessage(agentId, "Hello!");
- *
- * // Cleanup
- * await agentx.dispose();
  * ```
  *
- * @example Dynamic headers and context
+ * @example Remote mode (WebSocket client)
  * ```typescript
+ * import { createAgentX } from "agentxjs";
+ *
  * const agentx = await createAgentX({
  *   serverUrl: "ws://localhost:5200",
- *   headers: () => ({ Authorization: `Bearer ${getToken()}` }),
- *   context: async () => ({
- *     userId: await getUserId(),
- *     permissions: await getPermissions(),
- *   }),
  * });
  * ```
  */
 
 import { RemoteClient } from "./RemoteClient";
+import { LocalClient } from "./LocalClient";
 import type { AgentX, AgentXConfig } from "./types";
 
 /**
  * Create an AgentX client
  *
+ * Mode detection:
+ * - `serverUrl` present → **Remote mode** (WebSocket client)
+ * - `apiKey` present → **Local mode** (embedded Runtime + MonoDriver)
+ *
  * @param config - Client configuration
  * @returns Connected AgentX client
  */
 export async function createAgentX(config: AgentXConfig): Promise<AgentX> {
-  const client = new RemoteClient(config);
-  await client.connect();
-  return client;
+  if (config.serverUrl) {
+    // Remote mode
+    const client = new RemoteClient(config);
+    await client.connect();
+    return client;
+  }
+
+  if (config.apiKey || config.createDriver || config.customProvider) {
+    // Local mode
+    return createLocalClient(config);
+  }
+
+  throw new Error(
+    "Invalid AgentX config: provide either 'serverUrl' (remote mode) or 'apiKey' (local mode)"
+  );
+}
+
+/**
+ * Create a local client with embedded runtime
+ */
+async function createLocalClient(config: AgentXConfig): Promise<AgentX> {
+  const { createAgentXRuntime } = await import("@agentxjs/core/runtime");
+
+  // Resolve provider
+  let provider;
+  if (config.customProvider) {
+    provider = config.customProvider;
+  } else {
+    const { createNodeProvider } = await import("@agentxjs/node-provider");
+    provider = await createNodeProvider({
+      dataPath: config.dataPath ?? ":memory:",
+    });
+  }
+
+  // Resolve createDriver
+  let createDriver = config.createDriver;
+  if (!createDriver) {
+    const { createMonoDriver } = await import("@agentxjs/mono-driver");
+    createDriver = (driverConfig: import("@agentxjs/core/driver").DriverConfig) => {
+      const existingOptions = (driverConfig as any).options ?? {};
+      return createMonoDriver({
+        ...driverConfig,
+        apiKey: config.apiKey ?? driverConfig.apiKey,
+        baseUrl: config.baseUrl ?? driverConfig.baseUrl,
+        model: config.model ?? driverConfig.model,
+        options: {
+          ...existingOptions,
+          provider: config.provider ?? existingOptions.provider ?? "anthropic",
+        },
+      });
+    };
+  }
+
+  // Create runtime
+  const runtime = createAgentXRuntime(provider, createDriver);
+
+  return new LocalClient(runtime);
 }
 
 // Re-export types
 export type {
   AgentX,
   AgentXConfig,
+  LLMProvider,
   MaybeAsync,
   AgentInfo,
   ImageRecord,

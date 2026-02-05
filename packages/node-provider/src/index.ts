@@ -6,22 +6,13 @@
  *
  * @example
  * ```typescript
- * // Function style (recommended)
- * import { createServer } from "@agentxjs/server";
- * import { nodeProvider } from "@agentxjs/node-provider";
- * import { createClaudeDriver } from "@agentxjs/claude-driver";
+ * import { createNodeProvider } from "@agentxjs/node-provider";
  *
- * const server = await createServer({
- *   provider: nodeProvider({
- *     dataPath: "./data",
- *     createDriver: createClaudeDriver,
- *   }),
- * });
+ * const provider = await createNodeProvider({ dataPath: "./data" });
  * ```
  */
 
 import type { AgentXProvider } from "@agentxjs/core/runtime";
-import type { CreateDriver } from "@agentxjs/core/driver";
 import type { LogLevel } from "commonxjs/logger";
 import { setLoggerFactory } from "commonxjs/logger";
 import { EventBusImpl } from "@agentxjs/core/event";
@@ -39,12 +30,6 @@ export interface NodeProviderOptions {
    * @default "./data"
    */
   dataPath?: string;
-
-  /**
-   * LLM Driver factory function - creates Driver per Agent
-   * Required for running agents
-   */
-  createDriver?: CreateDriver;
 
   /**
    * Directory for log files
@@ -123,19 +108,11 @@ export async function createNodeProvider(
   // Create event bus
   const eventBus = new EventBusImpl();
 
-  // Create placeholder driver factory if not provided
-  const createDriver: CreateDriver = options.createDriver ?? (() => {
-    throw new Error(
-      "createDriver not configured. Please provide a createDriver function in NodeProviderOptions."
-    );
-  });
-
   return {
     containerRepository: persistence.containers,
     imageRepository: persistence.images,
     sessionRepository: persistence.sessions,
     workspaceProvider,
-    createDriver,
     eventBus,
   };
 }

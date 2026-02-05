@@ -85,11 +85,11 @@ BeforeAll({ timeout: 60000 }, async function () {
 
   const provider = await createNodeProvider({
     dataPath: tempDir,
-    createDriver: vcrCreateDriver,
   });
 
   testServer = await createServer({
     provider,
+    createDriver: vcrCreateDriver,
     port: testPort,
   });
 

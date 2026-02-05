@@ -3,6 +3,8 @@
  */
 
 import type { BusEvent, EventBus, Unsubscribe, BusEventHandler } from "@agentxjs/core/event";
+import type { CreateDriver } from "@agentxjs/core/driver";
+import type { AgentXProvider } from "@agentxjs/core/runtime";
 import type { Presentation, PresentationOptions } from "./presentation";
 
 // ============================================================================
@@ -15,26 +17,88 @@ import type { Presentation, PresentationOptions } from "./presentation";
 export type MaybeAsync<T> = T | (() => T) | (() => Promise<T>);
 
 /**
- * AgentX client configuration
+ * LLM provider identifier
+ */
+export type LLMProvider =
+  | "anthropic"
+  | "openai"
+  | "google"
+  | "xai"
+  | "deepseek"
+  | "mistral";
+
+/**
+ * AgentX unified configuration
+ *
+ * Supports two modes:
+ * - **Local mode**: `apiKey` present → embedded Runtime + MonoDriver
+ * - **Remote mode**: `serverUrl` present → WebSocket client
  */
 export interface AgentXConfig {
-  /**
-   * WebSocket server URL
-   */
-  serverUrl: string;
+  // ===== Local Mode =====
 
   /**
-   * Headers for authentication (static or dynamic)
+   * API key for LLM provider (local mode)
+   * If present, enables local mode with embedded Runtime
+   */
+  apiKey?: string;
+
+  /**
+   * LLM provider (local mode)
+   * @default "anthropic"
+   */
+  provider?: LLMProvider;
+
+  /**
+   * Model ID (local mode)
+   */
+  model?: string;
+
+  /**
+   * Base URL for API endpoint (local mode, for proxy/private deployments)
+   */
+  baseUrl?: string;
+
+  /**
+   * Data storage path (local mode)
+   * @default ":memory:" (in-memory storage)
+   */
+  dataPath?: string;
+
+  /**
+   * Custom CreateDriver factory (local mode, advanced)
+   * If provided, overrides the default MonoDriver
+   */
+  createDriver?: CreateDriver;
+
+  /**
+   * Custom AgentXProvider (local mode, advanced)
+   * If provided, overrides the default NodeProvider
+   */
+  customProvider?: AgentXProvider;
+
+  // ===== Remote Mode =====
+
+  /**
+   * WebSocket server URL (remote mode)
+   * If present, enables remote mode
+   */
+  serverUrl?: string;
+
+  /**
+   * Headers for authentication (remote mode, static or dynamic)
    * In Node.js: sent during WebSocket handshake
    * In browsers: sent as first auth message (WebSocket API limitation)
    */
   headers?: MaybeAsync<Record<string, string>>;
 
   /**
-   * Business context injected into all requests
+   * Business context injected into all requests (remote mode)
    * Useful for passing userId, tenantId, permissions, etc.
    */
   context?: MaybeAsync<Record<string, unknown>>;
+
+  // ===== Common =====
 
   /**
    * Request timeout in milliseconds (default: 30000)
@@ -47,7 +111,7 @@ export interface AgentXConfig {
   debug?: boolean;
 
   /**
-   * Auto reconnect on connection loss (default: true)
+   * Auto reconnect on connection loss (default: true, remote mode only)
    */
   autoReconnect?: boolean;
 }

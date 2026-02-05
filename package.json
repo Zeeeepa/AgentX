@@ -6,7 +6,8 @@
   "type": "module",
   "workspaces": [
     "packages/*",
-    "apps/cli"
+    "apps/cli",
+    "bdd"
   ],
   "scripts": {
     "dev": "bun dev/dev-manager.ts",

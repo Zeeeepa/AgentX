@@ -19,7 +19,8 @@
     "agentxjs": "workspace:*",
     "@agentxjs/server": "workspace:*",
     "@agentxjs/node-provider": "workspace:*",
-    "@agentxjs/claude-driver": "workspace:*",
+    "@agentxjs/mono-driver": "workspace:*",
+    "@agentxjs/core": "workspace:*",
     "yargs": "^18.0.0",
     "clipboardy": "^4.0.0",
     "dotenv": "^16.6.1"

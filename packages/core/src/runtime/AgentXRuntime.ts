@@ -22,7 +22,7 @@ import type {
 } from "./types";
 import type { UserContentPart, UserMessage } from "../agent/types";
 import type { BusEvent } from "../event/types";
-import type { Driver, DriverConfig, DriverStreamEvent } from "../driver/types";
+import type { CreateDriver, Driver, DriverConfig, DriverStreamEvent } from "../driver/types";
 import { createSession } from "../session/Session";
 
 const logger = createLogger("runtime/AgentXRuntime");
@@ -44,13 +44,15 @@ interface AgentState {
  */
 export class AgentXRuntimeImpl implements AgentXRuntime {
   readonly provider: AgentXProvider;
+  private readonly createDriver: CreateDriver;
 
   private agents = new Map<string, AgentState>();
   private globalSubscriptions = new Set<() => void>();
   private isShutdown = false;
 
-  constructor(provider: AgentXProvider) {
+  constructor(provider: AgentXProvider, createDriver: CreateDriver) {
     this.provider = provider;
+    this.createDriver = createDriver;
     logger.info("AgentXRuntime initialized");
   }
 
@@ -95,10 +97,9 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
       repository: this.provider.sessionRepository,
     });
 
-    // Create driver config
+    // Create driver config (apiKey/baseUrl are provided by the createDriver closure)
     const driverConfig: DriverConfig = {
-      apiKey: process.env.ANTHROPIC_API_KEY ?? "",
-      baseUrl: process.env.ANTHROPIC_BASE_URL,
+      apiKey: "",
       agentId,
       systemPrompt: imageRecord.systemPrompt,
       cwd: workspace.path,
@@ -111,8 +112,8 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
       },
     };
 
-    // Create driver using the new CreateDriver function
-    const driver = this.provider.createDriver(driverConfig);
+    // Create driver using the injected CreateDriver function
+    const driver = this.createDriver(driverConfig);
 
     // Initialize driver
     await driver.initialize();
@@ -509,7 +510,10 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
 
 /**
  * Create an AgentXRuntime instance
+ *
+ * @param provider - AgentXProvider with repositories and event bus
+ * @param createDriver - Factory function for creating Driver instances per Agent
  */
-export function createAgentXRuntime(provider: AgentXProvider): AgentXRuntime {
-  return new AgentXRuntimeImpl(provider);
+export function createAgentXRuntime(provider: AgentXProvider, createDriver: CreateDriver): AgentXRuntime {
+  return new AgentXRuntimeImpl(provider, createDriver);
 }

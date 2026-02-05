@@ -7,30 +7,16 @@
  * ```typescript
  * import { createServer } from "@agentxjs/server";
  * import { nodeProvider } from "@agentxjs/node-provider";
- * import { claudeDriver } from "@agentxjs/claude-driver";
+ * import { createMonoDriver } from "@agentxjs/mono-driver";
  *
  * const server = await createServer({
- *   provider: nodeProvider({
- *     dataPath: "./data",
- *     driver: claudeDriver({ apiKey: process.env.ANTHROPIC_API_KEY }),
- *   }),
+ *   provider: nodeProvider({ dataPath: "./data" }),
+ *   createDriver: createMonoDriver,
  *   port: 5200,
  * });
  *
  * await server.listen();
  * console.log("Server listening on ws://localhost:5200");
- *
- * // Attach to existing HTTP server
- * import { createServer as createHttpServer } from "node:http";
- *
- * const httpServer = createHttpServer();
- * const agentxServer = await createServer({
- *   provider: nodeProvider({ ... }),
- *   server: httpServer,
- *   wsPath: "/ws",
- * });
- *
- * httpServer.listen(3000);
  * ```
  */
 

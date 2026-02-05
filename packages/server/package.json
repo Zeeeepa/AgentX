@@ -29,7 +29,7 @@
   "dependencies": {
     "@agentxjs/core": "workspace:*",
     "@agentxjs/node-provider": "workspace:*",
-    "@agentxjs/claude-driver": "workspace:*",
+    "@agentxjs/mono-driver": "workspace:*",
     "commonxjs": "^0.1.1"
   },
   "devDependencies": {

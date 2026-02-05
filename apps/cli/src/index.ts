@@ -12,7 +12,8 @@ import { hideBin } from "yargs/helpers";
 import { tui } from "./app";
 import { createServer } from "@agentxjs/server";
 import { nodeProvider, FileLoggerFactory } from "@agentxjs/node-provider";
-import { createClaudeDriver } from "@agentxjs/claude-driver";
+import { createMonoDriver } from "@agentxjs/mono-driver";
+import type { CreateDriver } from "@agentxjs/core/driver";
 import { createLogger, setLoggerFactory } from "commonxjs/logger";
 import { connect } from "net";
 
@@ -61,12 +62,23 @@ async function getServerUrl(port: number): Promise<{ url: string; cleanup?: () =
     process.exit(1);
   }
 
+  // Create driver factory that injects apiKey/baseUrl
+  const baseUrl = process.env.DEEPRACTICE_BASE_URL;
+  const wrappedCreateDriver: CreateDriver = (config) => {
+    return createMonoDriver({
+      ...config,
+      apiKey,
+      baseUrl,
+      options: { provider: "anthropic" },
+    });
+  };
+
   const server = await createServer({
     provider: nodeProvider({
       dataPath,
-      createDriver: createClaudeDriver,
       // logDir already configured at startup
     }),
+    createDriver: wrappedCreateDriver,
     port,
     host: "127.0.0.1",
   });

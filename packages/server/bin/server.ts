@@ -16,7 +16,8 @@
 
 import { createServer } from "../src";
 import { nodeProvider } from "@agentxjs/node-provider";
-import { createClaudeDriverFactory } from "@agentxjs/claude-driver";
+import { createMonoDriver } from "@agentxjs/mono-driver";
+import type { CreateDriver } from "@agentxjs/core/driver";
 import { createLogger } from "commonxjs/logger";
 
 const logger = createLogger("server/bin");
@@ -47,16 +48,24 @@ async function main() {
     debug,
   });
 
-  // Create driver factory
-  const driverFactory = createClaudeDriverFactory();
+  // Create driver factory that injects apiKey/baseUrl
+  const baseUrl = process.env.ANTHROPIC_BASE_URL;
+  const wrappedCreateDriver: CreateDriver = (config) => {
+    return createMonoDriver({
+      ...config,
+      apiKey,
+      baseUrl,
+      options: { provider: "anthropic" },
+    });
+  };
 
-  // Create server with nodeProvider
+  // Create server with nodeProvider + driver
   const server = await createServer({
     provider: nodeProvider({
       dataPath,
-      driverFactory,
       logDir,
     }),
+    createDriver: wrappedCreateDriver,
     port,
     host,
     debug,
