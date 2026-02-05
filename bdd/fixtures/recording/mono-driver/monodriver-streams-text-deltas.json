@@ -1,0 +1,29 @@
+{
+  "name": "monodriver-streams-text-deltas",
+  "description": "VCR recording: monodriver-streams-text-deltas",
+  "recordedAt": 1770268123519,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 1,
+      "data": {
+        "messageId": "msg_1770268123520",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 2031,
+      "data": {
+        "text": "4"
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 36,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    }
+  ]
+}

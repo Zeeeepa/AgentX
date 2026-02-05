@@ -1,13 +1,13 @@
 {
   "name": "force-test",
   "description": "Recording of: \"Hello again!\"",
-  "recordedAt": 1770267287708,
+  "recordedAt": 1770268142098,
   "events": [
     {
       "type": "message_start",
-      "delay": 4029,
+      "delay": 7222,
       "data": {
-        "messageId": "msg_c28c2f3d-885e-4af2-88",
+        "messageId": "msg_ea1eef8e-26e5-4679-9a",
         "model": "claude-haiku-4-5-20251001"
       }
     },
@@ -20,35 +20,28 @@
     },
     {
       "type": "text_delta",
-      "delay": 15,
+      "delay": 0,
       "data": {
         "text": "! "
       }
     },
     {
       "type": "text_delta",
-      "delay": 36,
+      "delay": 100,
       "data": {
         "text": "👋 How"
       }
     },
     {
       "type": "text_delta",
-      "delay": 47,
+      "delay": 44,
       "data": {
-        "text": " can I help you today"
-      }
-    },
-    {
-      "type": "text_delta",
-      "delay": 37,
-      "data": {
-        "text": "?"
+        "text": " can I help you today?"
       }
     },
     {
       "type": "message_stop",
-      "delay": 103,
+      "delay": 97,
       "data": {
         "stopReason": "end_turn"
       }

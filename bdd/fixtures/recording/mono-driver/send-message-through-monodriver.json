@@ -1,33 +1,33 @@
 {
-  "name": "record-test",
-  "description": "BDD test recording",
-  "recordedAt": 1770268149567,
+  "name": "send-message-through-monodriver",
+  "description": "VCR recording: send-message-through-monodriver",
+  "recordedAt": 1770268121662,
   "events": [
     {
       "type": "message_start",
-      "delay": 6261,
+      "delay": 0,
       "data": {
-        "messageId": "msg_f2f27995-fb07-46b2-95",
+        "messageId": "msg_1770268121662",
         "model": "claude-haiku-4-5-20251001"
       }
     },
     {
       "type": "text_delta",
-      "delay": 1,
+      "delay": 1721,
       "data": {
-        "text": "2 "
+        "text": "Hi"
       }
     },
     {
       "type": "text_delta",
-      "delay": 83,
+      "delay": 27,
       "data": {
-        "text": "+ 2 = 4"
+        "text": " there!"
       }
     },
     {
       "type": "message_stop",
-      "delay": 48,
+      "delay": 107,
       "data": {
         "stopReason": "end_turn"
       }

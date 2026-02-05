@@ -20,6 +20,7 @@ import {
 import type { AgentX, BaseResponse, Presentation, PresentationState } from "agentxjs";
 import type { BusEvent, Unsubscribe } from "@agentxjs/core/event";
 import type { Driver, DriverStreamEvent } from "@agentxjs/core/driver";
+import type { AgentXProvider } from "@agentxjs/core/runtime";
 import type { AgentXServer } from "@agentxjs/server";
 
 // ============================================================================
@@ -128,6 +129,30 @@ export class AgentXWorld extends World {
   presentationDisposed: boolean = false;
   presentationUpdateCount: number = 0;
 
+  // Document test support - Local mode
+  localAgentX?: AgentX;
+  localEvents?: BusEvent[];
+  eventHandlerCalled?: boolean;
+
+  // Document test support - Remote mode
+  remoteAgentX?: AgentX;
+  remoteEvents?: BusEvent[];
+
+  // Document test support - Shared state
+  lastContainerId?: string;
+  lastImageId?: string;
+  lastSessionId?: string;
+  lastAgentId?: string;
+
+  // Document test support - Package-specific
+  docDriver?: Driver;
+  docProvider?: AgentXProvider;
+  tempDir?: string;
+  docServer?: AgentXServer;
+  docServerPort?: number;
+  docClient?: AgentX;
+  lastRpcResult?: unknown;
+
   constructor(options: IWorldOptions) {
     super(options);
   }
@@ -198,6 +223,37 @@ export class AgentXWorld extends World {
     this.presentationComplete = false;
     this.presentationDisposed = false;
     this.presentationUpdateCount = 0;
+
+    // Cleanup document test resources
+    if (this.docClient) {
+      await this.docClient.dispose();
+      this.docClient = undefined;
+    }
+    if (this.docServer) {
+      await this.docServer.dispose();
+      this.docServer = undefined;
+    }
+    if (this.docDriver) {
+      await this.docDriver.dispose();
+      this.docDriver = undefined;
+    }
+    if (this.localAgentX) {
+      await this.localAgentX.dispose();
+      this.localAgentX = undefined;
+    }
+    if (this.remoteAgentX) {
+      await this.remoteAgentX.dispose();
+      this.remoteAgentX = undefined;
+    }
+    this.docProvider = undefined;
+    this.localEvents = undefined;
+    this.remoteEvents = undefined;
+    this.lastContainerId = undefined;
+    this.lastImageId = undefined;
+    this.lastSessionId = undefined;
+    this.lastAgentId = undefined;
+    this.eventHandlerCalled = undefined;
+    this.lastRpcResult = undefined;
 
     if (this.agentx) {
       await this.agentx.dispose();
