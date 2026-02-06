@@ -47,6 +47,73 @@ Feature: AgentX Connection
     Then I should see the response appearing progressively
 
   # ============================================================================
+  # Waiting / Loading State
+  # ============================================================================
+
+  @ui
+  Scenario: User sees thinking indicator while waiting for AI
+    Given I am logged in as admin "admin@example.com"
+    When I type "Hello" in the prompt
+    And I press Enter
+    Then I should see a thinking indicator (animated dots)
+    And the prompt input should be disabled
+    And the send button should be disabled
+    When the AI starts streaming its response
+    Then the thinking indicator should disappear
+    And the streaming text should appear in conversation
+
+  @ui
+  Scenario: Input is re-enabled after AI finishes responding
+    Given I am logged in as admin "admin@example.com"
+    And the AI has finished responding
+    Then the prompt input should be enabled
+    And the send button should be enabled
+
+  # ============================================================================
+  # Tool Execution Display
+  # ============================================================================
+  #
+  #  Tool call rendered as a collapsible card:
+  #  ┌──────────────────────────────────────────┐
+  #  │  [spinner] bash_tool               [▼]   │
+  #  └──────────────────────────────────────────┘
+  #  When expanded:
+  #  ┌──────────────────────────────────────────┐
+  #  │  [✓] bash_tool                     [▲]   │
+  #  ├──────────────────────────────────────────┤
+  #  │  Input                                    │
+  #  │  { "command": "ls -la" }                  │
+  #  │  Result                                   │
+  #  │  total 64 ...                             │
+  #  └──────────────────────────────────────────┘
+  #
+
+  @ui
+  Scenario: Tool calls are displayed in conversation
+    Given I am logged in as admin "admin@example.com"
+    When the AI uses a tool "bash_tool" with input {"command": "ls"}
+    Then I should see a tool call card showing "bash_tool"
+    And the card should show a status icon (spinner while running, checkmark when done)
+
+  @ui
+  Scenario: Tool call details are expandable
+    Given I am logged in as admin "admin@example.com"
+    And the AI has completed a tool call "bash_tool"
+    When I click the tool call card
+    Then I should see the tool input JSON
+    And I should see the tool result
+
+  @ui
+  Scenario: Text and tool calls render in order
+    Given I am logged in as admin "admin@example.com"
+    When the AI responds with text, then a tool call, then more text
+    Then the conversation should show all three blocks in order:
+      | type | content                     |
+      | text | "Let me check that for you" |
+      | tool | bash_tool                   |
+      | text | "Here are the results"      |
+
+  # ============================================================================
   # Data Model
   # ============================================================================
   #

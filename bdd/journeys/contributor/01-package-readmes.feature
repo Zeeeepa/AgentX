@@ -44,7 +44,8 @@ Feature: Package READMEs
       | task                                      | code provided |
       | Create a standalone server                | yes           |
       | Attach to an existing HTTP server         | yes           |
-      | Configure WebSocket path and heartbeat    | yes           |
+      | Configure WebSocket path                  | yes           |
+      | Understand heartbeat behavior             | yes           |
     And I should see the full ServerConfig type with all options and defaults
 
   # ============================================================================

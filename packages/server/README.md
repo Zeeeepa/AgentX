@@ -114,6 +114,16 @@ interface ServerConfig {
 | `wsPath` | `string` | `"/ws"` | WebSocket path in attached mode |
 | `debug` | `boolean` | `false` | Enable debug logging |
 
+### Heartbeat
+
+WebSocket connections are automatically monitored with a ping/pong heartbeat (30-second interval). If a client fails to respond, the connection is terminated. This is always enabled and requires no configuration.
+
+```typescript
+// Heartbeat is automatic — no config needed
+// Server sends ping every 30s, client must respond with pong
+// Unresponsive clients are disconnected automatically
+```
+
 ### Environment Variables (CLI)
 
 | Variable | Required | Default | Description |

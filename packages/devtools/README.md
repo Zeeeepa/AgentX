@@ -1,17 +1,91 @@
 # @agentxjs/devtools
 
-Development and testing tools for AgentX. Provides VCR-style fixture recording/replay for deterministic LLM testing, plus BDD utilities for Cucumber-based integration tests.
+Development and testing tools for AgentX. Provides BDD utilities for Cucumber-based integration tests, plus VCR-style fixture recording/replay for deterministic LLM testing.
 
 ## Overview
 
 `@agentxjs/devtools` has two parts:
 
-1. **VCR Infrastructure** -- `MockDriver`, `RecordingDriver`, `Devtools`, `createVcrCreateDriver` for recording and replaying LLM interactions.
-2. **BDD Utilities** (`@agentxjs/devtools/bdd`) -- `createCucumberConfig`, `agentUiTester`, `agentDocTester`, `startDevServer` for Cucumber-based testing.
+1. **BDD Utilities** (`@agentxjs/devtools/bdd`) -- Cucumber config, AI-powered UI testing, documentation testing, dev server management.
+2. **VCR Infrastructure** -- `MockDriver`, `RecordingDriver`, `createVcrCreateDriver` for recording and replaying LLM interactions in unit tests.
 
-## Quick Start
+## Quick Start: BDD Testing
 
-### VCR: Record and Replay
+### 1. Set up Cucumber config
+
+```typescript
+// bdd/cucumber.js
+import { createCucumberConfig } from "@agentxjs/devtools/bdd";
+
+export default createCucumberConfig({
+  paths: ["bdd/journeys/**/*.feature"],
+  import: ["bdd/steps/**/*.ts"],
+});
+```
+
+### 2. Use agentUiTester for UI tests
+
+```typescript
+import { agentUiTester } from "@agentxjs/devtools/bdd";
+
+const result = agentUiTester(`
+  Navigate to http://localhost:3000
+  Verify redirect to /setup
+  Fill email "admin@example.com", password "admin123"
+  Click Setup
+  Verify logged in as admin
+`);
+
+assert.ok(result.passed, result.output);
+```
+
+### 3. Start a dev server in tests
+
+```typescript
+import { startDevServer, stopDevServer } from "@agentxjs/devtools/bdd";
+
+// In BeforeAll hook
+await startDevServer({ cwd: "/path/to/app", port: 3000 });
+
+// In AfterAll hook
+stopDevServer();
+```
+
+### 4. Use MockDriver for unit tests
+
+MockDriver replays recorded fixtures — no network calls, fully deterministic. Use it when you need to test code that interacts with a Driver without hitting a real LLM API.
+
+```typescript
+import { MockDriver } from "@agentxjs/devtools";
+import { SIMPLE_REPLY } from "@agentxjs/devtools/fixtures";
+
+// Create a mock driver from a built-in fixture
+const driver = new MockDriver({ fixture: SIMPLE_REPLY });
+await driver.initialize();
+
+for await (const event of driver.receive({ content: "Hello" })) {
+  if (event.type === "text_delta") {
+    process.stdout.write(event.data.text);
+  }
+}
+
+await driver.dispose();
+```
+
+Built-in fixtures: `SIMPLE_REPLY`, `LONG_REPLY`, `TOOL_CALL`, `ERROR`, `EMPTY`.
+
+To use your own recorded fixture:
+
+```typescript
+import { MockDriver, getFixture } from "@agentxjs/devtools";
+
+const fixture = getFixture("my-recorded-scenario"); // from fixtures directory
+const driver = new MockDriver({ fixture });
+```
+
+## Quick Start: VCR Recording
+
+Record real LLM interactions once, replay them in subsequent test runs:
 
 ```typescript
 import { createDevtools } from "@agentxjs/devtools";
@@ -28,73 +102,20 @@ const driver = await devtools.driver("greeting-test", {
 });
 
 await driver.initialize();
-
 for await (const event of driver.receive(userMessage)) {
   if (event.type === "text_delta") {
     process.stdout.write(event.data.text);
   }
 }
-
 await driver.dispose();
 ```
 
-### BDD: Cucumber Config
+### VCR with Server (Integration Tests)
 
-```typescript
-// cucumber.js
-import { createCucumberConfig } from "@agentxjs/devtools/bdd";
-
-export default createCucumberConfig({
-  paths: ["bdd/journeys/**/*.feature"],
-  import: ["bdd/steps/**/*.ts"],
-});
-```
-
-## API Reference
-
-### VCR API (main entry)
-
-#### `createDevtools(config: DevtoolsConfig): Devtools`
-
-```typescript
-interface DevtoolsConfig {
-  fixturesDir: string;          // directory for fixture JSON files
-  apiKey?: string;               // API key (required for recording)
-  baseUrl?: string;              // API base URL
-  model?: string;                // LLM model
-  systemPrompt?: string;         // default system prompt
-  cwd?: string;                  // working directory
-  createDriver?: CreateDriver;   // custom driver factory (default: claude-driver)
-}
-```
-
-**Devtools methods**:
-
-| Method | Description |
-|---|---|
-| `driver(name, options): Promise<Driver>` | Get driver -- playback if fixture exists, record otherwise |
-| `load(name): Promise<Fixture>` | Load a fixture by name |
-| `exists(name): boolean` | Check if fixture exists |
-| `delete(name): Promise<void>` | Delete a fixture |
-| `createDriverForFixture(name): CreateDriver` | Sync factory for existing fixture |
-
-```typescript
-interface DriverOptions {
-  message: string;           // user message for recording
-  systemPrompt?: string;     // override system prompt
-  cwd?: string;              // override working directory
-  forceRecord?: boolean;     // re-record even if fixture exists
-}
-```
-
-#### `createVcrCreateDriver(config: VcrCreateDriverConfig): CreateDriver`
-
-Creates a `CreateDriver` with embedded VCR logic. Best for integration with `@agentxjs/server`.
+Use `createVcrCreateDriver` to wrap a real driver with VCR logic — ideal for BDD tests that run through the full server stack:
 
 ```typescript
 import { createVcrCreateDriver } from "@agentxjs/devtools";
-
-let currentFixture: string | null = null;
 
 const vcrCreateDriver = createVcrCreateDriver({
   fixturesDir: "./fixtures",
@@ -103,75 +124,16 @@ const vcrCreateDriver = createVcrCreateDriver({
   createRealDriver: createMonoDriver,
   onPlayback: (name) => console.log(`Playback: ${name}`),
   onRecording: (name) => console.log(`Recording: ${name}`),
-  onSaved: (name, count) => console.log(`Saved: ${name} (${count} events)`),
 });
 
-// Use with server
 const server = await createServer({ platform, createDriver: vcrCreateDriver });
-
-// Before each test
-currentFixture = "test-scenario";
 ```
 
-```typescript
-interface VcrCreateDriverConfig {
-  fixturesDir: string;
-  getFixtureName: () => string | null;    // null = skip VCR, use real driver
-  apiKey?: string;
-  baseUrl?: string;
-  model?: string;
-  createRealDriver?: CreateDriver;
-  onPlayback?: (name: string) => void;
-  onRecording?: (name: string) => void;
-  onSaved?: (name: string, eventCount: number) => void;
-}
-```
-
-#### `MockDriver`
-
-Replays events from a fixture. No network calls.
-
-```typescript
-import { MockDriver, createMockDriver } from "@agentxjs/devtools";
-
-const driver = new MockDriver({ fixture: myFixture });
-await driver.initialize();
-for await (const event of driver.receive(msg)) { ... }
-```
-
-Built-in fixtures: `"simple-reply"`, `"long-reply"`, `"tool-call"`, `"error"`, `"empty"`.
-
-#### `RecordingDriver`
-
-Wraps a real driver and records all events.
-
-```typescript
-import { createRecordingDriver } from "@agentxjs/devtools";
-
-const recorder = createRecordingDriver({
-  driver: realDriver,
-  name: "my-scenario",
-});
-await recorder.initialize();
-for await (const event of recorder.receive(msg)) { ... }
-
-const fixture = recorder.getFixture();
-await recorder.dispose();
-```
-
-#### Built-in Fixtures
-
-```typescript
-import { SIMPLE_REPLY, TOOL_CALL, getFixture, listFixtures } from "@agentxjs/devtools";
-
-listFixtures();  // ["simple-reply", "long-reply", "tool-call", "error", "empty"]
-```
+## API Reference
 
 ### BDD API (`@agentxjs/devtools/bdd`)
 
 #### `createCucumberConfig(options: CucumberConfigOptions)`
-
-Generates a Cucumber configuration object.
 
 ```typescript
 interface CucumberConfigOptions {
@@ -183,34 +145,9 @@ interface CucumberConfigOptions {
 }
 ```
 
-```typescript
-import { createCucumberConfig } from "@agentxjs/devtools/bdd";
-
-export default createCucumberConfig({
-  paths: ["bdd/journeys/**/*.feature"],
-  import: ["bdd/steps/**/*.ts"],
-  tags: "not @pending and not @skip",
-  timeout: 60000,
-});
-```
-
 #### `agentUiTester(prompt, options?): UiTestResult`
 
-Runs a UI test scenario using Claude CLI + agent-browser. Spawns a Claude subprocess that drives a real Chrome browser.
-
-```typescript
-import { agentUiTester } from "@agentxjs/devtools/bdd";
-
-const result = agentUiTester(`
-  Navigate to http://localhost:3000
-  Verify redirect to /setup
-  Fill email "admin@example.com", password "admin123"
-  Click Setup
-  Verify logged in as admin
-`);
-
-expect(result.passed).toBe(true);
-```
+Runs a UI test scenario using Claude CLI + agent-browser.
 
 ```typescript
 interface UiTesterOptions {
@@ -228,12 +165,12 @@ interface UiTestResult {
 
 #### `agentDocTester(options, testerOptions?): DocTestResult`
 
-Evaluates documents against requirements using Claude CLI.
+Evaluates documents against requirements using AgentX. Assesses completeness, logic, and readability.
 
 ```typescript
 import { agentDocTester } from "@agentxjs/devtools/bdd";
 
-const result = agentDocTester({
+const result = await agentDocTester({
   files: ["packages/core/README.md"],
   requirements: `
     The README should explain Container, Image, Session, Driver, Platform.
@@ -241,41 +178,20 @@ const result = agentDocTester({
   `,
 });
 
-expect(result.passed).toBe(true);
+assert.ok(result.passed, result.output);
 ```
 
 ```typescript
 interface DocTesterOptions {
-  model?: string;       // default: "haiku"
+  provider?: string;    // default: "anthropic"
+  model?: string;       // default: "claude-haiku-4-5-20251001"
+  apiKey?: string;      // reads from DEEPRACTICE_API_KEY or ANTHROPIC_API_KEY
+  baseUrl?: string;     // reads from DEEPRACTICE_BASE_URL
   timeout?: number;     // default: 120000 (2 min)
-}
-
-interface DocTestResult {
-  passed: boolean;
-  output: string;
 }
 ```
 
 #### `startDevServer(options): Promise<void>`
-
-Starts a dev server and waits for it to be ready.
-
-```typescript
-import { startDevServer, stopDevServer } from "@agentxjs/devtools/bdd";
-
-await startDevServer({
-  cwd: "/path/to/app",
-  port: 3000,
-  command: "bun",         // default: "bun"
-  args: ["run", "dev"],   // default: ["run", "dev"]
-  timeout: 30000,         // default: 30000 ms
-  debug: false,           // default: false (true if DEBUG env set)
-});
-
-// ... run tests ...
-
-stopDevServer();
-```
 
 ```typescript
 interface DevServerOptions {
@@ -291,13 +207,59 @@ interface DevServerOptions {
 #### Path Utilities
 
 ```typescript
-import { paths, getMonorepoPath, getPackagePath, getBddPath } from "@agentxjs/devtools/bdd";
+import { getFixturesPath, getTempPath, ensureDir, getMonorepoPath } from "@agentxjs/devtools/bdd";
 ```
 
-#### Playwright Helpers
+### VCR API (main entry)
+
+#### `createDevtools(config: DevtoolsConfig): Devtools`
 
 ```typescript
-import { launchBrowser, getPage, closeBrowser, waitForUrl } from "@agentxjs/devtools/bdd";
+interface DevtoolsConfig {
+  fixturesDir: string;
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+  systemPrompt?: string;
+  cwd?: string;
+  createDriver?: CreateDriver;
+}
+```
+
+| Method | Description |
+|---|---|
+| `driver(name, options): Promise<Driver>` | Get driver — playback if fixture exists, record otherwise |
+| `load(name): Promise<Fixture>` | Load a fixture by name |
+| `exists(name): boolean` | Check if fixture exists |
+| `delete(name): Promise<void>` | Delete a fixture |
+
+#### `MockDriver`
+
+Replays events from a fixture. No network calls.
+
+```typescript
+import { MockDriver, createMockDriver } from "@agentxjs/devtools";
+
+const driver = new MockDriver({ fixture: myFixture });
+```
+
+#### `RecordingDriver`
+
+Wraps a real driver and records all events.
+
+```typescript
+import { createRecordingDriver } from "@agentxjs/devtools";
+
+const recorder = createRecordingDriver({ driver: realDriver, name: "my-scenario" });
+const fixture = recorder.getFixture(); // after recording
+```
+
+#### Built-in Fixtures
+
+```typescript
+import { SIMPLE_REPLY, TOOL_CALL, getFixture, listFixtures } from "@agentxjs/devtools/fixtures";
+
+listFixtures();  // ["simple-reply", "long-reply", "tool-call", "error", "empty"]
 ```
 
 ## Configuration
@@ -310,12 +272,13 @@ import { launchBrowser, getPage, closeBrowser, waitForUrl } from "@agentxjs/devt
 | `@agentxjs/devtools/mock` | `MockDriver`, `createMockDriver` |
 | `@agentxjs/devtools/recorder` | `RecordingDriver`, `createRecordingDriver` |
 | `@agentxjs/devtools/fixtures` | Built-in fixtures, `getFixture`, `listFixtures` |
-| `@agentxjs/devtools/bdd` | BDD: `createCucumberConfig`, `agentUiTester`, `agentDocTester`, `startDevServer`, paths, Playwright |
+| `@agentxjs/devtools/bdd` | BDD: `createCucumberConfig`, `agentUiTester`, `agentDocTester`, `startDevServer`, paths |
 
 ### Peer Dependencies (optional)
 
 | Package | When needed |
 |---|---|
+| `agentxjs` | `agentDocTester` (uses AgentX SDK for AI evaluation) |
 | `@agentxjs/claude-driver` | Recording with claude-driver |
 | `@playwright/test` | Browser-based BDD tests |
 | `@cucumber/cucumber` | BDD test runner |

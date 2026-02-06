@@ -8,6 +8,17 @@ Client SDK for building AI agent applications. Supports local (embedded) and rem
 
 ## Quick Start
 
+### When to use which mode?
+
+| | Local Mode | Remote Mode |
+|---|---|---|
+| **Use when** | Prototyping, CLI tools, single-user apps, tests | Multi-tenant apps, shared infrastructure, horizontal scaling |
+| **Trade-off** | Simpler setup, no server to manage | Centralized state, multiple clients can share agents |
+| **Data** | In-process SQLite (or `:memory:`) | Server-managed persistent storage |
+| **Config** | `apiKey` | `serverUrl` |
+
+**Start with Local mode.** Switch to Remote when you need multiple processes or users sharing the same agents.
+
 ### Local Mode (Embedded)
 
 Runs agents directly in your process. No server required.

@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 interface Settings {
   llm: {
     apiKey: string;
+    provider: string;
     baseUrl: string;
     model: string;
   };
@@ -22,7 +23,7 @@ interface Settings {
 export default function SettingsPage() {
   const router = useRouter();
   const [settings, setSettings] = useState<Settings>({
-    llm: { apiKey: "", baseUrl: "", model: "" },
+    llm: { apiKey: "", provider: "anthropic", baseUrl: "", model: "" },
     agent: { systemPrompt: "" },
   });
   const [saving, setSaving] = useState(false);
@@ -55,6 +56,7 @@ export default function SettingsPage() {
       setSettings({
         llm: {
           apiKey: "",
+          provider: data.llm.provider || "anthropic",
           baseUrl: data.llm.baseUrl,
           model: data.llm.model,
         },
@@ -75,6 +77,7 @@ export default function SettingsPage() {
     try {
       const body: Record<string, Record<string, string>> = {
         llm: {
+          provider: settings.llm.provider,
           baseUrl: settings.llm.baseUrl,
           model: settings.llm.model,
         },
@@ -105,6 +108,8 @@ export default function SettingsPage() {
       }
 
       setSuccess("Settings saved. New conversations will use the updated configuration.");
+      // Auto-dismiss success message
+      setTimeout(() => setSuccess(""), 3000);
       // Reload to refresh masked apiKey
       await loadSettings();
     } catch {
@@ -170,6 +175,28 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="provider">Provider</Label>
+              <select
+                id="provider"
+                value={settings.llm.provider}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    llm: { ...settings.llm, provider: e.target.value },
+                  })
+                }
+                className="border-input bg-transparent h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs"
+              >
+                <option value="anthropic">Anthropic</option>
+                <option value="openai-compatible">OpenAI Compatible</option>
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Use &quot;Anthropic&quot; for Anthropic API or its proxies. Use &quot;OpenAI
+                Compatible&quot; for OpenAI-format endpoints.
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="baseUrl">Base URL</Label>
               <Input
                 id="baseUrl"
@@ -184,7 +211,7 @@ export default function SettingsPage() {
                 }
               />
               <p className="text-xs text-muted-foreground">
-                Set for OpenAI-compatible providers. Leave empty for Anthropic.
+                Custom API endpoint. Leave empty to use provider default.
               </p>
             </div>
 
@@ -230,14 +257,21 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <div className="flex items-center gap-4">
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save Settings"}
-          </Button>
+        {success && (
+          <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
+            {success}
+          </div>
+        )}
 
-          {success && <p className="text-sm text-green-600">{success}</p>}
-          {error && <p className="text-sm text-destructive">{error}</p>}
-        </div>
+        {error && (
+          <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+            {error}
+          </div>
+        )}
+
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : "Save Settings"}
+        </Button>
       </div>
     </main>
   );

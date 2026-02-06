@@ -55,7 +55,11 @@ function getLLMConfigFromDB() {
       "claude-sonnet-4-20250514";
     const baseUrl =
       SystemConfigRepository.get("llm.baseUrl") || process.env.DEEPRACTICE_BASE_URL || undefined;
-    const provider = baseUrl ? ("openai-compatible" as const) : ("anthropic" as const);
+    const storedProvider = SystemConfigRepository.get("llm.provider");
+    const provider =
+      storedProvider === "openai-compatible"
+        ? ("openai-compatible" as const)
+        : ("anthropic" as const);
 
     return { apiKey, model, baseUrl, provider };
   } catch {

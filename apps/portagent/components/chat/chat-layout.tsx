@@ -17,9 +17,56 @@ interface ChatLayoutProps {
  * Convert agentxjs PresentationState to the existing Message[] format
  * for compatibility with ChatMessages component.
  */
+interface ToolBlockLike {
+  type: "tool";
+  toolName: string;
+  toolInput: Record<string, unknown>;
+  toolResult?: string;
+  status: string;
+}
+
+function blocksToMessages(
+  blocks: Array<{ type: string; [key: string]: unknown }>,
+  idPrefix: string
+): Message[] {
+  const messages: Message[] = [];
+  let idx = 0;
+  // Accumulate consecutive text blocks
+  let textAcc = "";
+
+  const flushText = () => {
+    if (textAcc) {
+      messages.push({ id: `${idPrefix}-${idx++}`, from: "assistant", content: textAcc });
+      textAcc = "";
+    }
+  };
+
+  for (const b of blocks) {
+    if (b.type === "text") {
+      textAcc += (b as { type: "text"; content: string }).content;
+    } else if (b.type === "tool") {
+      flushText();
+      const tb = b as unknown as ToolBlockLike;
+      messages.push({
+        id: `${idPrefix}-${idx++}`,
+        from: "assistant",
+        content: "",
+        tool: {
+          toolName: tb.toolName,
+          toolInput: tb.toolInput,
+          toolResult: tb.toolResult,
+          status: tb.status,
+        },
+      });
+    }
+  }
+  flushText();
+  return messages;
+}
+
 function presentationToMessages(state: PresentationStateLocal): Message[] {
   const messages: Message[] = [];
-  let msgIndex = 0;
+  let convIndex = 0;
 
   for (const conv of state.conversations) {
     if (conv.role === "user") {
@@ -27,45 +74,22 @@ function presentationToMessages(state: PresentationStateLocal): Message[] {
         .filter((b) => b.type === "text")
         .map((b) => (b as { type: "text"; content: string }).content)
         .join("");
-      messages.push({
-        id: `msg-${msgIndex++}`,
-        from: "user",
-        content: text,
-      });
+      messages.push({ id: `msg-${convIndex}`, from: "user", content: text });
     } else if (conv.role === "assistant") {
-      const text = (conv.blocks ?? [])
-        .filter((b) => b.type === "text")
-        .map((b) => (b as { type: "text"; content: string }).content)
-        .join("");
-      if (text) {
-        messages.push({
-          id: `msg-${msgIndex++}`,
-          from: "assistant",
-          content: text,
-        });
-      }
+      messages.push(...blocksToMessages(conv.blocks ?? [], `msg-${convIndex}`));
     } else if (conv.role === "error") {
       messages.push({
-        id: `msg-${msgIndex++}`,
+        id: `msg-${convIndex}`,
         from: "assistant",
         content: `Error: ${conv.message}`,
       });
     }
+    convIndex++;
   }
 
   // Add streaming content if present
   if (state.streaming) {
-    const text = state.streaming.blocks
-      .filter((b) => b.type === "text")
-      .map((b) => (b as { type: "text"; content: string }).content)
-      .join("");
-    if (text) {
-      messages.push({
-        id: "msg-streaming",
-        from: "assistant",
-        content: text,
-      });
-    }
+    messages.push(...blocksToMessages(state.streaming.blocks, "msg-streaming"));
   }
 
   return messages;
@@ -88,6 +112,15 @@ export function ChatLayout({ user }: ChatLayoutProps) {
     () => presentationToMessages(agentx.presentationState),
     [agentx.presentationState]
   );
+
+  const status = agentx.presentationState.status;
+  const isBusy = status === "thinking" || status === "responding" || status === "executing";
+  // Show thinking indicator when AI is working but hasn't started streaming text yet
+  const isThinking =
+    isBusy &&
+    !agentx.presentationState.streaming?.blocks.some(
+      (b) => b.type === "text" && (b as { type: "text"; content: string }).content
+    );
 
   const handleNewChat = async () => {
     await agentx.createSession();
@@ -129,8 +162,8 @@ export function ChatLayout({ user }: ChatLayoutProps) {
           {agentx.error && <span className="ml-auto text-xs text-destructive">{agentx.error}</span>}
         </header>
         <div className="flex flex-1 flex-col overflow-hidden">
-          <ChatMessages messages={messages} />
-          <ChatInput onSend={handleSend} />
+          <ChatMessages messages={messages} isThinking={isThinking} />
+          <ChatInput onSend={handleSend} disabled={isBusy} />
         </div>
       </SidebarInset>
     </SidebarProvider>

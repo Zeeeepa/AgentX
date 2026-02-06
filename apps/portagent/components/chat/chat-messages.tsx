@@ -1,14 +1,18 @@
 "use client";
 
 import * as React from "react";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { LoaderIcon, CheckCircleIcon, AlertCircleIcon, WrenchIcon } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { Message } from "./types";
+import type { Message, ToolInfo } from "./types";
 
 interface ChatMessagesProps {
   messages: Message[];
+  isThinking?: boolean;
 }
 
-export function ChatMessages({ messages }: ChatMessagesProps) {
+export function ChatMessages({ messages, isThinking }: ChatMessagesProps) {
   const bottomRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -26,24 +30,101 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
   return (
     <ScrollArea data-testid="conversation-area" className="flex-1 overflow-hidden">
       <div className="flex flex-col gap-4 p-4">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}
-          >
+        {messages.map((msg) =>
+          msg.tool ? (
+            <ToolCallBlock key={msg.id} tool={msg.tool} />
+          ) : (
             <div
-              className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                msg.from === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-foreground"
-              }`}
+              key={msg.id}
+              className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}
             >
-              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+              <div
+                className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                  msg.from === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground"
+                }`}
+              >
+                {msg.from === "user" ? (
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                ) : (
+                  <div className="prose prose-sm dark:prose-invert max-w-none break-words">
+                    <Markdown remarkPlugins={[remarkGfm]}>{msg.content}</Markdown>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        )}
+        {isThinking && (
+          <div className="flex justify-start">
+            <div className="bg-muted rounded-lg px-4 py-3">
+              <div className="flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-foreground/40 animate-bounce [animation-delay:-0.3s]" />
+                <span className="size-2 rounded-full bg-foreground/40 animate-bounce [animation-delay:-0.15s]" />
+                <span className="size-2 rounded-full bg-foreground/40 animate-bounce" />
+              </div>
             </div>
           </div>
-        ))}
+        )}
         <div ref={bottomRef} />
       </div>
     </ScrollArea>
+  );
+}
+
+function ToolStatusIcon({ status }: { status: string }) {
+  switch (status) {
+    case "running":
+    case "pending":
+      return <LoaderIcon className="size-3.5 animate-spin text-muted-foreground" />;
+    case "completed":
+      return <CheckCircleIcon className="size-3.5 text-green-600" />;
+    case "error":
+      return <AlertCircleIcon className="size-3.5 text-destructive" />;
+    default:
+      return <WrenchIcon className="size-3.5 text-muted-foreground" />;
+  }
+}
+
+function ToolCallBlock({ tool }: { tool: ToolInfo }) {
+  const [expanded, setExpanded] = React.useState(false);
+
+  return (
+    <div className="flex justify-start">
+      <div className="max-w-[80%] w-full">
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+        >
+          <ToolStatusIcon status={tool.status} />
+          <span className="font-medium text-foreground">{tool.toolName}</span>
+          <span className="ml-auto">{expanded ? "\u25B2" : "\u25BC"}</span>
+        </button>
+        {expanded && (
+          <div className="mt-1 rounded-lg border bg-muted/30 px-3 py-2 text-xs">
+            {Object.keys(tool.toolInput).length > 0 && (
+              <div className="mb-2">
+                <p className="font-medium text-muted-foreground mb-1">Input</p>
+                <pre className="overflow-x-auto whitespace-pre-wrap break-all text-foreground">
+                  {JSON.stringify(tool.toolInput, null, 2)}
+                </pre>
+              </div>
+            )}
+            {tool.toolResult && (
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Result</p>
+                <pre className="overflow-x-auto whitespace-pre-wrap break-all text-foreground max-h-48 overflow-y-auto">
+                  {typeof tool.toolResult === "string"
+                    ? tool.toolResult
+                    : JSON.stringify(tool.toolResult, null, 2)}
+                </pre>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

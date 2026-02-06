@@ -315,6 +315,7 @@ app.get("/admin/settings", requireAdmin, (c) => {
   return c.json({
     llm: {
       apiKey: maskApiKey(apiKey),
+      provider: SystemConfigRepository.get("llm.provider") || "anthropic",
       baseUrl: SystemConfigRepository.get("llm.baseUrl") || "",
       model: SystemConfigRepository.get("llm.model") || "",
     },
@@ -328,6 +329,8 @@ app.put("/admin/settings", requireAdmin, async (c) => {
   const body = await c.req.json();
   if (body.llm) {
     if (body.llm.apiKey !== undefined) SystemConfigRepository.set("llm.apiKey", body.llm.apiKey);
+    if (body.llm.provider !== undefined)
+      SystemConfigRepository.set("llm.provider", body.llm.provider);
     if (body.llm.baseUrl !== undefined) SystemConfigRepository.set("llm.baseUrl", body.llm.baseUrl);
     if (body.llm.model !== undefined) SystemConfigRepository.set("llm.model", body.llm.model);
   }

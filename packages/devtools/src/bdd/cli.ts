@@ -2,8 +2,6 @@
 /**
  * BDD CLI wrapper for cucumber-js
  *
- * Runs under Node.js (not Bun) to avoid claude CLI subprocess auth bug.
- *
  * Usage:
  *   bdd                    # Run all tests
  *   bdd --tags @contributor # Run specific tags
@@ -70,11 +68,6 @@ const cucumberPaths = [
 ];
 const cucumberBin = cucumberPaths.find((p) => p === "cucumber-js" || existsSync(p)) || "cucumber-js";
 
-// Clean CLAUDE* env vars to avoid auth conflicts when spawning claude CLI in tests
-const cleanEnv = Object.fromEntries(
-  Object.entries(process.env).filter(([k]) => !k.startsWith("CLAUDE"))
-);
-
 // Ensure Node.js can resolve workspace packages (Bun hoists to root node_modules)
 const rootNodeModules = resolve(process.cwd(), "node_modules");
 
@@ -84,7 +77,7 @@ const cucumberArgs = ["--config", configPath, ...args];
 const child = spawn(cucumberBin, cucumberArgs, {
   stdio: "inherit",
   env: {
-    ...cleanEnv,
+    ...process.env,
     NODE_OPTIONS: "--import tsx",
     NODE_PATH: rootNodeModules,
   },

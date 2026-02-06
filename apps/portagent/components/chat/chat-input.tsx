@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 
 interface ChatInputProps {
   onSend: (text: string) => void;
+  disabled?: boolean;
 }
 
-export function ChatInput({ onSend }: ChatInputProps) {
+export function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [value, setValue] = React.useState("");
 
   const handleSend = () => {
+    if (disabled) return;
     const trimmed = value.trim();
     if (!trimmed) return;
     onSend(trimmed);
@@ -20,6 +22,8 @@ export function ChatInput({ onSend }: ChatInputProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Ignore key events during IME composition (e.g. Chinese/Japanese input)
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -33,10 +37,16 @@ export function ChatInput({ onSend }: ChatInputProps) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
+        disabled={disabled}
         className="min-h-10 max-h-32 resize-none"
         rows={1}
       />
-      <Button size="icon" onClick={handleSend} disabled={!value.trim()} aria-label="Send message">
+      <Button
+        size="icon"
+        onClick={handleSend}
+        disabled={disabled || !value.trim()}
+        aria-label="Send message"
+      >
         <SendIcon className="size-4" />
       </Button>
     </div>

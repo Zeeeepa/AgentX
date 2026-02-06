@@ -50,7 +50,7 @@ Feature: System Settings
     When I visit "/admin/settings"
     Then I should be redirected to "/"
 
-  @ui @pending
+  @ui
   Scenario: Admin navigates to settings from sidebar
     Given I am logged in as admin "admin@example.com"
     Then I should see "Settings" option
@@ -62,17 +62,17 @@ Feature: System Settings
   # LLM Provider Configuration
   # ============================================================================
 
-  @ui @pending
+  @ui
   Scenario: Admin configures LLM provider
     Given I am logged in as admin "admin@example.com"
     When I visit "/admin/settings"
-    Then I should see "LLM Provider"
+    Then I should see "LLM Configuration"
     And I should see "Provider"
     And I should see "API Key"
     And I should see "Base URL"
     And I should see "Model"
 
-  @ui @pending
+  @ui
   Scenario: Admin saves LLM settings
     Given I am logged in as admin "admin@example.com"
     When I visit "/admin/settings"
@@ -81,11 +81,23 @@ Feature: System Settings
     And I click "Save Settings"
     Then I should see "Settings saved"
 
+  @ui
+  Scenario: Admin selects provider independently from base URL
+    Given I am logged in as admin "admin@example.com"
+    When I visit "/admin/settings"
+    Then I should see a provider selector with options "Anthropic" and "OpenAI Compatible"
+    # Anthropic relay with custom base URL should keep "Anthropic" provider
+    When I select provider "Anthropic"
+    And I fill in base URL "https://relay.example.com/api"
+    And I click "Save Settings"
+    Then the driver should use the Anthropic protocol
+    And the base URL should be "https://relay.example.com/api"
+
   # ============================================================================
   # Agent Behavior
   # ============================================================================
 
-  @ui @pending
+  @ui
   Scenario: Admin configures system prompt
     Given I am logged in as admin "admin@example.com"
     When I visit "/admin/settings"
@@ -122,10 +134,10 @@ Feature: System Settings
     Then I should see "Settings saved"
 
   # ============================================================================
-  # Persistence
+  # Persistence & Priority
   # ============================================================================
 
-  @ui @pending
+  @ui
   Scenario: Settings persist after page reload
     Given I am logged in as admin "admin@example.com"
     When I visit "/admin/settings"
@@ -133,6 +145,31 @@ Feature: System Settings
     And I click "Save Settings"
     And I refresh the page
     Then I should see "claude-haiku-4-20250414"
+
+  Scenario: DB settings take priority over env vars
+    Given the system_config table has "llm.model" = "claude-haiku-4-5-20251001"
+    And DEEPRACTICE_MODEL env var is "claude-sonnet-4-20250514"
+    When createDriver is called
+    Then the driver should use model "claude-haiku-4-5-20251001"
+
+  Scenario: Env vars are used as fallback when DB is empty
+    Given the system_config table has no "llm.model"
+    And DEEPRACTICE_MODEL env var is "claude-sonnet-4-20250514"
+    When createDriver is called
+    Then the driver should use model "claude-sonnet-4-20250514"
+
+  @ui
+  Scenario: API Key is masked in GET response
+    Given the system_config table has "llm.apiKey" = "sk-ant-1234567890abcdef"
+    When admin GETs "/api/admin/settings"
+    Then the response llm.apiKey should be "sk-a****cdef"
+    # Full key is only written via PUT, never exposed via GET
+
+  Scenario: New conversations use latest DB config
+    Given admin saves model "claude-haiku-4-5-20251001" in settings
+    When a user starts a new conversation
+    Then the agent driver should use model "claude-haiku-4-5-20251001"
+    # createDriver reads DB on each call, no restart needed
 
   # ============================================================================
   # Storage
@@ -148,6 +185,8 @@ Feature: System Settings
   #     args?: string, url?: string, headers?: Record<string, string> }
   #
   # API endpoints:
-  #   GET  /api/admin/settings  → get all settings
+  #   GET  /api/admin/settings  → get all settings (apiKey masked)
   #   PUT  /api/admin/settings  → update settings
+  #
+  # Config priority: DB value > env var > default
   #

@@ -1,10 +1,8 @@
 # @agentxjs/claude-driver
 
-Claude Code SDK-based driver for AgentX. Connects to Claude via the `@anthropic-ai/claude-code` SDK through a subprocess-based architecture.
+Claude-specific driver for AgentX with native Claude Code features. **For most cases, use `@agentxjs/mono-driver` instead** — it supports multiple providers and is the default. Only use claude-driver if you need Claude Code-specific features like built-in permission management or CLI session resume.
 
 ## Overview
-
-**For most use cases, use `@agentxjs/mono-driver` instead.** MonoDriver supports multiple providers, runs cross-platform, and is the default in `createAgentX`.
 
 Use claude-driver when you specifically need:
 - Claude Code SDK subprocess execution
