@@ -1,4 +1,4 @@
-@journey @contributor
+@journey @contributor @ui
 Feature: Chat UI with Sidebar
   As a contributor, I build the main chat interface with sidebar,
   so users can manage sessions and have conversations in one place.

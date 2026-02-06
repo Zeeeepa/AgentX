@@ -43,3 +43,9 @@ export {
   ensureDir,
   resetPaths,
 } from "./paths";
+
+export {
+  agentUiTester,
+  type UiTestResult,
+  type UiTesterOptions,
+} from "./agent-ui-tester";

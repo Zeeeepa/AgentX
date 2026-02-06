@@ -15,7 +15,6 @@ import {
   UserRepository,
   InviteCodeRepository,
 } from "@/lib/db/repositories";
-import { closeDatabase } from "@/lib/db";
 
 // ============================================================================
 // Types
@@ -64,29 +63,6 @@ const requireAdmin = async (c: Context<Env>, next: Next) => {
 
 app.get("/health", (c) => {
   return c.json({ ok: true });
-});
-
-// Test-only endpoint to reset database (only in development)
-app.post("/test/reset-db", async (c) => {
-  if (process.env.NODE_ENV === "production") {
-    return c.json({ error: "Not available in production" }, 403);
-  }
-
-  const { rmSync } = await import("node:fs");
-  const path = await import("node:path");
-
-  // Close database connection
-  closeDatabase();
-
-  // Delete database file
-  const dbPath = process.env.DATABASE_PATH || path.join(process.cwd(), "data", "app.db");
-  try {
-    rmSync(dbPath, { force: true });
-  } catch {
-    // File may not exist
-  }
-
-  return c.json({ ok: true, message: "Database reset" });
 });
 
 // ============================================================================

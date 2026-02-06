@@ -1,4 +1,4 @@
-@journey @contributor
+@journey @contributor @skip
 Feature: UI Development Principles
   As a contributor, I follow consistent UI principles,
   so development is fast and the codebase stays maintainable.

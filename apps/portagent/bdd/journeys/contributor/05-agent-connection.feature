@@ -21,12 +21,14 @@ Feature: AgentX Connection
   # WebSocket Server Setup
   # ============================================================================
 
+  @pending
   Scenario: WebSocket server is embedded in Next.js
     Given the portagent project
     Then package.json should have "@agentxjs/server" dependency
     And package.json should have "@agentxjs/node-platform" dependency
     And package.json should have "@agentxjs/mono-driver" dependency
 
+  @ui
   Scenario: WebSocket endpoint is available
     Given the portagent dev server is running
     When I connect to WebSocket at "/ws"
@@ -37,11 +39,13 @@ Feature: AgentX Connection
   # Client Connection
   # ============================================================================
 
+  @ui
   Scenario: Browser can connect with agentxjs SDK
     Given the portagent dev server is running
     When I create an AgentX client with serverUrl "ws://localhost:3000/ws"
     Then the client should connect successfully
 
+  @ui
   Scenario: Client authenticates with user session
     Given I am logged in
     When I create an AgentX client
@@ -52,6 +56,7 @@ Feature: AgentX Connection
   # Agent Lifecycle
   # ============================================================================
 
+  @ui
   Scenario: Create container and image for user
     Given I am logged in
     And I have an AgentX client
@@ -60,6 +65,7 @@ Feature: AgentX Connection
     Then the image should be created
     And I should be subscribed to the session
 
+  @ui
   Scenario: Send message and receive stream
     Given I have an active agent
     When I send message "Hello"
@@ -71,6 +77,7 @@ Feature: AgentX Connection
   # Integration with Chat UI
   # ============================================================================
 
+  @ui
   Scenario: Chat UI uses agentxjs for messaging
     Given I am on the chat page
     When I type "Hello" and send

@@ -43,29 +43,16 @@ bdd/                          # Monorepo
 
 ## Development Workflow
 
-### New Feature
-
 ```text
 1. Write .feature file
-2. Write .steps.ts
-3. Run tests → fail
-4. Implement code
-5. Tests pass
-6. Commit
-```
-
-### Bug Fix
-
-```text
-1. Write .feature to reproduce (@bug @wip)
-2. Run → fail
-3. Fix code
-4. Tests pass
+2. Write .steps.ts (Cucumber steps call agentUiTester for UI scenarios)
+3. Implement code
+4. Run bun run bdd → pass
 ```
 
 ### Find Code
 
-**Read the feature file.** Steps point to implementation.
+**Read the feature file.** It documents the requirement.
 
 ---
 
@@ -74,39 +61,30 @@ bdd/                          # Monorepo
 ```bash
 cd apps/portagent && bun run bdd
 cd packages/agentx && bun run bdd
-
-# Specific tags
-bun run bdd --tags @developer
-bun run bdd --tags @contributor
 ```
 
 ---
 
-## Scenario Types
+## UI Testing with agentUiTester
 
-### Functional Scenarios (Runtime)
+UI scenarios are tested via `agentUiTester` — a Claude CLI + agent-browser wrapper.
 
-Test actual behavior with browser/server:
+```typescript
+import { agentUiTester } from "@agentxjs/devtools/bdd";
 
-```gherkin
-Scenario: Homepage renders
-  Given the portagent dev server is running
-  When I visit the homepage
-  Then I should see "Portagent" in the page title
+When("I complete the admin setup", function () {
+  const result = agentUiTester(`
+    Navigate to http://localhost:3000
+    Fill email "admin@example.com", password "admin123"
+    Click Setup, verify logged in as admin
+  `);
+  expect(result.passed).toBe(true);
+});
 ```
 
-### Verification Scenarios (Static)
-
-Verify files/config exist - no runtime needed:
-
-```gherkin
-Scenario: Next.js is configured
-  Given the portagent project
-  Then package.json should have "next" dependency
-  And "app/layout.tsx" should exist
-```
-
-**Principle**: If it can be verified by checking files, do that. Simpler, faster, still documents the requirement.
+- Default model: haiku (fast, cheap)
+- Uses system Chrome via agent-browser CLI
+- Returns `{ passed: boolean, output: string }`
 
 ---
 
@@ -134,7 +112,7 @@ Feature: First Conversation
 import {
   createCucumberConfig,
   paths,
-  launchBrowser,
+  agentUiTester,
   startDevServer,
 } from "@agentxjs/devtools/bdd";
 ```
@@ -165,37 +143,23 @@ DEEPRACTICE_MODEL
 
 ## Parallel Workflow
 
-**Key Principle: Writer of tests ≠ Writer of implementation**
-
-This ensures tests represent requirements, not implementation details.
-
 ```text
 ┌─────────────────────────────────────────┐
-│  Main Agent (with User) - QA Role       │
+│  Main Agent (with User)                 │
 │  1. Discuss requirements                │
-│  2. Draw ASCII design                   │
-│  3. Write .feature file (spec)          │
-│  4. Write .steps.ts (test code)         │
-│  5. Run tests → all fail (red)          │
-│  6. Spawn Sub Agent (bg)                │
-│  7. Continue next feature discussion    │
+│  2. Write .feature + .steps.ts          │
+│  3. Spawn Sub Agent for implementation  │
+│  4. Continue next feature discussion    │
 └─────────────────────────────────────────┘
          ↓ (parallel)
 ┌─────────────────────────────────────────┐
-│  Sub Agent (background) - Dev Role      │
+│  Sub Agent (background)                 │
 │  1. Read feature + steps (the spec)     │
-│  2. Implement code only                 │
-│  3. Run tests → all pass (green)        │
+│  2. Implement code                      │
+│  3. Run bun run bdd → pass              │
 │  4. Report result                       │
 └─────────────────────────────────────────┘
 ```
-
-**Why this split?**
-
-- Main Agent has expectations → writes tests that reflect expectations
-- Sub Agent has clear goal → make tests pass
-- If tests fail → either implementation wrong or requirements need adjustment
-- This is true BDD: outside-in, test-driven
 
 Use `run_in_background: true` when spawning implementation agents.
 

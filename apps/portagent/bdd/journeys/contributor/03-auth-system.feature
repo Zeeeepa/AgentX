@@ -1,4 +1,4 @@
-@journey @contributor
+@journey @contributor @ui
 Feature: Authentication System
   As a contributor, I build the complete auth system,
   including first-run setup, login, and invite codes.

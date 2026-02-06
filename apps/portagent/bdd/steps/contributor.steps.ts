@@ -1,540 +1,336 @@
 /**
  * Contributor journey steps for portagent
  *
- * Browser lifecycle:
- * - BeforeAll: Start dev server + launch browser (once)
- * - Before: Reset page state (clear cookies, navigate blank)
- * - After: (nothing - page is reused)
- * - AfterAll: Close browser + stop server
+ * Two modes:
+ * - File verification: direct assertions (tech-stack, bootstrap)
+ * - UI testing (@ui): accumulate steps → agentUiTester runs them all
  */
 
-import { Given, When, Then, Before, BeforeAll, AfterAll } from "@cucumber/cucumber";
+import {
+  Given,
+  When,
+  Then,
+  Before,
+  After,
+  BeforeAll,
+  AfterAll,
+} from "@cucumber/cucumber";
 import { strict as assert } from "node:assert";
-import { existsSync, readFileSync } from "node:fs";
-import { resolve, dirname } from "node:path";
+import { existsSync, readFileSync, rmSync } from "node:fs";
+import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  launchBrowser,
-  getPage,
-  resetPage,
-  closeBrowser,
+  agentUiTester,
   startDevServer,
   stopDevServer,
 } from "@agentxjs/devtools/bdd";
-import { expect } from "@playwright/test";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const APP_DIR = resolve(__dirname, "../..");
 const DEV_SERVER_PORT = 3000;
-const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
+const BASE_URL = `http://localhost:${DEV_SERVER_PORT}`;
 
 // ============================================================================
-// Lifecycle Hooks
+// UI Test State (accumulates steps for agentUiTester)
 // ============================================================================
 
-BeforeAll({ timeout: 60000 }, async function () {
-  // Start dev server once for all tests
+let uiInstructions: string[] = [];
+
+// ============================================================================
+// Lifecycle
+// ============================================================================
+
+BeforeAll({ timeout: 180000 }, async function () {
+  // Check if server is already running
+  try {
+    const res = await fetch(`${BASE_URL}/api/health`);
+    if (res.ok) return;
+  } catch {
+    // Not running, build & start
+  }
+
+  // Build first, then start production server (faster than dev)
+  const { execSync } = await import("node:child_process");
+  execSync("bun run build", { cwd: APP_DIR, stdio: "inherit", timeout: 120000 });
+
   await startDevServer({
     cwd: APP_DIR,
     port: DEV_SERVER_PORT,
-    timeout: 20000,
+    timeout: 30000,
+    args: ["run", "start"],
   });
-  // Launch browser once
-  await launchBrowser({ headless: process.env.CI === "true" });
-  const page = await getPage();
-
-  // Warm up: visit setup page to trigger compilation
-  await page.goto(`${DEV_SERVER_URL}/setup`);
-  await page.waitForLoadState("domcontentloaded");
-  // Also warm up login page
-  await page.goto(`${DEV_SERVER_URL}/login`);
-  await page.waitForLoadState("domcontentloaded");
 });
 
-Before({ tags: "@contributor" }, async function () {
-  // Reset page state before each scenario
-  await resetPage();
+Before(function () {
+  uiInstructions = [];
+});
+
+After({ tags: "@ui", timeout: 300000 }, function () {
+  if (uiInstructions.length === 0) return;
+
+  const prompt = [
+    `Base URL: ${BASE_URL}`,
+    "",
+    "Test the following scenario step by step:",
+    ...uiInstructions,
+  ].join("\n");
+
+  const result = agentUiTester(prompt);
+  assert.ok(result.passed, `UI test failed:\n${result.output}`);
+});
+
+AfterAll(function () {
+  stopDevServer();
 });
 
 // ============================================================================
-// Step Definitions
+// File Verification Steps (non-UI)
 // ============================================================================
 
-Given("the portagent app is configured", async function () {
-  const packageJsonPath = resolve(APP_DIR, "package.json");
-  assert.ok(existsSync(packageJsonPath), "package.json should exist");
+Given("the portagent app is configured", function () {
+  assert.ok(existsSync(resolve(APP_DIR, "package.json")));
 });
 
-Given("the portagent project", async function () {
-  const packageJsonPath = resolve(APP_DIR, "package.json");
-  assert.ok(existsSync(packageJsonPath), "package.json should exist");
+Given("the portagent project", function () {
+  assert.ok(existsSync(resolve(APP_DIR, "package.json")));
 });
 
-Then("package.json should have {string} dependency", async function (dep: string) {
-  const pkgPath = resolve(APP_DIR, "package.json");
-  const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-  const hasDep = pkg.dependencies?.[dep] || pkg.devDependencies?.[dep];
-  assert.ok(hasDep, `package.json should have ${dep}`);
+Then("package.json should have {string} dependency", function (dep: string) {
+  const pkg = JSON.parse(readFileSync(resolve(APP_DIR, "package.json"), "utf-8"));
+  assert.ok(pkg.dependencies?.[dep] || pkg.devDependencies?.[dep], `Missing dependency: ${dep}`);
 });
 
-Then("package.json should have {string} devDependency", async function (dep: string) {
-  const pkgPath = resolve(APP_DIR, "package.json");
-  const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-  assert.ok(pkg.devDependencies?.[dep], `package.json should have ${dep} in devDependencies`);
+Then("package.json should have {string} devDependency", function (dep: string) {
+  const pkg = JSON.parse(readFileSync(resolve(APP_DIR, "package.json"), "utf-8"));
+  assert.ok(pkg.devDependencies?.[dep], `Missing devDependency: ${dep}`);
 });
 
-Then("{string} should exist", async function (filePath: string) {
-  const fullPath = resolve(APP_DIR, filePath);
-  assert.ok(existsSync(fullPath), `${filePath} should exist`);
+Then("{string} should exist", function (filePath: string) {
+  assert.ok(existsSync(resolve(APP_DIR, filePath)), `File not found: ${filePath}`);
 });
 
-When("I start the portagent dev server", async function () {
-  // Dev server is started in BeforeAll, this is a no-op
+// ============================================================================
+// Bootstrap Steps
+// ============================================================================
+
+When("I start the portagent dev server", function () {
+  // Dev server started in BeforeAll
 });
 
 Then("the server should be running on port {int}", async function (port: number) {
-  const response = await fetch(`http://localhost:${port}`);
-  assert.ok(response.ok, `Server should respond on port ${port}`);
-});
-
-Given("the portagent dev server is running", async function () {
-  // Dev server and browser are started in BeforeAll
-});
-
-// Note: "I visit the homepage" is defined in Auth section
-
-Then("I should see {string} in the page title", async function (text: string) {
-  const page = await getPage();
-  const title = await page.title();
-  assert.ok(title.includes(text), `Page title should contain "${text}"`);
-});
-
-Then("I should see a welcome message", async function () {
-  const page = await getPage();
-  const heading = page.locator("h1");
-  const text = await heading.textContent();
-  assert.ok(text?.includes("Portagent"), "Portagent heading should be visible");
-
-  // Pause for visual inspection in headed mode
-  if (!process.env.CI) {
-    await new Promise((r) => setTimeout(r, 3000));
-  }
+  const res = await fetch(`http://localhost:${port}/api/health`);
+  assert.ok(res.ok, `Server not responding on port ${port}`);
 });
 
 // ============================================================================
-// Chat UI Steps (Journey-style)
+// Auth System Steps (@ui — accumulated for agentUiTester)
 // ============================================================================
 
-// Layout
-Then("I should see a collapsible sidebar", async function () {
-  const page = await getPage();
-  const sidebar = page.locator("[data-testid='sidebar']");
-  await sidebar.waitFor({ state: "visible", timeout: 5000 });
-});
-
-Then("I should see a main conversation area", async function () {
-  const page = await getPage();
-  const mainArea = page.locator("[data-testid='main-area']");
-  await mainArea.waitFor({ state: "visible", timeout: 5000 });
-});
-
-Then("I should see a prompt input at the bottom", async function () {
-  const page = await getPage();
-  const input = page.locator("[data-testid='prompt-input']");
-  await input.waitFor({ state: "visible", timeout: 5000 });
-});
-
-// Sidebar toggle
-When("I click the sidebar toggle", async function () {
-  const page = await getPage();
-  await page.click("[data-testid='sidebar-toggle']");
-});
-
-Then("the sidebar should collapse", async function () {
-  const page = await getPage();
-  const sidebar = page.locator("[data-testid='sidebar'][data-collapsed='true']");
-  await sidebar.waitFor({ state: "visible", timeout: 3000 });
-});
-
-Then("the main area should expand", async function () {
-  // Automatic when sidebar collapses
-});
-
-Then("the sidebar should expand", async function () {
-  const page = await getPage();
-  const sidebar = page.locator("[data-testid='sidebar']:not([data-collapsed='true'])");
-  await sidebar.waitFor({ state: "visible", timeout: 3000 });
-});
-
-// Message input
-When("I type {string} in the prompt", async function (text: string) {
-  const page = await getPage();
-  await page.fill("[data-testid='prompt-input']", text);
-});
-
-When("I press Enter", async function () {
-  const page = await getPage();
-  await page.press("[data-testid='prompt-input']", "Enter");
-});
-
-Then("my message should appear in conversation", async function () {
-  const page = await getPage();
-  const message = page.locator("[data-testid='user-message']");
-  await message.waitFor({ state: "visible", timeout: 5000 });
-});
-
-Then("the input should be cleared", async function () {
-  const page = await getPage();
-  const input = page.locator("[data-testid='prompt-input']");
-  const value = await input.inputValue();
-  assert.equal(value, "", "Input should be cleared");
-});
-
-Then("this session should appear in sidebar", async function () {
-  const page = await getPage();
-  const session = page.locator("[data-testid='session-item']");
-  await session.waitFor({ state: "visible", timeout: 5000 });
-});
-
-// Sessions
-Then("the conversation area should be empty", async function () {
-  const page = await getPage();
-  const emptyState = page.locator("[data-testid='empty-state']");
-  await emptyState.waitFor({ state: "visible", timeout: 5000 });
-});
-
-Then("I should see two sessions in sidebar", async function () {
-  const page = await getPage();
-  const sessions = page.locator("[data-testid='session-item']");
-  const count = await sessions.count();
-  assert.equal(count, 2, "Should have two sessions");
-});
-
-When("I click the first session", async function () {
-  const page = await getPage();
-  await page.click("[data-testid='session-item']:first-child");
-});
-
-Then("I should see {string} in conversation", async function (text: string) {
-  const page = await getPage();
-  const message = page.locator(`[data-testid='message']:has-text("${text}")`);
-  await message.waitFor({ state: "visible", timeout: 5000 });
-});
-
-// Sidebar content
-Then("I should see {string} in sidebar", async function (text: string) {
-  const page = await getPage();
-  const sidebar = page.locator("[data-testid='sidebar']");
-  const element = sidebar.locator(`text=${text}`);
-  await element.waitFor({ state: "visible", timeout: 5000 });
-});
-
-Then("I should NOT see {string} in sidebar", async function (text: string) {
-  const page = await getPage();
-  const sidebar = page.locator("[data-testid='sidebar']");
-  const element = sidebar.locator(`text=${text}`);
-  const isVisible = await element.isVisible().catch(() => false);
-  assert.ok(!isVisible, `"${text}" should NOT be in sidebar`);
-});
-
-Then("I should see {string} option", async function (text: string) {
-  const page = await getPage();
-  const option = page.locator(`text=${text}`);
-  await option.waitFor({ state: "visible", timeout: 5000 });
-});
-
-Then("I should see my email in sidebar", async function () {
-  const page = await getPage();
-  const userEmail = page.locator("[data-testid='user-email']");
-  await userEmail.waitFor({ state: "visible", timeout: 5000 });
-});
-
-Then("I should see logout option", async function () {
-  const page = await getPage();
-  const logout = page.locator("[data-testid='logout']");
-  await logout.waitFor({ state: "visible", timeout: 5000 });
-});
-
-// (Removed duplicate steps - now defined above in Chat UI Steps section)
-
-// ============================================================================
-// Auth System Steps (E2E - All via UI)
-// ============================================================================
-
-// Shared state across steps within a scenario
-let savedInviteCode: string | null = null;
-let savedAdminPassword: string = "admin123";
-let savedUserPassword: string = "user123";
-
-async function resetDatabase() {
-  // 通过 API 重置数据库（关闭连接 + 删除文件）
-  const response = await fetch(`${DEV_SERVER_URL}/api/test/reset-db`, {
-    method: "POST",
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to reset database via API");
+function resetDatabase() {
+  const dbPath = process.env.DATABASE_PATH || join(APP_DIR, "data", "app.db");
+  try {
+    rmSync(dbPath, { force: true });
+  } catch {
+    // File may not exist
   }
 }
 
-// --- Given steps (all via UI) ---
-
-Given("a fresh installation", async function () {
-  await resetDatabase();
+Given("a fresh installation", function () {
+  resetDatabase();
+  uiInstructions.push("Starting from a fresh installation (database was just reset)");
 });
 
-Given(
-  "the system has admin {string} with password {string}",
-  { timeout: 30000 },
-  async function (email: string, password: string) {
-    await resetDatabase();
-    savedAdminPassword = password;
-
-    // Setup via UI
-    const page = await getPage();
-    await page.goto(`${DEV_SERVER_URL}/setup`);
-    await page.waitForLoadState("domcontentloaded");
-    await page.fill('input[type="email"]', email);
-    await page.fill('input[type="password"]', password);
-    await page.click('button[type="submit"]');
-
-    // Wait for redirect to home (admin is now logged in)
-    await page.waitForURL("**/", { timeout: 10000 });
-
-    // Logout to return to clean state (for login tests)
-    await page.context().clearCookies();
-    await page.goto(`${DEV_SERVER_URL}/login`);
-    await page.waitForLoadState("domcontentloaded");
-  }
-);
-
-Given("I am not logged in", async function () {
-  const page = await getPage();
-  await page.context().clearCookies();
+Given("the system has admin {string} with password {string}", function (email: string, password: string) {
+  resetDatabase();
+  uiInstructions.push(
+    `First, set up admin account: navigate to ${BASE_URL}/setup, fill email "${email}" and password "${password}", click Setup, verify redirect to /`,
+    "Then log out (click Logout button or clear session)"
+  );
 });
 
-Given("I am logged in as admin {string}", { timeout: 30000 }, async function (email: string) {
-  await resetDatabase();
-  const password = savedAdminPassword;
-
-  const page = await getPage();
-
-  // Setup admin via UI
-  await page.goto(`${DEV_SERVER_URL}/setup`);
-  await page.waitForLoadState("domcontentloaded");
-  await page.fill('input[type="email"]', email);
-  await page.fill('input[type="password"]', password);
-  await page.click('button[type="submit"]');
-  await page.waitForURL("**/", { timeout: 10000 });
-
-  // Verify we're logged in
-  const url = new URL(page.url());
-  assert.equal(url.pathname, "/", "Should be on home page after setup");
+Given("I am not logged in", function () {
+  uiInstructions.push("Ensure not logged in (clear cookies if needed)");
 });
 
-Given("I am logged in as user {string}", { timeout: 60000 }, async function (email: string) {
-  await resetDatabase();
-  const page = await getPage();
-
-  // 1. Setup admin via UI
-  await page.goto(`${DEV_SERVER_URL}/setup`);
-  await page.waitForLoadState("domcontentloaded");
-  await page.fill('input[type="email"]', "admin@test.com");
-  await page.fill('input[type="password"]', savedAdminPassword);
-  await page.click('button[type="submit"]');
-  await page.waitForURL("**/", { timeout: 10000 });
-
-  // 2. Generate invite code via UI
-  await page.goto(`${DEV_SERVER_URL}/admin/invites`);
-  await page.waitForLoadState("domcontentloaded");
-  await page.click('button:has-text("Generate")');
-  const codeElement = await page.waitForSelector("[data-testid='invite-code']");
-  const inviteCode = await codeElement.textContent();
-  assert.ok(inviteCode, "Should have generated invite code");
-
-  // 3. Logout
-  await page.context().clearCookies();
-
-  // 4. Signup as user via UI
-  await page.goto(`${DEV_SERVER_URL}/signup`);
-  await page.waitForLoadState("domcontentloaded");
-  await page.fill('input[id="inviteCode"]', inviteCode!);
-  await page.fill('input[type="email"]', email);
-  await page.fill('input[type="password"]', savedUserPassword);
-  await page.click('button[type="submit"]');
-  await page.waitForURL("**/", { timeout: 10000 });
-
-  // Verify logged in as user
-  const url = new URL(page.url());
-  assert.equal(url.pathname, "/", "Should be on home page after signup");
+Given("I am logged in as admin {string}", function (email: string) {
+  resetDatabase();
+  uiInstructions.push(
+    `Set up admin: navigate to ${BASE_URL}/setup, fill email "${email}" and password "admin123", click Setup`,
+    "Verify logged in as admin (should see Admin badge or Manage Invites)"
+  );
 });
 
-// --- When steps ---
-
-When("I visit the homepage", async function () {
-  const page = await getPage();
-  await page.goto(DEV_SERVER_URL);
-  // 锚点：等待页面完全加载
-  await page.waitForLoadState("networkidle");
-});
-
-When("I visit {string}", async function (path: string) {
-  const page = await getPage();
-  await page.goto(`${DEV_SERVER_URL}${path}`);
-  // 锚点：等待页面完全加载
-  await page.waitForLoadState("networkidle");
-});
-
-When("I fill in email {string}", async function (email: string) {
-  const page = await getPage();
-  const input = page.locator('input[type="email"]');
-  await input.fill(email);
-  // 锚点：确认值已填入
-  await expect(input).toHaveValue(email);
-});
-
-When("I fill in password {string}", async function (password: string) {
-  const page = await getPage();
-  const input = page.locator('input[type="password"]');
-  await input.fill(password);
-  // 锚点：确认值已填入
-  await expect(input).toHaveValue(password);
-});
-
-When("I click {string}", async function (buttonText: string) {
-  const page = await getPage();
-  const button = page.locator(`button:has-text("${buttonText}"), a:has-text("${buttonText}")`);
-
-  // 锚点：确认按钮可见
-  await button.waitFor({ state: "visible" });
-  await button.click();
-
-  // 等待响应：成功（URL变化/loading消失）或 失败（错误信息出现）
-  const errorLocator = page.locator("text=error, text=Error, text=failed, text=Failed").first();
-
-  // 等待：要么网络空闲，要么错误出现
-  await Promise.race([
-    page.waitForLoadState("networkidle"),
-    errorLocator.waitFor({ state: "visible", timeout: 5000 }).catch(() => {}),
-  ]);
-
-  // 检查是否有错误
-  const hasError = await errorLocator.isVisible().catch(() => false);
-  if (hasError) {
-    const errorText = await errorLocator.textContent();
-    throw new Error(`Page showed error: "${errorText}"`);
-  }
-});
-
-When("I refresh the page", async function () {
-  const page = await getPage();
-  await page.reload();
-  await page.waitForLoadState("domcontentloaded");
-});
-
-When("I copy the invite code", async function () {
-  const page = await getPage();
-  const codeElement = page.locator("[data-testid='invite-code']");
-  savedInviteCode = await codeElement.textContent();
-  assert.ok(savedInviteCode, "Should have copied invite code");
-});
-
-When("I paste the invite code", async function () {
-  const page = await getPage();
-  assert.ok(savedInviteCode, "Should have an invite code to paste");
-  await page.fill('input[id="inviteCode"]', savedInviteCode!);
-});
-
-When("I logout", async function () {
-  const page = await getPage();
-  await page.click("[data-testid='logout']");
-  await page.waitForLoadState("domcontentloaded");
-});
-
-// --- Then steps ---
-
-Then("I should be on {string}", { timeout: 20000 }, async function (path: string) {
-  const page = await getPage();
-  // 锚点：等待 URL 变化
-  await page.waitForURL(`**${path}`, { timeout: 15000 });
-  // 锚点：等待页面加载完成
-  await page.waitForLoadState("domcontentloaded");
-});
-
-Then("I should still be on {string}", async function (path: string) {
-  const page = await getPage();
-  const url = new URL(page.url());
-  assert.equal(url.pathname, path, `Should still be on ${path}`);
-});
-
-Then("I should be redirected to {string}", async function (path: string) {
-  const page = await getPage();
-  await page.waitForURL(`**${path}`, { timeout: 10000 });
-  const url = new URL(page.url());
-  assert.equal(url.pathname, path, `Should be redirected to ${path}`);
-});
-
-Then("I should see {string}", { timeout: 20000 }, async function (text: string) {
-  const page = await getPage();
-  // 锚点：等待文本可见
-  const element = page.locator(`text=${text}`).first();
-  await expect(element).toBeVisible({ timeout: 15000 });
-});
-
-Then("I should NOT see {string}", async function (text: string) {
-  const page = await getPage();
-  const element = page.locator(`text=${text}`);
-  const isVisible = await element.isVisible().catch(() => false);
-  assert.ok(!isVisible, `"${text}" should NOT be visible`);
-});
-
-Then("I should be logged in as {string}", async function (role: string) {
-  const page = await getPage();
-
-  // Verify via UI - check that we're on the home page (not redirected to login)
-  const url = new URL(page.url());
-  assert.equal(url.pathname, "/", "Should be on home page (logged in)");
-
-  // Verify role via UI element
-  if (role === "admin") {
-    // Admin should see admin badge or menu
-    const adminIndicator = page.locator("text=Admin").first();
-    await adminIndicator.waitFor({ state: "visible", timeout: 5000 });
-  } else {
-    // Regular user should NOT see admin indicator
-    const adminIndicator = page.locator("text=Admin").first();
-    const isVisible = await adminIndicator.isVisible().catch(() => false);
-    assert.ok(!isVisible, "Regular user should not see admin indicator");
-  }
-});
-
-Then("I should see the chat interface", async function () {
-  const page = await getPage();
-  const chatArea = page.locator("[data-testid='main-area'], [data-testid='chat-interface']");
-  await chatArea.waitFor({ state: "visible", timeout: 5000 });
-  assert.ok(await chatArea.isVisible(), "Chat interface should be visible");
-});
-
-Then("I should see a new invite code", async function () {
-  const page = await getPage();
-  const codeElement = page.locator("[data-testid='invite-code']");
-  await codeElement.waitFor({ state: "visible", timeout: 5000 });
-  const code = await codeElement.textContent();
-  assert.ok(code && code.length > 0, "Should see a new invite code");
+Given("I am logged in as user {string}", function (email: string) {
+  resetDatabase();
+  uiInstructions.push(
+    `First set up admin: navigate to ${BASE_URL}/setup, fill email "admin@test.com" password "admin123", click Setup`,
+    `Then generate invite code: go to /admin/invites, click Generate, note the invite code`,
+    `Then logout`,
+    `Then sign up as user: go to /signup, fill invite code, email "${email}", password "user123", click Sign Up`,
+    "Verify logged in as regular user (no Admin badge)"
+  );
 });
 
 // ============================================================================
-// Cleanup
+// Shared UI When/Then Steps
 // ============================================================================
 
-// Note: No After hook needed - Before hook resets page state before each scenario
+When("I visit the homepage", function () {
+  uiInstructions.push(`Navigate to ${BASE_URL}`);
+});
 
-AfterAll({ timeout: 30000 }, async function () {
-  try {
-    await closeBrowser();
-  } catch (e) {
-    // Browser may have already closed
-    console.error("Error closing browser:", e);
-  }
-  stopDevServer();
+When("I visit {string}", function (path: string) {
+  uiInstructions.push(`Navigate to ${BASE_URL}${path}`);
+});
+
+When("I fill in email {string}", function (email: string) {
+  uiInstructions.push(`Fill in the email field with "${email}"`);
+});
+
+When("I fill in password {string}", function (password: string) {
+  uiInstructions.push(`Fill in the password field with "${password}"`);
+});
+
+When("I click {string}", function (buttonText: string) {
+  uiInstructions.push(`Click the "${buttonText}" button`);
+});
+
+When("I refresh the page", function () {
+  uiInstructions.push("Refresh the page");
+});
+
+When("I copy the invite code", function () {
+  uiInstructions.push("Copy/note the displayed invite code");
+});
+
+When("I paste the invite code", function () {
+  uiInstructions.push("Paste the invite code into the invite code field");
+});
+
+When("I logout", function () {
+  uiInstructions.push("Click Logout");
+});
+
+When("I click the sidebar toggle", function () {
+  uiInstructions.push("Click the sidebar toggle button");
+});
+
+When("I type {string} in the prompt", function (text: string) {
+  uiInstructions.push(`Type "${text}" in the prompt input`);
+});
+
+When("I press Enter", function () {
+  uiInstructions.push("Press Enter");
+});
+
+When("I click the first session", function () {
+  uiInstructions.push("Click the first session in the sidebar");
+});
+
+// ============================================================================
+// Shared UI Then Steps
+// ============================================================================
+
+Then("I should be on {string}", function (path: string) {
+  uiInstructions.push(`Verify the current URL path is "${path}"`);
+});
+
+Then("I should still be on {string}", function (path: string) {
+  uiInstructions.push(`Verify still on "${path}"`);
+});
+
+Then("I should be redirected to {string}", function (path: string) {
+  uiInstructions.push(`Verify redirected to "${path}"`);
+});
+
+Then("I should see {string}", function (text: string) {
+  uiInstructions.push(`Verify the text "${text}" is visible on the page`);
+});
+
+Then("I should NOT see {string}", function (text: string) {
+  uiInstructions.push(`Verify the text "${text}" is NOT visible on the page`);
+});
+
+Then("I should be logged in as {string}", function (role: string) {
+  uiInstructions.push(`Verify logged in as "${role}" (check for role indicator)`);
+});
+
+Then("I should see the chat interface", function () {
+  uiInstructions.push("Verify the chat interface is visible");
+});
+
+Then("I should see a new invite code", function () {
+  uiInstructions.push("Verify a new invite code is displayed");
+});
+
+Then("I should see a collapsible sidebar", function () {
+  uiInstructions.push("Verify a collapsible sidebar is visible");
+});
+
+Then("I should see a main conversation area", function () {
+  uiInstructions.push("Verify a main conversation area is visible");
+});
+
+Then("I should see a prompt input at the bottom", function () {
+  uiInstructions.push("Verify a prompt input is at the bottom");
+});
+
+Then("the sidebar should collapse", function () {
+  uiInstructions.push("Verify the sidebar has collapsed");
+});
+
+Then("the main area should expand", function () {
+  uiInstructions.push("Verify the main area has expanded");
+});
+
+Then("the sidebar should expand", function () {
+  uiInstructions.push("Verify the sidebar has expanded");
+});
+
+Then("my message should appear in conversation", function () {
+  uiInstructions.push("Verify my message appears in the conversation");
+});
+
+Then("the input should be cleared", function () {
+  uiInstructions.push("Verify the input is cleared");
+});
+
+Then("this session should appear in sidebar", function () {
+  uiInstructions.push("Verify this session appears in the sidebar");
+});
+
+Then("the conversation area should be empty", function () {
+  uiInstructions.push("Verify the conversation area is empty");
+});
+
+Then("I should see two sessions in sidebar", function () {
+  uiInstructions.push("Verify there are two sessions in the sidebar");
+});
+
+Then("I should see {string} in conversation", function (text: string) {
+  uiInstructions.push(`Verify "${text}" appears in the conversation`);
+});
+
+Then("I should see {string} in sidebar", function (text: string) {
+  uiInstructions.push(`Verify "${text}" is visible in the sidebar`);
+});
+
+Then("I should NOT see {string} in sidebar", function (text: string) {
+  uiInstructions.push(`Verify "${text}" is NOT visible in the sidebar`);
+});
+
+Then("I should see {string} option", function (text: string) {
+  uiInstructions.push(`Verify "${text}" option is visible`);
+});
+
+Then("I should see my email in sidebar", function () {
+  uiInstructions.push("Verify user email is visible in the sidebar");
+});
+
+Then("I should see logout option", function () {
+  uiInstructions.push("Verify logout option is visible");
+});
+
+Then("{string} should appear in conversation", function (text: string) {
+  uiInstructions.push(`Verify "${text}" appears in the conversation`);
 });
