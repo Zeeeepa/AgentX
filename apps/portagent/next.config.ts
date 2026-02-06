@@ -10,18 +10,14 @@ const nextConfig: NextConfig = {
     "commonxjs",
     "ws",
   ],
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
+  turbopack: {
+    resolveAlias: {
       // Node.js-only packages used by agentxjs in local mode (dynamic imports,
-      // never executed in browser). Tell webpack to provide empty modules.
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        "@agentxjs/node-platform": false,
-        "@agentxjs/mono-driver": false,
-        ws: false,
-      };
-    }
-    return config;
+      // never executed in browser). Provide empty modules for client bundle.
+      "@agentxjs/node-platform": { browser: "./empty.ts" },
+      "@agentxjs/mono-driver": { browser: "./empty.ts" },
+      ws: { browser: "./empty.ts" },
+    },
   },
 };
 

@@ -136,7 +136,7 @@ function ToolCallBlock({ tool }: { tool: ToolInfo }) {
                 <pre className="overflow-x-auto whitespace-pre-wrap break-all text-foreground max-h-48 overflow-y-auto">
                   {typeof tool.toolResult === "string"
                     ? tool.toolResult
-                    : JSON.stringify(tool.toolResult, null, 2) ?? ""}
+                    : (JSON.stringify(tool.toolResult, null, 2) ?? "")}
                 </pre>
               </div>
             )}

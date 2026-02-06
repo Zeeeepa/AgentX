@@ -25,7 +25,6 @@ interface ToolBlockLike {
   status: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function blocksToMessages(
   blocks: Array<{ type: string; [key: string]: any }>,
   idPrefix: string

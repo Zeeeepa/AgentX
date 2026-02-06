@@ -137,7 +137,7 @@ Feature: AgentX Connection
     When I click the session
     Then I should see the previous conversation including "Hello"
     # images.list(containerId) loads saved images on init
-    # agents.create({ imageId }) + presentations.create() on select (lazy)
+    # agents.create({ imageId }) + await presentations.create() on select (lazy, loads history)
 
   @ui
   Scenario: Multiple sessions are restored on refresh
@@ -171,7 +171,7 @@ Feature: AgentX Connection
   # Restoration:
   # - images.list(containerId) → list saved images
   # - agents.create({ imageId }) → resume/create agent for image
-  # - presentations.create(agentId) → get conversation state
+  # - await presentations.create(agentId) → get conversation state (with history)
   #
 
   # ============================================================================
