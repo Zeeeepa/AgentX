@@ -302,6 +302,43 @@ app.get("/admin/invites", requireAdmin, (c) => {
 });
 
 // ============================================================================
+// Admin: System Settings
+// ============================================================================
+
+function maskApiKey(key: string): string {
+  if (!key || key.length <= 8) return key ? "****" : "";
+  return key.slice(0, 4) + "****" + key.slice(-4);
+}
+
+app.get("/admin/settings", requireAdmin, (c) => {
+  const apiKey = SystemConfigRepository.get("llm.apiKey") || "";
+  return c.json({
+    llm: {
+      apiKey: maskApiKey(apiKey),
+      baseUrl: SystemConfigRepository.get("llm.baseUrl") || "",
+      model: SystemConfigRepository.get("llm.model") || "",
+    },
+    agent: {
+      systemPrompt: SystemConfigRepository.get("agent.systemPrompt") || "",
+    },
+  });
+});
+
+app.put("/admin/settings", requireAdmin, async (c) => {
+  const body = await c.req.json();
+  if (body.llm) {
+    if (body.llm.apiKey !== undefined) SystemConfigRepository.set("llm.apiKey", body.llm.apiKey);
+    if (body.llm.baseUrl !== undefined) SystemConfigRepository.set("llm.baseUrl", body.llm.baseUrl);
+    if (body.llm.model !== undefined) SystemConfigRepository.set("llm.model", body.llm.model);
+  }
+  if (body.agent) {
+    if (body.agent.systemPrompt !== undefined)
+      SystemConfigRepository.set("agent.systemPrompt", body.agent.systemPrompt);
+  }
+  return c.json({ success: true });
+});
+
+// ============================================================================
 // Chat: WebSocket Config
 // ============================================================================
 

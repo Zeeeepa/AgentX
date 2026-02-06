@@ -7,6 +7,7 @@ import {
   MessageSquareIcon,
   ShieldIcon,
   TicketIcon,
+  SettingsIcon,
   LogOutIcon,
   UserIcon,
 } from "lucide-react";
@@ -98,6 +99,12 @@ export function ChatSidebar({
                     <SidebarMenuButton onClick={() => router.push("/admin/invites")}>
                       <TicketIcon className="size-4" />
                       <span>Invite Codes</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton onClick={() => router.push("/admin/settings")}>
+                      <SettingsIcon className="size-4" />
+                      <span>Settings</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>

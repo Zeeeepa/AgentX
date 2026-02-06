@@ -18,6 +18,7 @@ import { nodePlatform } from "@agentxjs/node-platform";
 import { createMonoDriver } from "@agentxjs/mono-driver";
 import type { DriverConfig } from "@agentxjs/core/driver";
 import type { MonoDriverOptions } from "@agentxjs/mono-driver";
+import { SystemConfigRepository } from "@/lib/db/repositories";
 import { createLogger } from "commonxjs/logger";
 import { join } from "node:path";
 
@@ -30,15 +31,36 @@ let serverInstance: Awaited<ReturnType<typeof createServer>> | null = null;
 let serverStarting: Promise<void> | null = null;
 
 /**
- * Resolve LLM configuration from environment variables
+ * Resolve LLM configuration from environment variables (fallback)
  */
-function getLLMConfig() {
-  const apiKey = process.env.ANTHROPIC_API_KEY || process.env.DEEPRACTICE_API_KEY || "";
+function getLLMConfigFromEnv() {
+  const apiKey = process.env.DEEPRACTICE_API_KEY || "";
   const model = process.env.DEEPRACTICE_MODEL || "claude-sonnet-4-20250514";
   const baseUrl = process.env.DEEPRACTICE_BASE_URL || undefined;
   const provider = baseUrl ? ("openai-compatible" as const) : ("anthropic" as const);
 
   return { apiKey, model, baseUrl, provider };
+}
+
+/**
+ * Resolve LLM configuration from DB first, then fallback to env vars
+ */
+function getLLMConfigFromDB() {
+  try {
+    const apiKey =
+      SystemConfigRepository.get("llm.apiKey") || process.env.DEEPRACTICE_API_KEY || "";
+    const model =
+      SystemConfigRepository.get("llm.model") ||
+      process.env.DEEPRACTICE_MODEL ||
+      "claude-sonnet-4-20250514";
+    const baseUrl =
+      SystemConfigRepository.get("llm.baseUrl") || process.env.DEEPRACTICE_BASE_URL || undefined;
+    const provider = baseUrl ? ("openai-compatible" as const) : ("anthropic" as const);
+
+    return { apiKey, model, baseUrl, provider };
+  } catch {
+    return getLLMConfigFromEnv();
+  }
 }
 
 /**
@@ -63,34 +85,36 @@ export async function startAgentXServer(): Promise<void> {
 
   serverStarting = (async () => {
     try {
-      const llmConfig = getLLMConfig();
+      const initialConfig = getLLMConfigFromDB();
       const wsPort = parseInt(process.env.WS_PORT || "5200", 10);
       const dataPath = join(process.cwd(), "data", "agentx");
 
       logger.info("Starting AgentX server", {
         wsPort,
         dataPath,
-        provider: llmConfig.provider,
-        model: llmConfig.model,
-        hasApiKey: !!llmConfig.apiKey,
+        provider: initialConfig.provider,
+        model: initialConfig.model,
+        hasApiKey: !!initialConfig.apiKey,
       });
 
       const config: ServerConfig = {
         platform: nodePlatform({ dataPath }),
         createDriver: (driverConfig: DriverConfig) => {
+          // Read latest config from DB on each agent creation
+          const llm = getLLMConfigFromDB();
           const monoConfig: DriverConfig<MonoDriverOptions> = {
             ...driverConfig,
-            apiKey: llmConfig.apiKey || driverConfig.apiKey,
-            model: llmConfig.model || driverConfig.model,
-            baseUrl: llmConfig.baseUrl || driverConfig.baseUrl,
+            apiKey: llm.apiKey || driverConfig.apiKey,
+            model: llm.model || driverConfig.model,
+            baseUrl: llm.baseUrl || driverConfig.baseUrl,
             options: {
-              provider: llmConfig.provider,
-              ...(llmConfig.provider === "openai-compatible" && llmConfig.baseUrl
+              provider: llm.provider,
+              ...(llm.provider === "openai-compatible" && llm.baseUrl
                 ? {
                     compatibleConfig: {
                       name: "deepractice",
-                      baseURL: llmConfig.baseUrl,
-                      apiKey: llmConfig.apiKey,
+                      baseURL: llm.baseUrl,
+                      apiKey: llm.apiKey,
                     },
                   }
                 : {}),

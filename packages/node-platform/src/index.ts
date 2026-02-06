@@ -14,8 +14,7 @@
 
 import type { AgentXPlatform } from "@agentxjs/core/runtime";
 import type { LogLevel } from "commonxjs/logger";
-import { setLoggerFactory } from "commonxjs/logger";
-import { LoggerFactoryImpl } from "commonxjs/logger";
+import { setLoggerFactory, ConsoleLogger } from "commonxjs/logger";
 import { EventBusImpl } from "@agentxjs/core/event";
 import { createPersistence, sqliteDriver } from "./persistence";
 import { NodeBashProvider } from "./bash/NodeBashProvider";
@@ -97,7 +96,9 @@ export async function createNodePlatform(
     });
     setLoggerFactory(loggerFactory);
   } else if (options.logLevel) {
-    LoggerFactoryImpl.configure({ defaultLevel: options.logLevel });
+    setLoggerFactory({
+      getLogger: (name: string) => new ConsoleLogger(name, { level: options.logLevel }),
+    });
   }
 
   // Create persistence with SQLite

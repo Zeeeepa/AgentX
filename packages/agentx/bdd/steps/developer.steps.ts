@@ -5,7 +5,7 @@
  * All journeys use VCR recording for reproducible, offline tests.
  */
 
-import { Given, When, Then } from "@cucumber/cucumber";
+import { Given, When, Then, After } from "@cucumber/cucumber";
 import { strict as assert } from "node:assert";
 import { mkdirSync, existsSync } from "node:fs";
 import type { DataTable } from "@cucumber/cucumber";
@@ -252,5 +252,96 @@ Then(
     const state = getState(this);
     const result = await this.localAgentX!.agents.get(state.agentId!);
     assert.ok(!result.exists, "Agent should no longer exist");
+  }
+);
+
+// ============================================================================
+// Phase 5: Log Level
+// ============================================================================
+
+// Console capture for log verification
+let capturedLogs: string[] = [];
+const originalConsoleMethods: Record<string, (...args: any[]) => void> = {};
+let consoleIntercepted = false;
+
+function startConsoleCapture() {
+  capturedLogs = [];
+  const methods = ["log", "info", "debug", "warn", "error"] as const;
+  for (const method of methods) {
+    originalConsoleMethods[method] = console[method];
+    console[method] = (...args: any[]) => {
+      capturedLogs.push(args.map(String).join(" "));
+    };
+  }
+  consoleIntercepted = true;
+}
+
+function stopConsoleCapture() {
+  if (!consoleIntercepted) return;
+  for (const [method, fn] of Object.entries(originalConsoleMethods)) {
+    (console as any)[method] = fn;
+  }
+  consoleIntercepted = false;
+}
+
+After(function () {
+  stopConsoleCapture();
+});
+
+When(
+  "I create AgentX with logLevel {string}",
+  { timeout: 30000 },
+  async function (this: AgentXWorld, logLevel: string) {
+    const { createAgentX } = await import("agentxjs");
+
+    const apiKey =
+      process.env.ANTHROPIC_API_KEY ||
+      process.env.DEEPRACTICE_API_KEY ||
+      "test-key";
+
+    // Start capturing BEFORE creating AgentX so we catch all init logs
+    startConsoleCapture();
+
+    this.localAgentX = await createAgentX({
+      apiKey,
+      provider: "anthropic" as any,
+      model: process.env.DEEPRACTICE_MODEL || "claude-haiku-4-5-20251001",
+      baseUrl: process.env.DEEPRACTICE_BASE_URL,
+      logLevel: logLevel as any,
+      dataPath: ":memory:",
+    });
+  }
+);
+
+Then(
+  "console output should contain no AgentX logs",
+  function () {
+    stopConsoleCapture();
+
+    // Filter for AgentX runtime log patterns (INFO/DEBUG/WARN/ERROR with component names)
+    const agentxLogs = capturedLogs.filter(
+      (line) =>
+        /\b(INFO|DEBUG|WARN|ERROR)\b/.test(line) &&
+        /\[.*\/(Persistence|AgentXRuntime|LocalClient|Container|Image|MonoDriver|Driver)\]/.test(line)
+    );
+
+    assert.equal(
+      agentxLogs.length,
+      0,
+      `Expected no AgentX logs but found:\n${agentxLogs.join("\n")}`
+    );
+  }
+);
+
+Then(
+  "console output should contain {string}",
+  function (expected: string) {
+    stopConsoleCapture();
+
+    const hasMatch = capturedLogs.some((line) => line.includes(expected));
+    assert.ok(
+      hasMatch,
+      `Expected console output to contain "${expected}" but captured ${capturedLogs.length} lines:\n${capturedLogs.slice(0, 20).join("\n")}`
+    );
   }
 );
