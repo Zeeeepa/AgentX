@@ -1,0 +1,29 @@
+{
+  "name": "full-conversation-flow-via-remote",
+  "description": "VCR recording: full-conversation-flow-via-remote",
+  "recordedAt": 1770268119342,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 2,
+      "data": {
+        "messageId": "msg_1770268119344",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1645,
+      "data": {
+        "text": "2"
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 169,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "name": "reset-presentation-clears-all-state",
+  "description": "VCR recording: reset-presentation-clears-all-state",
+  "recordedAt": 1770265435121,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 2,
+      "data": {
+        "messageId": "msg_1770265435123",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 2965,
+      "data": {
+        "text": "Hello! How"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": " can I help you today?"
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 52,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "name": "multiple-messages-accumulate-in-conversations",
+  "description": "VCR recording: multiple-messages-accumulate-in-conversations",
+  "recordedAt": 1770265444099,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 2,
+      "data": {
+        "messageId": "msg_1770265444101",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1682,
+      "data": {
+        "text": "Hello"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 16,
+      "data": {
+        "text": "! How"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 38,
+      "data": {
+        "text": " can I help you today?"
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 138,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 2,
+      "data": {
+        "messageId": "msg_1770265445977",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1907,
+      "data": {
+        "text": "Hello"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": "! I'm doing well, thank you"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 37,
+      "data": {
+        "text": " for asking. How"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 50,
+      "data": {
+        "text": " can"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 82,
+      "data": {
+        "text": " I help you today?"
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 23,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "name": "getstate-returns-current-state-snapshot",
+  "description": "VCR recording: getstate-returns-current-state-snapshot",
+  "recordedAt": 1770265450099,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 2,
+      "data": {
+        "messageId": "msg_1770265450101",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1853,
+      "data": {
+        "text": "Hello"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 5,
+      "data": {
+        "text": "! I'm here to help."
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 38,
+      "data": {
+        "text": " Coul"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": "d you please clar"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 44,
+      "data": {
+        "text": "ify what you nee"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 43,
+      "data": {
+        "text": "d assistance with?"
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 121,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "onupdate-callback-receives-state-changes",
+  "description": "VCR recording: onupdate-callback-receives-state-changes",
+  "recordedAt": 1770265448088,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 2,
+      "data": {
+        "messageId": "msg_1770265448090",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1825,
+      "data": {
+        "text": "Hello"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 26,
+      "data": {
+        "text": "! How"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 33,
+      "data": {
+        "text": " can I help you today?"
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 117,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    }
+  ]
+}

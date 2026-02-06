@@ -1,0 +1,36 @@
+{
+  "name": "send-text-message-and-receive-response",
+  "description": "VCR recording: send-text-message-and-receive-response",
+  "recordedAt": 1770265426500,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 6,
+      "data": {
+        "messageId": "msg_1770265426506",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 2640,
+      "data": {
+        "text": "Hello! How"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 92,
+      "data": {
+        "text": " can I help you today?"
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 78,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    }
+  ]
+}

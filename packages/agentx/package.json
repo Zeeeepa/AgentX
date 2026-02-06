@@ -20,7 +20,9 @@
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "bdd": "bdd",
+    "bdd:developer": "bdd --tags @developer"
   },
   "dependencies": {
     "@agentxjs/core": "workspace:*",
@@ -30,7 +32,11 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@agentxjs/devtools": "workspace:*",
+    "@agentxjs/server": "workspace:*",
+    "@cucumber/cucumber": "^11.0.0",
     "@types/ws": "^8.5.10",
+    "tsx": "^4.19.0",
     "typescript": "^5.3.3"
   },
   "publishConfig": {

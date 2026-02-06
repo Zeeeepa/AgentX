@@ -1,32 +1,9 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
-  root: ".",
-  build: {
-    outDir: "dist/public",
-    emptyOutDir: true,
-  },
-  css: {
-    postcss: "./postcss.config.js",
-  },
   server: {
     port: 5173,
-    proxy: {
-      "/api": {
-        target: "http://localhost:5200",
-        changeOrigin: true,
-      },
-      "/agentx": {
-        target: "http://localhost:5200",
-        changeOrigin: true,
-      },
-      "/ws": {
-        target: "ws://localhost:5200",
-        ws: true,
-        rewriteWsOrigin: true,
-      },
-    },
   },
 });
