@@ -342,3 +342,15 @@ Then("I should see logout option", function () {
 Then("{string} should appear in conversation", function (text: string) {
   uiInstructions.push(`Verify "${text}" appears in the conversation`);
 });
+
+// ============================================================================
+// Agent Connection Steps (05)
+// ============================================================================
+
+Then("I should see an AI response in conversation", function () {
+  uiInstructions.push("Wait for an AI/assistant response to appear in the conversation (may take a few seconds for streaming to complete)");
+});
+
+Then("I should see the response appearing progressively", function () {
+  uiInstructions.push("Verify the AI response text appears progressively (streaming), not all at once");
+});

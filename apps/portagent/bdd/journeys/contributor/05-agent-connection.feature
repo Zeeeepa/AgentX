@@ -4,7 +4,7 @@ Feature: AgentX Connection
   so users can chat with AI agents via the standard agentxjs SDK.
 
   # ============================================================================
-  # Architecture: Option C - Embedded WebSocket Server
+  # Architecture: Embedded WebSocket Server
   # ============================================================================
   #
   #   Browser                    Portagent (Next.js + WS)
@@ -18,72 +18,34 @@ Feature: AgentX Connection
   #
 
   # ============================================================================
-  # WebSocket Server Setup
+  # Dependencies
   # ============================================================================
 
   @pending
-  Scenario: WebSocket server is embedded in Next.js
+  Scenario: AgentX packages are integrated
     Given the portagent project
     Then package.json should have "@agentxjs/server" dependency
     And package.json should have "@agentxjs/node-platform" dependency
     And package.json should have "@agentxjs/mono-driver" dependency
 
-  @ui @pending
-  Scenario: WebSocket endpoint is available
-    Given the portagent dev server is running
-    When I connect to WebSocket at "/ws"
-    Then the connection should be established
-    And I should receive a welcome message or be able to send RPC
-
   # ============================================================================
-  # Client Connection
+  # End-to-End: User chats with AI agent
   # ============================================================================
 
   @ui @pending
-  Scenario: Browser can connect with agentxjs SDK
-    Given the portagent dev server is running
-    When I create an AgentX client with serverUrl "ws://localhost:3000/ws"
-    Then the client should connect successfully
+  Scenario: User sends message and receives AI response
+    Given I am logged in as admin "admin@example.com"
+    When I type "Hello" in the prompt
+    And I press Enter
+    Then my message should appear in conversation
+    And I should see an AI response in conversation
 
   @ui @pending
-  Scenario: Client authenticates with user session
-    Given I am logged in
-    When I create an AgentX client
-    Then the client should include auth headers from session
-    And the server should recognize my user
-
-  # ============================================================================
-  # Agent Lifecycle
-  # ============================================================================
-
-  @ui @pending
-  Scenario: Create container and image for user
-    Given I am logged in
-    And I have an AgentX client
-    When I create a container for my user
-    And I create an image with system prompt "You are helpful"
-    Then the image should be created
-    And I should be subscribed to the session
-
-  @ui @pending
-  Scenario: Send message and receive stream
-    Given I have an active agent
-    When I send message "Hello"
-    Then I should receive text_delta events
-    And I should receive message_stop event
-    And the response should contain text
-
-  # ============================================================================
-  # Integration with Chat UI
-  # ============================================================================
-
-  @ui @pending
-  Scenario: Chat UI uses agentxjs for messaging
-    Given I am on the chat page
-    When I type "Hello" and send
-    Then agentxjs should send message via WebSocket
-    And stream events should update the UI
-    And the assistant response should appear
+  Scenario: AI response streams into the UI
+    Given I am logged in as admin "admin@example.com"
+    When I type "Say hi" in the prompt
+    And I press Enter
+    Then I should see the response appearing progressively
 
   # ============================================================================
   # Data Model

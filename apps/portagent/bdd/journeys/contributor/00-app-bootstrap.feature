@@ -9,7 +9,7 @@ Feature: App Bootstrap
   @bootstrap
   Scenario: Dev server starts and responds
     When I start the portagent dev server
-    Then the server should be running on port 3000
+    Then the server should be running on port 3099
 
   @bootstrap
   Scenario: Fresh install redirects to setup
