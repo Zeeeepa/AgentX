@@ -8,8 +8,8 @@
     "build": "next build",
     "start": "next start",
     "bdd": "bdd",
-    "bdd:fast": "bdd --fail-fast",
-    "bdd:contributor": "bdd --tags @contributor"
+    "bdd:ui": "bdd --profile ui",
+    "bdd:fast": "bdd --fail-fast"
   },
   "dependencies": {
     "agentxjs": "workspace:*",

@@ -20,5 +20,5 @@ export default createCucumberConfig({
 
 export const ui = createCucumberConfig({
   ...base,
-  tags: "@ui",
+  tags: "@ui and not @pending",
 });

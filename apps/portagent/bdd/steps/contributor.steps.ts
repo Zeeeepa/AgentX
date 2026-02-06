@@ -16,7 +16,7 @@ import {
   AfterAll,
 } from "@cucumber/cucumber";
 import { strict as assert } from "node:assert";
-import { existsSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -24,10 +24,11 @@ import {
   startDevServer,
   stopDevServer,
 } from "@agentxjs/devtools/bdd";
+import { openDatabase } from "commonxjs/sqlite";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const APP_DIR = resolve(__dirname, "../..");
-const DEV_SERVER_PORT = 3000;
+const DEV_SERVER_PORT = 3099;
 const BASE_URL = `http://localhost:${DEV_SERVER_PORT}`;
 
 // ============================================================================
@@ -57,7 +58,7 @@ BeforeAll({ timeout: 180000 }, async function () {
     cwd: APP_DIR,
     port: DEV_SERVER_PORT,
     timeout: 30000,
-    args: ["run", "start"],
+    args: ["run", "start", "--", "-p", String(DEV_SERVER_PORT)],
   });
 });
 
@@ -75,7 +76,8 @@ After({ tags: "@ui", timeout: 300000 }, function () {
     ...uiInstructions,
   ].join("\n");
 
-  const result = agentUiTester(prompt);
+  const headed = process.env.HEADED === "true" || !process.env.CI;
+  const result = agentUiTester(prompt, { headed });
   assert.ok(result.passed, `UI test failed:\n${result.output}`);
 });
 
@@ -127,12 +129,14 @@ Then("the server should be running on port {int}", async function (port: number)
 // ============================================================================
 
 function resetDatabase() {
+  // Open the same db file the server uses and clear all tables.
+  // SQLite supports concurrent access — this works while server is running.
   const dbPath = process.env.DATABASE_PATH || join(APP_DIR, "data", "app.db");
-  try {
-    rmSync(dbPath, { force: true });
-  } catch {
-    // File may not exist
-  }
+  const db = openDatabase(dbPath);
+  db.exec("DELETE FROM invite_codes");
+  db.exec("DELETE FROM users");
+  db.exec("DELETE FROM system_config");
+  db.close();
 }
 
 Given("a fresh installation", function () {
@@ -245,6 +249,10 @@ Then("I should be redirected to {string}", function (path: string) {
 
 Then("I should see {string}", function (text: string) {
   uiInstructions.push(`Verify the text "${text}" is visible on the page`);
+});
+
+Then("I should see {string} prompt", function (text: string) {
+  uiInstructions.push(`Verify a "${text}" prompt/placeholder is visible`);
 });
 
 Then("I should NOT see {string}", function (text: string) {
