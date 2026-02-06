@@ -155,6 +155,30 @@ Feature: AgentX Connection
     And the sidebar should show no sessions
 
   # ============================================================================
+  # Session Deletion
+  # ============================================================================
+
+  @ui
+  Scenario: User deletes a session
+    Given I am logged in as admin "admin@example.com"
+    And I have a conversation with "Hello"
+    When I hover over the session in the sidebar
+    Then I should see a delete button
+    When I click the delete button
+    Then the session should be removed from the sidebar
+    And the conversation area should show empty state
+    # calls client.images.delete(imageId) to remove from server
+
+  @ui
+  Scenario: Deleting non-active session keeps current view
+    Given I am logged in as admin "admin@example.com"
+    And I have two conversations
+    And the second conversation is active
+    When I delete the first conversation
+    Then the first session should be removed from the sidebar
+    And the second conversation should still be visible
+
+  # ============================================================================
   # Data Model
   # ============================================================================
   #

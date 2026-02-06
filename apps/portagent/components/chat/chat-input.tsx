@@ -31,24 +31,26 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   };
 
   return (
-    <div data-testid="prompt-input" className="border-t p-4 flex items-end gap-2">
-      <Textarea
-        placeholder="Type a message..."
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        disabled={disabled}
-        className="min-h-10 max-h-32 resize-none"
-        rows={1}
-      />
-      <Button
-        size="icon"
-        onClick={handleSend}
-        disabled={disabled || !value.trim()}
-        aria-label="Send message"
-      >
-        <SendIcon className="size-4" />
-      </Button>
+    <div data-testid="prompt-input" className="border-t px-4 py-3">
+      <div className="mx-auto max-w-3xl flex items-end gap-2">
+        <Textarea
+          placeholder="Type a message..."
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={disabled}
+          className="min-h-10 max-h-32 resize-none"
+          rows={1}
+        />
+        <Button
+          size="icon"
+          onClick={handleSend}
+          disabled={disabled || !value.trim()}
+          aria-label="Send message"
+        >
+          <SendIcon className="size-4" />
+        </Button>
+      </div>
     </div>
   );
 }

@@ -323,6 +323,158 @@ Then(
 );
 
 // ============================================================================
+// Phase: Presentation Tool Display
+// ============================================================================
+
+When(
+  "I send message via presentation {string}",
+  { timeout: 120000 },
+  async function (this: AgentXWorld, text: string) {
+    const state = getState(this);
+    assert.ok(state.presentation, "Presentation not created");
+
+    // Wait for the presentation to finish processing
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("Presentation send timed out")), 110000);
+      const checkDone = () => {
+        const ps = state.presentation!.getState();
+        if (ps.status === "idle" && !ps.streaming) {
+          clearTimeout(timeout);
+          resolve();
+        } else {
+          setTimeout(checkDone, 200);
+        }
+      };
+      state.presentation!.send(text).then(() => {
+        // After send resolves, poll until status returns to idle
+        setTimeout(checkDone, 500);
+      }).catch((err) => {
+        clearTimeout(timeout);
+        reject(err);
+      });
+    });
+  }
+);
+
+Then(
+  "the presentation should have a completed tool block",
+  function (this: AgentXWorld) {
+    const state = getState(this);
+    const ps = state.presentation!.getState();
+
+    let found = false;
+    for (const conv of ps.conversations) {
+      if (conv.role === "assistant" && "blocks" in conv) {
+        for (const block of conv.blocks) {
+          if (block.type === "tool" && block.status === "completed") {
+            found = true;
+            break;
+          }
+        }
+      }
+      if (found) break;
+    }
+
+    assert.ok(found, `Expected a completed tool block in conversations, got: ${JSON.stringify(ps.conversations.map(c => c.role))}`);
+  }
+);
+
+Then(
+  "the tool block toolInput should not be empty",
+  function (this: AgentXWorld) {
+    const state = getState(this);
+    const ps = state.presentation!.getState();
+
+    for (const conv of ps.conversations) {
+      if (conv.role === "assistant" && "blocks" in conv) {
+        for (const block of conv.blocks) {
+          if (block.type === "tool" && block.status === "completed") {
+            assert.ok(
+              Object.keys(block.toolInput).length > 0,
+              `Tool block toolInput should not be empty, got: ${JSON.stringify(block.toolInput)}`
+            );
+            return;
+          }
+        }
+      }
+    }
+    assert.fail("No completed tool block found");
+  }
+);
+
+Then(
+  "the tool block toolResult should contain {string}",
+  function (this: AgentXWorld, expected: string) {
+    const state = getState(this);
+    const ps = state.presentation!.getState();
+
+    for (const conv of ps.conversations) {
+      if (conv.role === "assistant" && "blocks" in conv) {
+        for (const block of conv.blocks) {
+          if (block.type === "tool" && block.status === "completed") {
+            assert.ok(
+              block.toolResult && block.toolResult.includes(expected),
+              `Tool block toolResult should contain "${expected}", got: ${JSON.stringify(block.toolResult)}`
+            );
+            return;
+          }
+        }
+      }
+    }
+    assert.fail("No completed tool block found");
+  }
+);
+
+Then(
+  "the presentation should have at least {int} completed tool blocks",
+  function (this: AgentXWorld, minCount: number) {
+    const state = getState(this);
+    const ps = state.presentation!.getState();
+
+    let count = 0;
+    for (const conv of ps.conversations) {
+      if (conv.role === "assistant" && "blocks" in conv) {
+        for (const block of conv.blocks) {
+          if (block.type === "tool" && block.status === "completed") {
+            count++;
+          }
+        }
+      }
+    }
+
+    assert.ok(
+      count >= minCount,
+      `Expected at least ${minCount} completed tool blocks, got ${count}`
+    );
+  }
+);
+
+Then(
+  "each tool block should have non-empty toolInput",
+  function (this: AgentXWorld) {
+    const state = getState(this);
+    const ps = state.presentation!.getState();
+
+    let checked = 0;
+    for (const conv of ps.conversations) {
+      if (conv.role === "assistant" && "blocks" in conv) {
+        for (const block of conv.blocks) {
+          if (block.type === "tool") {
+            assert.ok(
+              Object.keys(block.toolInput).length > 0,
+              `Tool block "${block.toolName}" has empty toolInput`
+            );
+            checked++;
+          }
+        }
+      }
+    }
+
+    assert.ok(checked > 0, "No tool blocks found to check");
+  }
+);
+
+// ============================================================================
 // Phase 4: Cleanup
 // ============================================================================
 

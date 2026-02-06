@@ -3,7 +3,7 @@
  *
  * Verifies that the Runtime properly integrates with the
  * AgentEngine pipeline (Source → MealyMachine → Presenter):
- * - Message events (assistant_message, tool_call_message, tool_result_message)
+ * - Message events (assistant_message, tool_result_message)
  * - State events (conversation_start, conversation_end)
  * - Turn events (turn_request, turn_response)
  * - Message persistence (user + assistant + tool messages)
@@ -163,7 +163,7 @@ describe("AgentXRuntime - AgentEngine Pipeline", () => {
       expect(messageTypes).toContain("assistant_message");
     });
 
-    it("should emit tool_call_message and tool_result_message for tool use", async () => {
+    it("should emit assistant_message with tool calls and tool_result_message", async () => {
       const toolEvents: DriverStreamEvent[] = [
         {
           type: "message_start",
@@ -182,12 +182,12 @@ describe("AgentXRuntime - AgentEngine Pipeline", () => {
           data: { toolCallId: "tc_1", toolName: "get_weather", input: { city: "Tokyo" } },
         },
         {
-          type: "tool_result",
-          data: { toolCallId: "tc_1", result: "Sunny, 25°C", isError: false },
+          type: "message_stop",
+          data: { stopReason: "tool_use" },
         },
         {
-          type: "message_stop",
-          data: { stopReason: "end_turn" },
+          type: "tool_result",
+          data: { toolCallId: "tc_1", result: "Sunny, 25°C", isError: false },
         },
       ] as DriverStreamEvent[];
 
@@ -204,8 +204,17 @@ describe("AgentXRuntime - AgentEngine Pipeline", () => {
       await new Promise((r) => setTimeout(r, 50));
 
       const messageTypes = events.map((e) => e.type);
-      expect(messageTypes).toContain("tool_call_message");
+      // Tool calls are now part of assistant_message, not separate tool_call_message
+      expect(messageTypes).toContain("assistant_message");
       expect(messageTypes).toContain("tool_result_message");
+      expect(messageTypes).not.toContain("tool_call_message");
+
+      // Verify assistant message contains tool call in content
+      const assistantEvent = events.find((e) => e.type === "assistant_message");
+      const content = (assistantEvent?.data as { content: unknown[] })?.content;
+      expect(content).toBeDefined();
+      const toolCallPart = content?.find((p: unknown) => (p as { type: string }).type === "tool-call");
+      expect(toolCallPart).toBeDefined();
     });
   });
 
@@ -293,10 +302,17 @@ describe("AgentXRuntime - AgentEngine Pipeline", () => {
       await new Promise((r) => setTimeout(r, 50));
 
       const messages = env.sessionRepo._getMessages("session_1");
-      const toolCallMessages = messages.filter((m) => m.subtype === "tool-call");
+      // Tool calls are inside assistant message content, not separate messages
+      const assistantMessages = messages.filter((m) => m.subtype === "assistant");
       const toolResultMessages = messages.filter((m) => m.subtype === "tool-result");
 
-      expect(toolCallMessages.length).toBe(1);
+      expect(assistantMessages.length).toBeGreaterThanOrEqual(1);
+      // Verify at least one assistant message has a tool-call part
+      const hasToolCall = assistantMessages.some((m) => {
+        const content = (m as { content: unknown }).content;
+        return Array.isArray(content) && content.some((p: unknown) => (p as { type: string }).type === "tool-call");
+      });
+      expect(hasToolCall).toBe(true);
       expect(toolResultMessages.length).toBe(1);
     });
   });

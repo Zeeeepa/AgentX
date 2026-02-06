@@ -7,7 +7,6 @@
 import type {
   UserMessage,
   AssistantMessage,
-  ToolCallMessage,
   ToolResultMessage,
   ErrorMessage,
 } from "../../agent/types";
@@ -377,15 +376,6 @@ export interface AssistantMessageEvent extends AgentMessageEventBase<
 > {}
 
 /**
- * ToolCallMessageEvent - Tool call message (part of assistant turn)
- * Data: Complete ToolCallMessage object
- */
-export interface ToolCallMessageEvent extends AgentMessageEventBase<
-  "tool_call_message",
-  ToolCallMessage
-> {}
-
-/**
  * ToolResultMessageEvent - Tool result message
  * Data: Complete ToolResultMessage object
  */
@@ -409,7 +399,6 @@ export interface ErrorMessageEvent extends AgentMessageEventBase<"error_message"
 export type AgentMessageEvent =
   | UserMessageEvent
   | AssistantMessageEvent
-  | ToolCallMessageEvent
   | ToolResultMessageEvent
   | ErrorMessageEvent;
 

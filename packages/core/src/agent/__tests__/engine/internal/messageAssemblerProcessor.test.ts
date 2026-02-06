@@ -37,6 +37,7 @@ describe("messageAssemblerProcessor", () => {
       expect(initialState.currentMessageId).toBeNull();
       expect(initialState.messageStartTime).toBeNull();
       expect(initialState.pendingContents).toEqual({});
+      expect(initialState.assembledToolCalls).toEqual([]);
       expect(initialState.pendingToolCalls).toEqual({});
     });
   });
@@ -182,7 +183,7 @@ describe("messageAssemblerProcessor", () => {
   });
 
   describe("tool_use_stop event", () => {
-    it("should emit tool_call_message event", () => {
+    it("should accumulate ToolCallPart without emitting event", () => {
       // Setup: complete tool use sequence
       state.currentMessageId = "parent_msg";
       state.pendingContents[1] = {
@@ -197,16 +198,15 @@ describe("messageAssemblerProcessor", () => {
 
       const [newState, outputs] = messageAssemblerProcessor(state, event);
 
-      expect(outputs).toHaveLength(1);
-      expect(outputs[0].type).toBe("tool_call_message");
+      // No event emitted — tool calls are part of the assistant message
+      expect(outputs).toHaveLength(0);
 
-      const toolCallMessage = outputs[0].data;
-      expect(toolCallMessage.role).toBe("assistant");
-      expect(toolCallMessage.subtype).toBe("tool-call");
-      expect(toolCallMessage.toolCall.id).toBe("tool_123");
-      expect(toolCallMessage.toolCall.name).toBe("calculate");
-      expect(toolCallMessage.toolCall.input).toEqual({ x: 10, y: 20 });
-      expect(toolCallMessage.parentId).toBe("parent_msg");
+      // Should accumulate ToolCallPart
+      expect(newState.assembledToolCalls).toHaveLength(1);
+      expect(newState.assembledToolCalls[0].type).toBe("tool-call");
+      expect(newState.assembledToolCalls[0].id).toBe("tool_123");
+      expect(newState.assembledToolCalls[0].name).toBe("calculate");
+      expect(newState.assembledToolCalls[0].input).toEqual({ x: 10, y: 20 });
 
       // Should add to pending tool calls
       expect(newState.pendingToolCalls["tool_123"]).toEqual({
@@ -231,8 +231,8 @@ describe("messageAssemblerProcessor", () => {
 
       const [newState, outputs] = messageAssemblerProcessor(state, event);
 
-      expect(outputs).toHaveLength(1);
-      expect(outputs[0].data.toolCall.input).toEqual({});
+      expect(outputs).toHaveLength(0);
+      expect(newState.assembledToolCalls[0].input).toEqual({});
     });
 
     it("should handle missing pending tool use", () => {
@@ -368,17 +368,22 @@ describe("messageAssemblerProcessor", () => {
     it("should preserve pending tool calls when stopReason is tool_use", () => {
       state.currentMessageId = "msg_123";
       state.pendingToolCalls["tool_123"] = { id: "tool_123", name: "test" };
-      state.pendingContents[0] = {
-        type: "text",
-        index: 0,
-        textDeltas: ["Calling tool..."],
-      };
+      state.assembledToolCalls = [
+        { type: "tool-call", id: "tool_123", name: "test", input: { q: "hello" } },
+      ];
 
       const event = createStreamEvent("message_stop", { stopReason: "tool_use" });
 
       const [newState, outputs] = messageAssemblerProcessor(state, event);
 
-      expect(outputs).toHaveLength(1); // Still emits assistant message
+      // Emits assistant_message with tool call in content
+      expect(outputs).toHaveLength(1);
+      expect(outputs[0].type).toBe("assistant_message");
+      const content = outputs[0].data.content;
+      expect(content).toHaveLength(1);
+      expect(content[0].type).toBe("tool-call");
+      expect(content[0].id).toBe("tool_123");
+
       expect(newState.pendingToolCalls["tool_123"]).toBeDefined();
     });
 
@@ -529,15 +534,16 @@ describe("messageAssemblerProcessor", () => {
       currentState = s3;
       allOutputs.push(...o3);
 
-      // tool_use_stop
+      // tool_use_stop — no event emitted, accumulates ToolCallPart
       const [s4, o4] = messageAssemblerProcessor(
         currentState,
         createStreamEvent("tool_use_stop", {})
       );
       currentState = s4;
       allOutputs.push(...o4);
+      expect(o4).toHaveLength(0);
 
-      // message_stop with tool_use
+      // message_stop with tool_use — emits assistant_message with tool call in content
       const [s5, o5] = messageAssemblerProcessor(
         currentState,
         createStreamEvent("message_stop", { stopReason: "tool_use" })
@@ -557,9 +563,16 @@ describe("messageAssemblerProcessor", () => {
       currentState = s6;
       allOutputs.push(...o6);
 
+      // assistant_message (with tool call) + tool_result_message
       expect(allOutputs).toHaveLength(2);
-      expect(allOutputs[0].type).toBe("tool_call_message");
-      expect(allOutputs[0].data.toolCall.name).toBe("search");
+      expect(allOutputs[0].type).toBe("assistant_message");
+      // Verify tool call is inside assistant message content
+      const content = allOutputs[0].data.content;
+      expect(content).toHaveLength(1);
+      expect(content[0].type).toBe("tool-call");
+      expect(content[0].name).toBe("search");
+      expect(content[0].input).toEqual({ query: "test" });
+
       expect(allOutputs[1].type).toBe("tool_result_message");
       expect(allOutputs[1].data.toolResult.output.value).toBe("Found it!");
     });

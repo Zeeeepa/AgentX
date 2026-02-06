@@ -15,7 +15,6 @@
 import type {
   UserMessage,
   AssistantMessage,
-  ToolCallMessage,
   ToolResultMessage,
   ErrorMessage,
   TokenUsage,
@@ -368,7 +367,6 @@ export interface MessageEvent<T extends string = string, D = unknown> extends En
 
 export type UserMessageEvent = EngineEvent<"user_message", UserMessage>;
 export type AssistantMessageEvent = EngineEvent<"assistant_message", AssistantMessage>;
-export type ToolCallMessageEvent = EngineEvent<"tool_call_message", ToolCallMessage>;
 export type ToolResultMessageEvent = EngineEvent<"tool_result_message", ToolResultMessage>;
 export type ErrorMessageEvent = EngineEvent<"error_message", ErrorMessage>;
 
@@ -378,7 +376,6 @@ export type ErrorMessageEvent = EngineEvent<"error_message", ErrorMessage>;
 export type AgentMessageEvent =
   | UserMessageEvent
   | AssistantMessageEvent
-  | ToolCallMessageEvent
   | ToolResultMessageEvent
   | ErrorMessageEvent;
 
@@ -389,7 +386,6 @@ export function isMessageEvent(event: EngineEvent): event is AgentMessageEvent {
   const messageTypes = [
     "user_message",
     "assistant_message",
-    "tool_call_message",
     "tool_result_message",
     "error_message",
   ];

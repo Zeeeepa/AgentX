@@ -1,8 +1,17 @@
 /**
  * Presentation Reducer
  *
- * Aggregates stream events into PresentationState.
+ * Aggregates events into PresentationState.
  * Pure function: (state, event) => newState
+ *
+ * Event consumption strategy:
+ * - Stream layer: message_start, text_delta, tool_use_start, tool_use_stop, message_stop
+ *   (for real-time streaming display)
+ * - Message layer: tool_result_message
+ *   (for tool execution results — arrives after message_stop)
+ *
+ * Tool calls are stream-level blocks within the assistant turn,
+ * matching the mainstream API pattern (Anthropic, OpenAI).
  */
 
 import type { BusEvent } from "@agentxjs/core/event";
@@ -10,9 +19,10 @@ import type {
   Message,
   UserMessage,
   AssistantMessage,
-  ToolCallMessage,
   ToolResultMessage,
   ErrorMessage,
+  ToolResultOutput,
+  ToolCallPart,
 } from "@agentxjs/core/agent";
 import type {
   PresentationState,
@@ -25,7 +35,7 @@ import type {
 import { initialPresentationState } from "./types";
 
 // ============================================================================
-// Event Data Types (from stream events)
+// Event Data Types
 // ============================================================================
 
 interface MessageStartData {
@@ -38,18 +48,14 @@ interface TextDeltaData {
 }
 
 interface ToolUseStartData {
-  toolUseId: string;
+  toolCallId: string;
   toolName: string;
 }
 
-interface InputJsonDeltaData {
-  delta: string;
-}
-
-interface ToolResultData {
-  toolUseId: string;
-  result: string;
-  isError?: boolean;
+interface ToolUseStopData {
+  toolCallId: string;
+  toolName: string;
+  input: Record<string, unknown>;
 }
 
 interface MessageStopData {
@@ -66,13 +72,19 @@ interface ErrorData {
 // ============================================================================
 
 /**
- * Reduce a stream event into presentation state
+ * Reduce an event into presentation state.
+ *
+ * Consumes:
+ * - Stream events: message_start, text_delta, tool_use_start, tool_use_stop, message_stop
+ * - Message events: tool_result_message
+ * - Error events: error
  */
 export function presentationReducer(
   state: PresentationState,
   event: BusEvent
 ): PresentationState {
   switch (event.type) {
+    // Stream layer — real-time display
     case "message_start":
       return handleMessageStart(state, event.data as MessageStartData);
 
@@ -82,14 +94,15 @@ export function presentationReducer(
     case "tool_use_start":
       return handleToolUseStart(state, event.data as ToolUseStartData);
 
-    case "input_json_delta":
-      return handleInputJsonDelta(state, event.data as InputJsonDeltaData);
-
-    case "tool_result":
-      return handleToolResult(state, event.data as ToolResultData);
+    case "tool_use_stop":
+      return handleToolUseStop(state, event.data as ToolUseStopData);
 
     case "message_stop":
       return handleMessageStop(state, event.data as MessageStopData);
+
+    // Message layer — tool results from Engine
+    case "tool_result_message":
+      return handleToolResultMessage(state, event.data as ToolResultMessage);
 
     case "error":
       return handleError(state, event.data as ErrorData);
@@ -107,7 +120,15 @@ function handleMessageStart(
   state: PresentationState,
   _data: MessageStartData
 ): PresentationState {
-  // Start a new streaming assistant conversation
+  // If streaming already exists (e.g. tool_use turn not yet flushed), flush it first
+  let conversations = state.conversations;
+  if (state.streaming && state.streaming.blocks.length > 0) {
+    conversations = [
+      ...conversations,
+      { ...state.streaming, isStreaming: false },
+    ];
+  }
+
   const streaming: AssistantConversation = {
     role: "assistant",
     blocks: [],
@@ -116,6 +137,7 @@ function handleMessageStart(
 
   return {
     ...state,
+    conversations,
     streaming,
     status: "thinking",
   };
@@ -132,7 +154,6 @@ function handleTextDelta(
   const blocks = [...state.streaming.blocks];
   const lastBlock = blocks[blocks.length - 1];
 
-  // Append to existing TextBlock or create new one
   if (lastBlock && lastBlock.type === "text") {
     blocks[blocks.length - 1] = {
       ...lastBlock,
@@ -163,9 +184,10 @@ function handleToolUseStart(
     return state;
   }
 
+  // Create a pending tool block — toolInput will be filled by tool_use_stop
   const toolBlock: ToolBlock = {
     type: "tool",
-    toolUseId: data.toolUseId,
+    toolUseId: data.toolCallId,
     toolName: data.toolName,
     toolInput: {},
     status: "pending",
@@ -181,64 +203,96 @@ function handleToolUseStart(
   };
 }
 
-function handleInputJsonDelta(
+/**
+ * Handle tool_use_stop from stream layer.
+ * Fills in the complete toolInput for the matching pending tool block.
+ * The stream event carries the fully assembled input.
+ */
+function handleToolUseStop(
   state: PresentationState,
-  data: InputJsonDeltaData
-): PresentationState {
-  if (!state.streaming) {
-    return state;
-  }
-
-  const blocks = [...state.streaming.blocks];
-  const lastBlock = blocks[blocks.length - 1];
-
-  // Find the last tool block and update its input
-  if (lastBlock && lastBlock.type === "tool") {
-    // Accumulate JSON delta (will be parsed when complete)
-    const currentInput = (lastBlock as ToolBlock & { _rawInput?: string })._rawInput || "";
-    const newInput = currentInput + data.delta;
-
-    // Try to parse the accumulated JSON
-    let toolInput = lastBlock.toolInput;
-    try {
-      toolInput = JSON.parse(newInput);
-    } catch {
-      // Not yet valid JSON, keep accumulating
-    }
-
-    blocks[blocks.length - 1] = {
-      ...lastBlock,
-      toolInput,
-      _rawInput: newInput,
-      status: "running",
-    } as ToolBlock & { _rawInput?: string };
-
-    return {
-      ...state,
-      streaming: {
-        ...state.streaming,
-        blocks,
-      },
-    };
-  }
-
-  return state;
-}
-
-function handleToolResult(
-  state: PresentationState,
-  data: ToolResultData
+  data: ToolUseStopData
 ): PresentationState {
   if (!state.streaming) {
     return state;
   }
 
   const blocks = state.streaming.blocks.map((block): Block => {
-    if (block.type === "tool" && block.toolUseId === data.toolUseId) {
+    if (block.type === "tool" && block.toolUseId === data.toolCallId) {
       return {
         ...block,
-        toolResult: data.result,
-        status: data.isError ? "error" : "completed",
+        toolInput: data.input,
+        status: "running",
+      };
+    }
+    return block;
+  });
+
+  return {
+    ...state,
+    streaming: {
+      ...state.streaming,
+      blocks,
+    },
+  };
+}
+
+function handleMessageStop(
+  state: PresentationState,
+  data: MessageStopData
+): PresentationState {
+  if (!state.streaming) {
+    return state;
+  }
+
+  // tool_use stop → don't flush, tool results are still incoming
+  if (data.stopReason === "tool_use") {
+    return {
+      ...state,
+      status: "executing",
+    };
+  }
+
+  // end_turn / max_tokens / etc → flush streaming to conversations
+  const completedConversation: AssistantConversation = {
+    ...state.streaming,
+    isStreaming: false,
+  };
+
+  return {
+    ...state,
+    conversations: [...state.conversations, completedConversation],
+    streaming: null,
+    status: "idle",
+  };
+}
+
+/**
+ * Handle tool_result_message from Engine layer.
+ * Fills in the toolResult for the matching tool block.
+ *
+ * Note: tool_result_message arrives after message_stop(tool_use),
+ * but streaming is kept alive (not flushed) during tool_use turns.
+ */
+function handleToolResultMessage(
+  state: PresentationState,
+  data: ToolResultMessage
+): PresentationState {
+  if (!state.streaming) {
+    return state;
+  }
+
+  const toolCallId = data.toolCallId;
+  const blocks = state.streaming.blocks.map((block): Block => {
+    if (block.type === "tool" && block.toolUseId === toolCallId) {
+      return {
+        ...block,
+        toolResult: formatToolResultOutput(data.toolResult.output),
+        status:
+          data.toolResult.output.type === "error-text" ||
+          data.toolResult.output.type === "error-json" ||
+          data.toolResult.output.type === "execution-denied"
+            ? "error"
+            : "completed",
       };
     }
     return block;
@@ -254,33 +308,10 @@ function handleToolResult(
   };
 }
 
-function handleMessageStop(
-  state: PresentationState,
-  _data: MessageStopData
-): PresentationState {
-  if (!state.streaming) {
-    return state;
-  }
-
-  // Move streaming to conversations
-  const completedConversation: AssistantConversation = {
-    ...state.streaming,
-    isStreaming: false,
-  };
-
-  return {
-    ...state,
-    conversations: [...state.conversations, completedConversation],
-    streaming: null,
-    status: "idle",
-  };
-}
-
 function handleError(
   state: PresentationState,
   data: ErrorData
 ): PresentationState {
-  // Add error conversation
   return {
     ...state,
     conversations: [
@@ -299,9 +330,6 @@ function handleError(
 // Helper: Add user conversation
 // ============================================================================
 
-/**
- * Add a user conversation to state
- */
 export function addUserConversation(
   state: PresentationState,
   content: string
@@ -318,18 +346,13 @@ export function addUserConversation(
   };
 }
 
-/**
- * Create initial state
- */
 export function createInitialState(): PresentationState {
   return { ...initialPresentationState };
 }
 
 // ============================================================================
-// Message → Conversation Converter
+// Helper: Format tool result output
 // ============================================================================
-
-import type { ToolResultOutput } from "@agentxjs/core/agent";
 
 function formatToolResultOutput(output: ToolResultOutput): string {
   switch (output.type) {
@@ -349,11 +372,18 @@ function formatToolResultOutput(output: ToolResultOutput): string {
   }
 }
 
+// ============================================================================
+// Message → Conversation Converter
+// ============================================================================
+
 /**
  * Convert persisted Messages to Presentation Conversations.
  *
- * Groups consecutive assistant/tool-call/tool-result messages
+ * Groups consecutive assistant + tool-result messages
  * into a single AssistantConversation.
+ *
+ * Tool calls are now part of AssistantMessage.content (as ToolCallPart),
+ * so we extract them directly from the assistant message.
  */
 export function messagesToConversations(messages: Message[]): Conversation[] {
   const conversations: Conversation[] = [];
@@ -390,31 +420,29 @@ export function messagesToConversations(messages: Message[]): Conversation[] {
           currentAssistant = { role: "assistant", blocks: [], isStreaming: false };
         }
         const m = msg as AssistantMessage;
-        const text =
-          typeof m.content === "string"
-            ? m.content
-            : m.content
-                .filter((p): p is { type: "text"; text: string } => p.type === "text")
-                .map((p) => p.text)
-                .join("");
-        if (text) {
-          currentAssistant.blocks.push({ type: "text", content: text } as TextBlock);
+        if (typeof m.content === "string") {
+          if (m.content) {
+            currentAssistant.blocks.push({ type: "text", content: m.content } as TextBlock);
+          }
+        } else {
+          // Extract text and tool call parts from content
+          for (const part of m.content) {
+            if (part.type === "text") {
+              if (part.text) {
+                currentAssistant.blocks.push({ type: "text", content: part.text } as TextBlock);
+              }
+            } else if (part.type === "tool-call") {
+              const tc = part as ToolCallPart;
+              currentAssistant.blocks.push({
+                type: "tool",
+                toolUseId: tc.id,
+                toolName: tc.name,
+                toolInput: tc.input,
+                status: "completed",
+              } as ToolBlock);
+            }
+          }
         }
-        break;
-      }
-
-      case "tool-call": {
-        if (!currentAssistant) {
-          currentAssistant = { role: "assistant", blocks: [], isStreaming: false };
-        }
-        const m = msg as ToolCallMessage;
-        currentAssistant.blocks.push({
-          type: "tool",
-          toolUseId: m.toolCall.id,
-          toolName: m.toolCall.name,
-          toolInput: m.toolCall.input,
-          status: "completed",
-        } as ToolBlock);
         break;
       }
 
@@ -423,10 +451,11 @@ export function messagesToConversations(messages: Message[]): Conversation[] {
         if (currentAssistant) {
           for (const block of currentAssistant.blocks) {
             if (block.type === "tool" && block.toolUseId === m.toolResult.id) {
-              const output = m.toolResult.output;
-              block.toolResult = formatToolResultOutput(output);
+              block.toolResult = formatToolResultOutput(m.toolResult.output);
               block.status =
-                output.type === "error-text" || output.type === "error-json" || output.type === "execution-denied"
+                m.toolResult.output.type === "error-text" ||
+                m.toolResult.output.type === "error-json" ||
+                m.toolResult.output.type === "execution-denied"
                   ? "error"
                   : "completed";
               break;

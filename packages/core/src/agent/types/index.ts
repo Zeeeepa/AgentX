@@ -48,7 +48,7 @@
  * ## Message Types (Three-Party Model)
  *
  * - **User**: Human participant (UserMessage)
- * - **Assistant**: AI participant (AssistantMessage, ToolCallMessage)
+ * - **Assistant**: AI participant (AssistantMessage — content includes ToolCallPart)
  * - **Tool**: Computer/execution environment (ToolResultMessage)
  *
  * @packageDocumentation
@@ -75,7 +75,6 @@ export type {
   TokenUsage,
   UserMessage,
   AssistantMessage,
-  ToolCallMessage,
   ToolResultMessage,
   ErrorMessage,
   Message,
@@ -145,7 +144,6 @@ export type {
   MessageEvent,
   UserMessageEvent,
   AssistantMessageEvent,
-  ToolCallMessageEvent,
   ToolResultMessageEvent,
   ErrorMessageEvent,
   AgentMessageEvent,

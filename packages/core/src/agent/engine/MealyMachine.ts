@@ -19,7 +19,7 @@
  * AgentOutput (to AgentEngine/Presenter)
  * │
  * ├── StateEvent (conversation_start, conversation_end...)
- * ├── MessageEvent (assistant_message, tool_call_message...)
+ * ├── MessageEvent (assistant_message, tool_result_message...)
  * └── TurnEvent (turn_request, turn_response)
  * ```
  *

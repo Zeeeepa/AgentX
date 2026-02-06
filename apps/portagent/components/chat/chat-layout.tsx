@@ -130,6 +130,10 @@ export function ChatLayout({ user }: ChatLayoutProps) {
     agentx.selectSession(id);
   };
 
+  const handleDeleteSession = async (id: string) => {
+    await agentx.deleteSession(id);
+  };
+
   const handleSend = async (text: string) => {
     if (!agentx.activeSession) {
       // Auto-create session if none active
@@ -151,6 +155,7 @@ export function ChatLayout({ user }: ChatLayoutProps) {
         activeSessionId={activeSessionId}
         onNewChat={handleNewChat}
         onSelectSession={handleSelectSession}
+        onDeleteSession={handleDeleteSession}
       />
       <SidebarInset>
         <header className="flex items-center gap-2 border-b px-4 py-2">

@@ -44,6 +44,7 @@ interface AgentXClient {
     list(containerId?: string): Promise<{
       records: ImageRecord[];
     }>;
+    delete(imageId: string): Promise<{ requestId: string }>;
   };
   agents: {
     create(params: { imageId: string }): Promise<{
@@ -125,6 +126,7 @@ export interface UseAgentXReturn {
   presentationState: PresentationStateLocal;
   createSession: () => Promise<AgentXSession | null>;
   selectSession: (imageId: string) => void;
+  deleteSession: (imageId: string) => Promise<void>;
   sendMessage: (text: string) => Promise<void>;
   error: string | null;
 }
@@ -367,6 +369,34 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
     [activeSession]
   );
 
+  // Delete a session
+  const deleteSession = useCallback(
+    async (imageId: string) => {
+      const client = clientRef.current;
+      if (!client) return;
+
+      try {
+        const session = sessions.find((s) => s.imageId === imageId);
+        if (session?.presentation) {
+          session.presentation.dispose();
+        }
+
+        await client.images.delete(imageId);
+
+        setSessions((prev) => prev.filter((s) => s.imageId !== imageId));
+
+        // If deleting active session, clear state
+        if (activeSessionId === imageId) {
+          setActiveSessionId(null);
+          setPresentationState(INITIAL_PRESENTATION_STATE);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      }
+    },
+    [sessions, activeSessionId]
+  );
+
   return {
     connected,
     sessions,
@@ -374,6 +404,7 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
     presentationState,
     createSession,
     selectSession,
+    deleteSession,
     sendMessage,
     error,
   };

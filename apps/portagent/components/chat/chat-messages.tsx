@@ -29,41 +29,30 @@ export function ChatMessages({ messages, isThinking }: ChatMessagesProps) {
 
   return (
     <ScrollArea data-testid="conversation-area" className="flex-1 overflow-hidden">
-      <div className="flex flex-col gap-4 p-4">
+      <div className="mx-auto max-w-3xl flex flex-col gap-6 px-4 py-6">
         {messages.map((msg) =>
           msg.tool ? (
             <ToolCallBlock key={msg.id} tool={msg.tool} />
+          ) : msg.from === "user" ? (
+            <div key={msg.id} className="flex justify-end">
+              <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2.5">
+                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+              </div>
+            </div>
           ) : (
-            <div
-              key={msg.id}
-              className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                  msg.from === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-foreground"
-                }`}
-              >
-                {msg.from === "user" ? (
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                ) : (
-                  <div className="prose prose-sm dark:prose-invert max-w-none break-words">
-                    <Markdown remarkPlugins={[remarkGfm]}>{msg.content}</Markdown>
-                  </div>
-                )}
+            <div key={msg.id}>
+              <div className="prose prose-sm dark:prose-invert max-w-none break-words">
+                <Markdown remarkPlugins={[remarkGfm]}>{msg.content}</Markdown>
               </div>
             </div>
           )
         )}
         {isThinking && (
-          <div className="flex justify-start">
-            <div className="bg-muted rounded-lg px-4 py-3">
-              <div className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-foreground/40 animate-bounce [animation-delay:-0.3s]" />
-                <span className="size-2 rounded-full bg-foreground/40 animate-bounce [animation-delay:-0.15s]" />
-                <span className="size-2 rounded-full bg-foreground/40 animate-bounce" />
-              </div>
+          <div>
+            <div className="flex items-center gap-1.5 py-2">
+              <span className="size-2 rounded-full bg-foreground/40 animate-bounce [animation-delay:-0.3s]" />
+              <span className="size-2 rounded-full bg-foreground/40 animate-bounce [animation-delay:-0.15s]" />
+              <span className="size-2 rounded-full bg-foreground/40 animate-bounce" />
             </div>
           </div>
         )}
@@ -89,7 +78,6 @@ function ToolStatusIcon({ status }: { status: string }) {
 
 function getToolSummary(tool: ToolInfo): string {
   const input = tool.toolInput;
-  // Show the most meaningful field as a summary
   if (input.command) return String(input.command);
   if (input.code) return String(input.code);
   if (input.query) return String(input.query);
@@ -97,7 +85,6 @@ function getToolSummary(tool: ToolInfo): string {
   if (input.path) return String(input.path);
   const keys = Object.keys(input);
   if (keys.length === 0) return "";
-  // Fallback: show first string value
   const firstVal = input[keys[0]];
   if (typeof firstVal === "string") return firstVal;
   return JSON.stringify(firstVal);
@@ -108,41 +95,39 @@ function ToolCallBlock({ tool }: { tool: ToolInfo }) {
   const summary = getToolSummary(tool);
 
   return (
-    <div className="flex justify-start">
-      <div className="max-w-[80%] w-full">
-        <button
-          type="button"
-          onClick={() => setExpanded(!expanded)}
-          className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
-        >
-          <ToolStatusIcon status={tool.status} />
-          <span className="font-medium text-foreground shrink-0">{tool.toolName}</span>
-          {summary && <span className="truncate font-mono text-muted-foreground">{summary}</span>}
-          <span className="ml-auto shrink-0">{expanded ? "\u25B2" : "\u25BC"}</span>
-        </button>
-        {expanded && (
-          <div className="mt-1 rounded-lg border bg-muted/30 px-3 py-2 text-xs">
-            {Object.keys(tool.toolInput).length > 0 && (
-              <div className="mb-2">
-                <p className="font-medium text-muted-foreground mb-1">Input</p>
-                <pre className="overflow-x-auto whitespace-pre-wrap break-all text-foreground">
-                  {JSON.stringify(tool.toolInput, null, 2)}
-                </pre>
-              </div>
-            )}
-            {tool.toolResult != null && (
-              <div>
-                <p className="font-medium text-muted-foreground mb-1">Result</p>
-                <pre className="overflow-x-auto whitespace-pre-wrap break-all text-foreground max-h-48 overflow-y-auto">
-                  {typeof tool.toolResult === "string"
-                    ? tool.toolResult
-                    : (JSON.stringify(tool.toolResult, null, 2) ?? "")}
-                </pre>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+    <div>
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+      >
+        <ToolStatusIcon status={tool.status} />
+        <span className="font-medium text-foreground shrink-0">{tool.toolName}</span>
+        {summary && <span className="truncate font-mono text-muted-foreground">{summary}</span>}
+        <span className="ml-auto shrink-0">{expanded ? "\u25B2" : "\u25BC"}</span>
+      </button>
+      {expanded && (
+        <div className="mt-1 rounded-lg border bg-muted/30 px-3 py-2 text-xs">
+          {Object.keys(tool.toolInput).length > 0 && (
+            <div className="mb-2">
+              <p className="font-medium text-muted-foreground mb-1">Input</p>
+              <pre className="overflow-x-auto whitespace-pre-wrap break-all text-foreground">
+                {JSON.stringify(tool.toolInput, null, 2)}
+              </pre>
+            </div>
+          )}
+          {tool.toolResult != null && (
+            <div>
+              <p className="font-medium text-muted-foreground mb-1">Result</p>
+              <pre className="overflow-x-auto whitespace-pre-wrap break-all text-foreground max-h-48 overflow-y-auto">
+                {typeof tool.toolResult === "string"
+                  ? tool.toolResult
+                  : (JSON.stringify(tool.toolResult, null, 2) ?? "")}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

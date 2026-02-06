@@ -14,9 +14,8 @@
  * - message_stop
  *
  * Output Events (Message Layer):
- * - tool_call_message (Message - AI's request to call a tool)
+ * - assistant_message (Message - includes text and tool calls in content)
  * - tool_result_message (Message - tool execution result)
- * - assistant_message (Message - complete assistant response)
  */
 
 import type { Processor, ProcessorDefinition } from "../mealy";
@@ -31,12 +30,10 @@ import type {
   MessageStopEvent,
   // Output: Message events
   AssistantMessageEvent,
-  ToolCallMessageEvent,
   ToolResultMessageEvent,
   ErrorMessageEvent,
   // Message types
   AssistantMessage,
-  ToolCallMessage,
   ToolResultMessage,
   ErrorMessage,
   // Content parts
@@ -92,6 +89,12 @@ export interface MessageAssemblerState {
   pendingContents: Record<number, PendingContent>;
 
   /**
+   * Assembled tool call parts (accumulated during tool_use_stop events).
+   * Included in AssistantMessage.content at message_stop time.
+   */
+  assembledToolCalls: ToolCallPart[];
+
+  /**
    * Pending tool calls waiting for results
    * Key is the tool call ID
    */
@@ -106,6 +109,7 @@ export function createInitialMessageAssemblerState(): MessageAssemblerState {
     currentMessageId: null,
     messageStartTime: null,
     pendingContents: {},
+    assembledToolCalls: [],
     pendingToolCalls: {},
   };
 }
@@ -124,7 +128,6 @@ function generateId(): string {
  */
 export type MessageAssemblerOutput =
   | AssistantMessageEvent
-  | ToolCallMessageEvent
   | ToolResultMessageEvent
   | ErrorMessageEvent;
 
@@ -295,8 +298,9 @@ function handleInputJsonDelta(
 /**
  * Handle tool_use_stop event
  *
- * Emits:
- * - tool_call_message (Message Event) - for UI display and tool execution
+ * Accumulates the completed ToolCallPart into state.
+ * It will be included in AssistantMessage.content at message_stop time.
+ * No event is emitted here — tool calls are part of the assistant message.
  */
 function handleToolUseStop(
   state: Readonly<MessageAssemblerState>,
@@ -322,7 +326,7 @@ function handleToolUseStop(
     toolInput = {};
   }
 
-  // Create ToolCallPart
+  // Create ToolCallPart — accumulated, not emitted
   const toolCall: ToolCallPart = {
     type: "tool-call",
     id: toolId,
@@ -330,39 +334,20 @@ function handleToolUseStop(
     input: toolInput,
   };
 
-  // Create ToolCallMessage (complete Message object)
-  // parentId links this tool call to its parent assistant message
-  const messageId = generateId();
-  const timestamp = Date.now();
-  const toolCallMessage: ToolCallMessage = {
-    id: messageId,
-    role: "assistant",
-    subtype: "tool-call",
-    toolCall,
-    timestamp,
-    parentId: state.currentMessageId || undefined,
-  };
-
-  // Emit tool_call_message event - data is complete Message object
-  const toolCallMessageEvent: ToolCallMessageEvent = {
-    type: "tool_call_message",
-    timestamp,
-    data: toolCallMessage,
-  };
-
-  // Remove from pending contents, add to pending tool calls
+  // Remove from pending contents, add to assembled tool calls and pending tool calls
   const { [index]: _, ...remainingContents } = state.pendingContents;
 
   return [
     {
       ...state,
       pendingContents: remainingContents,
+      assembledToolCalls: [...state.assembledToolCalls, toolCall],
       pendingToolCalls: {
         ...state.pendingToolCalls,
         [toolId]: { id: toolId, name: toolName },
       },
     },
-    [toolCallMessageEvent],
+    [], // No event emitted
   ];
 }
 
@@ -427,6 +412,10 @@ function handleToolResult(
 
 /**
  * Handle message_stop event
+ *
+ * Assembles the complete AssistantMessage with text and tool call parts.
+ * Tool calls are content blocks within the assistant message,
+ * matching the mainstream API pattern (Anthropic, OpenAI).
  */
 function handleMessageStop(
   state: Readonly<MessageAssemblerState>,
@@ -449,10 +438,11 @@ function handleMessageStop(
   }
 
   const textContent = textParts.join("");
+  const hasToolCalls = state.assembledToolCalls.length > 0;
 
-  // Skip empty messages (but preserve pendingToolCalls if stopReason is "tool_use")
+  // Skip truly empty messages (no text AND no tool calls)
   const stopReason = data.stopReason;
-  if (!textContent || textContent.trim().length === 0) {
+  if ((!textContent || textContent.trim().length === 0) && !hasToolCalls) {
     const shouldPreserveToolCalls = stopReason === "tool_use";
     return [
       {
@@ -463,15 +453,16 @@ function handleMessageStop(
     ];
   }
 
-  // Create content parts (new structure uses ContentPart[])
-  const contentParts: TextPart[] = [
-    {
-      type: "text",
-      text: textContent,
-    },
-  ];
+  // Build content parts: text first, then tool calls
+  const contentParts: Array<TextPart | ToolCallPart> = [];
+  if (textContent && textContent.trim().length > 0) {
+    contentParts.push({ type: "text", text: textContent });
+  }
+  for (const toolCall of state.assembledToolCalls) {
+    contentParts.push(toolCall);
+  }
 
-  // Create AssistantMessage (complete Message object)
+  // Create AssistantMessage with all content (text + tool calls)
   const timestamp = state.messageStartTime || Date.now();
   const assistantMessage: AssistantMessage = {
     id: state.currentMessageId,
@@ -481,7 +472,7 @@ function handleMessageStop(
     timestamp,
   };
 
-  // Emit AssistantMessageEvent - data is complete Message object
+  // Emit AssistantMessageEvent
   const assistantEvent: AssistantMessageEvent = {
     type: "assistant_message",
     timestamp,

@@ -26,17 +26,36 @@ export function toVercelMessage(message: Message): ModelMessage | null {
           : extractText(message.content),
       };
 
-    case "assistant":
-      return {
-        role: "assistant",
-        content: extractText(
-          "content" in message ? message.content : ""
-        ),
-      };
-
-    case "tool-call":
-      // Tool calls are embedded in assistant messages in Vercel AI SDK
-      return null;
+    case "assistant": {
+      // Assistant message may contain text and tool calls in content
+      const content = "content" in message ? message.content : "";
+      if (typeof content === "string") {
+        return { role: "assistant", content };
+      }
+      // Extract tool calls from content parts
+      const toolCalls = content.filter(
+        (p): p is { type: "tool-call"; id: string; name: string; input: Record<string, unknown> } =>
+          p.type === "tool-call"
+      );
+      if (toolCalls.length > 0) {
+        // Vercel AI SDK format: assistant with tool-call content
+        return {
+          role: "assistant",
+          content: [
+            ...content
+              .filter((p) => p.type === "text")
+              .map((p) => ({ type: "text" as const, text: (p as { text: string }).text })),
+            ...toolCalls.map((tc) => ({
+              type: "tool-call" as const,
+              toolCallId: tc.id,
+              toolName: tc.name,
+              args: tc.input,
+            })),
+          ],
+        } as unknown as ModelMessage;
+      }
+      return { role: "assistant", content: extractText(content) };
+    }
 
     case "tool-result": {
       const msg = message as unknown as { toolCallId: string; toolResult: { result: unknown } };
