@@ -344,6 +344,42 @@ Then("{string} should appear in conversation", function (text: string) {
 });
 
 // ============================================================================
+// System Settings Steps (06)
+// ============================================================================
+
+When("I fill in API key {string}", function (key: string) {
+  uiInstructions.push(`Fill in the API Key field with "${key}"`);
+});
+
+When("I fill in model {string}", function (model: string) {
+  uiInstructions.push(`Fill in the Model field with "${model}"`);
+});
+
+When("I fill in system prompt {string}", function (prompt: string) {
+  uiInstructions.push(`Fill in the System Prompt field with "${prompt}"`);
+});
+
+When("I fill in server name {string}", function (name: string) {
+  uiInstructions.push(`Fill in the server name field with "${name}"`);
+});
+
+When("I fill in command {string}", function (cmd: string) {
+  uiInstructions.push(`Fill in the command field with "${cmd}"`);
+});
+
+When("I fill in args {string}", function (args: string) {
+  uiInstructions.push(`Fill in the args field with "${args}"`);
+});
+
+Given("the system has MCP server {string}", function (name: string) {
+  uiInstructions.push(`Precondition: MCP server "${name}" should already be configured`);
+});
+
+When("I click {string} on {string}", function (action: string, target: string) {
+  uiInstructions.push(`Click "${action}" on the "${target}" item`);
+});
+
+// ============================================================================
 // Agent Connection Steps (05)
 // ============================================================================
 
