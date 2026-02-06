@@ -84,6 +84,62 @@ interface AgentXPlatform {
 
 **To change storage backend**: implement `ContainerRepository`, `ImageRepository`, and `SessionRepository`. Each repository is a simple CRUD interface. See `@agentxjs/node-platform` for a SQLite reference implementation.
 
+## AgentEngine Pipeline
+
+The Runtime doesn't just relay raw driver events — it processes them through a **MealyMachine** that derives higher-level events:
+
+```
+Driver Stream Events (raw)
+  │
+  ├── message_start, text_delta, tool_use_start, message_stop ...
+  │
+  ▼
+MealyMachine  ── pure (state, event) → [newState, outputs]
+  │
+  ├── MessageAssembler  ── stream → message events
+  │     └── assistant_message, tool_call_message, tool_result_message, error_message
+  │
+  ├── StateEventProcessor  ── stream → state events
+  │     └── conversation_start, conversation_responding, conversation_end
+  │
+  └── TurnTracker  ── stream → turn events
+        └── turn_request (from message_start), turn_response (from message_stop)
+```
+
+**Key design**: only raw `StreamEvent`s enter the MealyMachine. All message, state, and turn events are **derived** — never injected from outside. Processors can chain: outputs from one processor feed into others (e.g., TurnTracker reads `message_start` / `message_stop` from the stream layer).
+
+The Runtime's **Presenter** handles the outputs:
+- **Stream events**: emitted directly to EventBus (for real-time UI streaming)
+- **Message events**: emitted to EventBus + persisted to SessionRepository
+- **State/Turn events**: emitted to EventBus
+
+```typescript
+// Subscribe to different event layers
+runtime.subscribe(agentId, (event) => {
+  switch (event.type) {
+    // Stream layer — real-time chunks
+    case "text_delta":
+      process.stdout.write(event.data.text);
+      break;
+
+    // Message layer — complete, persisted messages
+    case "assistant_message":
+      console.log("Full reply:", event.data.content);
+      break;
+
+    // State layer — conversation lifecycle
+    case "conversation_start":
+    case "conversation_end":
+      break;
+
+    // Turn layer — request-response tracking
+    case "turn_response":
+      console.log(`Turn took ${event.data.duration}ms`);
+      break;
+  }
+});
+```
+
 ## Quick Start
 
 Most developers use `agentxjs` (the SDK) instead of `@agentxjs/core` directly. Core is for building custom drivers, platforms, or extending the framework.

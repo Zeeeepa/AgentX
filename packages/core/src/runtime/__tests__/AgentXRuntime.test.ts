@@ -1,13 +1,12 @@
 /**
- * AgentXRuntime.test.ts - Expose missing AgentEngine pipeline
+ * AgentXRuntime.test.ts - AgentEngine pipeline integration
  *
- * These tests verify that the Runtime properly integrates with the
- * AgentEngine pipeline (Source → MealyMachine → Presenter).
- *
- * Currently FAILING because AgentXRuntimeImpl bypasses AgentEngine entirely:
- * - No MealyMachine → no message assembly
- * - No Presenter → no message events emitted
- * - No persistence → assistant/tool messages lost
+ * Verifies that the Runtime properly integrates with the
+ * AgentEngine pipeline (Source → MealyMachine → Presenter):
+ * - Message events (assistant_message, tool_call_message, tool_result_message)
+ * - State events (conversation_start, conversation_end)
+ * - Turn events (turn_request, turn_response)
+ * - Message persistence (user + assistant + tool messages)
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
@@ -46,7 +45,7 @@ function simpleTextResponse(text: string): DriverStreamEvent[] {
   return [
     {
       type: "message_start",
-      data: { message: { id: "msg_test_1", model: "test-model" } },
+      data: { messageId: "msg_test_1", model: "test-model" },
     },
     {
       type: "text_delta",
@@ -168,7 +167,7 @@ describe("AgentXRuntime - AgentEngine Pipeline", () => {
       const toolEvents: DriverStreamEvent[] = [
         {
           type: "message_start",
-          data: { message: { id: "msg_tool", model: "test-model" } },
+          data: { messageId: "msg_tool", model: "test-model" },
         },
         {
           type: "tool_use_start",
@@ -256,7 +255,6 @@ describe("AgentXRuntime - AgentEngine Pipeline", () => {
       const messages = env.sessionRepo._getMessages("session_1");
       const assistantMessages = messages.filter((m) => m.subtype === "assistant");
 
-      // This is the core bug: assistant messages are NOT persisted
       expect(assistantMessages.length).toBe(1);
     });
 
@@ -264,7 +262,7 @@ describe("AgentXRuntime - AgentEngine Pipeline", () => {
       const toolEvents: DriverStreamEvent[] = [
         {
           type: "message_start",
-          data: { message: { id: "msg_tool", model: "test-model" } },
+          data: { messageId: "msg_tool", model: "test-model" },
         },
         {
           type: "tool_use_start",

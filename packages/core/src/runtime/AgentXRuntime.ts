@@ -4,10 +4,11 @@
  * Integrates all components to provide agent lifecycle management.
  * Uses Platform dependencies to coordinate Session, Image, Container, etc.
  *
- * New Design:
+ * Architecture:
  * - Driver.receive() returns AsyncIterable<DriverStreamEvent>
- * - Runtime processes events and emits to EventBus
- * - No more EventBus-based communication with Driver
+ * - Runtime emits raw stream events to EventBus
+ * - Runtime pushes events through AgentEngine (MealyMachine → Presenter)
+ * - Presenter emits message/state/turn events and persists messages
  */
 
 import { createLogger } from "commonxjs/logger";
@@ -20,11 +21,12 @@ import type {
   Subscription,
   AgentLifecycle,
 } from "./types";
-import type { UserContentPart, UserMessage } from "../agent/types";
+import type { UserContentPart, UserMessage, AgentEngine, StreamEvent, AgentOutput, AgentPresenter, AgentSource, Message } from "../agent/types";
 import type { BusEvent } from "../event/types";
 import type { CreateDriver, Driver, DriverConfig, DriverStreamEvent, ToolDefinition } from "../driver/types";
 import { createSession } from "../session/Session";
 import { createBashTool } from "../bash/tool";
+import { createAgent as createAgentEngine } from "../agent/createAgent";
 
 const logger = createLogger("runtime/AgentXRuntime");
 
@@ -36,6 +38,7 @@ interface AgentState {
   lifecycle: AgentLifecycle;
   subscriptions: Set<() => void>;
   driver: Driver;
+  engine: AgentEngine;
   /** Flag to track if a receive operation is in progress */
   isReceiving: boolean;
 }
@@ -118,6 +121,60 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     // Initialize driver
     await driver.initialize();
 
+    // Create AgentEngine with custom Source and Presenter
+    // Source: no-op (Runtime pushes events directly via handleStreamEvent)
+    // Presenter: emits message/state/turn events to EventBus + persists messages
+    const noopSource: AgentSource = {
+      name: "RuntimeSource",
+      connect: () => {},
+      disconnect: () => {},
+    };
+
+    const sessionId = imageRecord.sessionId;
+    const sessionRepository = this.platform.sessionRepository;
+    const eventBus = this.platform.eventBus;
+
+    const runtimePresenter: AgentPresenter = {
+      name: "RuntimePresenter",
+      present: (_agentId: string, output: AgentOutput) => {
+        const category = categorizeAgentOutput(output.type);
+
+        // Skip stream events — already emitted by handleDriverEvent
+        if (category === "stream") return;
+
+        // Emit state/message/turn events to EventBus
+        eventBus.emit({
+          type: output.type,
+          timestamp: output.timestamp,
+          source: "agent",
+          category,
+          intent: "notification",
+          data: output.data,
+          context: {
+            agentId,
+            imageId,
+            containerId: imageRecord.containerId,
+            sessionId,
+          },
+        } as BusEvent);
+
+        // Persist message events to SessionRepository
+        if (category === "message" && output.type !== "user_message") {
+          const message = output.data as Message;
+          sessionRepository.addMessage(sessionId, message).catch((err) => {
+            logger.error("Failed to persist message", { type: output.type, error: err });
+          });
+        }
+      },
+    };
+
+    const engine = createAgentEngine({
+      agentId,
+      bus: this.platform.eventBus,
+      source: noopSource,
+      presenter: runtimePresenter,
+    });
+
     // Create runtime agent
     const agent: RuntimeAgent = {
       agentId,
@@ -129,12 +186,13 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
       createdAt: Date.now(),
     };
 
-    // Store agent state with driver
+    // Store agent state with driver and engine
     const state: AgentState = {
       agent,
       lifecycle: "running",
       subscriptions: new Set(),
       driver,
+      engine,
       isReceiving: false,
     };
     this.agents.set(agentId, state);
@@ -251,8 +309,9 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
       throw new Error(`Agent not found: ${agentId}`);
     }
 
-    // Dispose driver (new interface, no disconnect needed)
+    // Dispose driver and engine
     await state.driver.dispose();
+    await state.engine.destroy();
 
     // Cleanup subscriptions
     for (const unsub of state.subscriptions) {
@@ -448,8 +507,13 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     event: DriverStreamEvent,
     requestId: string
   ): void {
-    // Map DriverStreamEvent to BusEvent and emit
+    // 1. Emit raw stream event to EventBus (for Presentation and other subscribers)
     this.emitEvent(state, event.type, event.data, requestId);
+
+    // 2. Push to AgentEngine for MealyMachine processing
+    //    Engine produces message/state/turn events via Presenter
+    const streamEvent = toStreamEvent(event);
+    state.engine.handleStreamEvent(streamEvent);
   }
 
   /**
@@ -506,6 +570,41 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     const random = Math.random().toString(36).substring(2, 8);
     return `msg_${timestamp}_${random}`;
   }
+}
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+/**
+ * Convert DriverStreamEvent to agent-layer StreamEvent.
+ * Data structures are identical; only "error" type needs renaming.
+ */
+function toStreamEvent(event: DriverStreamEvent): StreamEvent {
+  const type = event.type === "error" ? "error_received" : event.type;
+  return { type, data: event.data, timestamp: Date.now() } as StreamEvent;
+}
+
+/**
+ * Categorize AgentOutput type for EventBus emission.
+ */
+function categorizeAgentOutput(type: string): string {
+  // Stream layer — already emitted by handleDriverEvent
+  const streamTypes = [
+    "message_start", "message_delta", "message_stop",
+    "text_delta", "tool_use_start", "input_json_delta",
+    "tool_use_stop", "tool_result", "error_received",
+  ];
+  if (streamTypes.includes(type)) return "stream";
+
+  // Message layer
+  if (type.endsWith("_message")) return "message";
+
+  // Turn layer
+  if (type.startsWith("turn_")) return "turn";
+
+  // State layer (default)
+  return "state";
 }
 
 /**

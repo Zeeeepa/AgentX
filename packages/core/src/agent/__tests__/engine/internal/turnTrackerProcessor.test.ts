@@ -2,6 +2,9 @@
  * turnTrackerProcessor.test.ts - Unit tests for turn tracker processor
  *
  * Tests the pure Mealy transition function that tracks request-response turn pairs.
+ * Turn events are derived entirely from stream-layer events:
+ * - message_start → turn_request
+ * - message_stop  → turn_response
  */
 
 import { describe, it, expect, beforeEach } from "bun:test";
@@ -18,23 +21,12 @@ function createEvent(type: string, data: unknown, timestamp = Date.now()): TurnT
   return { type, data, timestamp } as TurnTrackerInput;
 }
 
-// Helper to create user message event
-function createUserMessageEvent(
-  content: string,
+// Helper to create message_start event (begins a turn)
+function createMessageStartEvent(
   messageId: string = `msg_${Date.now()}`,
   timestamp = Date.now()
 ): TurnTrackerInput {
-  return createEvent(
-    "user_message",
-    {
-      id: messageId,
-      role: "user",
-      subtype: "user",
-      content,
-      timestamp,
-    },
-    timestamp
-  );
+  return createEvent("message_start", { messageId, model: "test-model" }, timestamp);
 }
 
 // Helper to create message_stop event
@@ -59,16 +51,15 @@ describe("turnTrackerProcessor", () => {
     });
   });
 
-  describe("user_message event", () => {
+  describe("message_start event", () => {
     it("should create pending turn and emit turn_request", () => {
-      const event = createUserMessageEvent("Hello", "msg_123", 1000);
+      const event = createMessageStartEvent("msg_123", 1000);
 
       const [newState, outputs] = turnTrackerProcessor(state, event);
 
       // Should have pending turn
       expect(newState.pendingTurn).not.toBeNull();
       expect(newState.pendingTurn?.messageId).toBe("msg_123");
-      expect(newState.pendingTurn?.content).toBe("Hello");
       expect(newState.pendingTurn?.requestedAt).toBe(1000);
       expect(newState.pendingTurn?.turnId).toBeDefined();
 
@@ -76,14 +67,13 @@ describe("turnTrackerProcessor", () => {
       expect(outputs).toHaveLength(1);
       expect(outputs[0].type).toBe("turn_request");
       expect(outputs[0].data.messageId).toBe("msg_123");
-      expect(outputs[0].data.content).toBe("Hello");
       expect(outputs[0].data.timestamp).toBe(1000);
     });
 
     it("should generate unique turn IDs", () => {
       const [state1, outputs1] = turnTrackerProcessor(
         state,
-        createUserMessageEvent("First", "msg_1")
+        createMessageStartEvent("msg_1")
       );
 
       // Complete the turn
@@ -92,19 +82,30 @@ describe("turnTrackerProcessor", () => {
       // Start new turn
       const [state3, outputs3] = turnTrackerProcessor(
         state2,
-        createUserMessageEvent("Second", "msg_2")
+        createMessageStartEvent("msg_2")
       );
 
       expect(outputs1[0].data.turnId).not.toBe(outputs3[0].data.turnId);
     });
 
-    it("should handle empty content", () => {
-      const event = createUserMessageEvent("", "msg_empty");
+    it("should NOT start a new turn if one is already pending", () => {
+      // Start first turn
+      const [state1, outputs1] = turnTrackerProcessor(
+        state,
+        createMessageStartEvent("msg_1", 1000)
+      );
+      expect(outputs1).toHaveLength(1);
 
-      const [newState, outputs] = turnTrackerProcessor(state, event);
+      // Second message_start while turn is pending (e.g. after tool_use)
+      const [state2, outputs2] = turnTrackerProcessor(
+        state1,
+        createMessageStartEvent("msg_2", 1500)
+      );
 
-      expect(newState.pendingTurn?.content).toBe("");
-      expect(outputs[0].data.content).toBe("");
+      // Should NOT emit another turn_request
+      expect(outputs2).toHaveLength(0);
+      // Pending turn should still be the original
+      expect(state2.pendingTurn?.messageId).toBe("msg_1");
     });
   });
 
@@ -117,7 +118,7 @@ describe("turnTrackerProcessor", () => {
           pendingTurn: {
             turnId: "turn_123",
             messageId: "msg_123",
-            content: "Test message",
+            content: "",
             requestedAt: 1000,
           },
         };
@@ -196,14 +197,23 @@ describe("turnTrackerProcessor", () => {
     });
   });
 
-  describe("assistant_message event", () => {
-    it("should not emit output (handled in message_stop)", () => {
+  describe("unhandled events", () => {
+    it("should pass through unhandled events", () => {
+      const event = createEvent("text_delta", { text: "Hello" });
+
+      const [newState, outputs] = turnTrackerProcessor(state, event);
+
+      expect(newState).toEqual(state);
+      expect(outputs).toHaveLength(0);
+    });
+
+    it("should ignore assistant_message (not a stream event)", () => {
       state = {
         ...state,
         pendingTurn: {
           turnId: "turn_123",
           messageId: "msg_123",
-          content: "Test",
+          content: "",
           requestedAt: 1000,
         },
       };
@@ -216,39 +226,25 @@ describe("turnTrackerProcessor", () => {
 
       const [newState, outputs] = turnTrackerProcessor(state, event);
 
-      // State should be unchanged
       expect(newState.pendingTurn).not.toBeNull();
-
-      // No output
-      expect(outputs).toHaveLength(0);
-    });
-  });
-
-  describe("unhandled events", () => {
-    it("should pass through unhandled events", () => {
-      const event = createEvent("text_delta", { text: "Hello" });
-
-      const [newState, outputs] = turnTrackerProcessor(state, event);
-
-      expect(newState).toEqual(state);
       expect(outputs).toHaveLength(0);
     });
   });
 
   describe("complete turn flow", () => {
-    it("should track complete turn from request to response", () => {
+    it("should track complete turn from message_start to message_stop", () => {
       const allOutputs: TurnTrackerOutput[] = [];
       let currentState = createInitialTurnTrackerState();
 
-      // User sends message at time 1000
+      // message_start at time 1000
       const [s1, o1] = turnTrackerProcessor(
         currentState,
-        createUserMessageEvent("What is 2+2?", "msg_1", 1000)
+        createMessageStartEvent("msg_1", 1000)
       );
       currentState = s1;
       allOutputs.push(...o1);
 
-      // Assistant responds, message_stop at time 2500
+      // message_stop at time 2500
       const [s2, o2] = turnTrackerProcessor(currentState, createMessageStopEvent("end_turn", 2500));
       currentState = s2;
       allOutputs.push(...o2);
@@ -257,7 +253,7 @@ describe("turnTrackerProcessor", () => {
 
       // turn_request
       expect(allOutputs[0].type).toBe("turn_request");
-      expect(allOutputs[0].data.content).toBe("What is 2+2?");
+      expect(allOutputs[0].data.messageId).toBe("msg_1");
 
       // turn_response
       expect(allOutputs[1].type).toBe("turn_response");
@@ -271,10 +267,10 @@ describe("turnTrackerProcessor", () => {
       const allOutputs: TurnTrackerOutput[] = [];
       let currentState = createInitialTurnTrackerState();
 
-      // User sends message
+      // message_start begins the turn
       const [s1, o1] = turnTrackerProcessor(
         currentState,
-        createUserMessageEvent("Search for X", "msg_1", 1000)
+        createMessageStartEvent("msg_1", 1000)
       );
       currentState = s1;
       allOutputs.push(...o1);
@@ -287,7 +283,13 @@ describe("turnTrackerProcessor", () => {
       expect(currentState.pendingTurn).not.toBeNull();
       expect(allOutputs).toHaveLength(1); // Only turn_request
 
-      // Second message_stop with end_turn - turn completes
+      // Second message_start after tool_use — should NOT start new turn (pending exists)
+      const [s2b, o2b] = turnTrackerProcessor(currentState, createMessageStartEvent("msg_2", 2000));
+      currentState = s2b;
+      allOutputs.push(...o2b);
+      expect(allOutputs).toHaveLength(1); // Still only turn_request
+
+      // Final message_stop with end_turn - turn completes
       const [s3, o3] = turnTrackerProcessor(currentState, createMessageStopEvent("end_turn", 3000));
       currentState = s3;
       allOutputs.push(...o3);
@@ -305,7 +307,7 @@ describe("turnTrackerProcessor", () => {
       // First turn
       const [s1, o1] = turnTrackerProcessor(
         currentState,
-        createUserMessageEvent("First", "msg_1", 1000)
+        createMessageStartEvent("msg_1", 1000)
       );
       currentState = s1;
       allTurnIds.push(o1[0].data.turnId);
@@ -316,7 +318,7 @@ describe("turnTrackerProcessor", () => {
       // Second turn
       const [s3, o3] = turnTrackerProcessor(
         currentState,
-        createUserMessageEvent("Second", "msg_2", 2000)
+        createMessageStartEvent("msg_2", 2000)
       );
       currentState = s3;
       allTurnIds.push(o3[0].data.turnId);
@@ -327,7 +329,7 @@ describe("turnTrackerProcessor", () => {
       // Third turn
       const [s5, o5] = turnTrackerProcessor(
         currentState,
-        createUserMessageEvent("Third", "msg_3", 3000)
+        createMessageStartEvent("msg_3", 3000)
       );
       currentState = s5;
       allTurnIds.push(o5[0].data.turnId);

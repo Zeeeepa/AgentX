@@ -2,11 +2,11 @@
  * turnTrackerProcessor
  *
  * Pure Mealy transition function that tracks request-response turn pairs.
+ * Derives turn events entirely from stream-layer events (no external injection).
  *
- * Input Events:
- * - user_message (Message Layer)
- * - message_stop (Stream Layer - contains stop reason)
- * - assistant_message (Message Layer)
+ * Input Events (Stream Layer):
+ * - message_start → emit turn_request (a new turn begins)
+ * - message_stop  → emit turn_response (turn completes, based on stop reason)
  *
  * Output Events (Turn Layer):
  * - turn_request
@@ -15,11 +15,9 @@
 
 import type { Processor, ProcessorDefinition } from "../mealy";
 import type {
-  // Input: combined stream and message events
   StreamEvent,
-  AgentMessageEvent,
+  MessageStartEvent,
   MessageStopEvent,
-  UserMessageEvent,
   // Output: Turn events
   TurnRequestEvent,
   TurnResponseEvent,
@@ -88,9 +86,9 @@ export type TurnTrackerOutput = TurnRequestEvent | TurnResponseEvent;
 
 /**
  * Input event types for TurnTracker
- * Accepts both Stream and Message layer events
+ * Only stream-layer events — turn events are derived, not injected.
  */
-export type TurnTrackerInput = StreamEvent | AgentMessageEvent;
+export type TurnTrackerInput = StreamEvent;
 
 /**
  * turnTrackerProcessor
@@ -104,16 +102,11 @@ export const turnTrackerProcessor: Processor<
   TurnTrackerOutput
 > = (state, input): [TurnTrackerState, TurnTrackerOutput[]] => {
   switch (input.type) {
-    case "user_message":
-      return handleUserMessage(state, input as AgentMessageEvent);
+    case "message_start":
+      return handleMessageStart(state, input as MessageStartEvent);
 
     case "message_stop":
       return handleMessageStop(state, input as StreamEvent);
-
-    case "assistant_message":
-      // Turn completion is handled in message_stop
-      // This handler is kept for potential future use
-      return [state, []];
 
     default:
       return [state, []];
@@ -121,22 +114,25 @@ export const turnTrackerProcessor: Processor<
 };
 
 /**
- * Handle user_message event
+ * Handle message_start event — a new turn begins
  */
-function handleUserMessage(
+function handleMessageStart(
   state: Readonly<TurnTrackerState>,
-  event: AgentMessageEvent
+  event: MessageStartEvent
 ): [TurnTrackerState, TurnTrackerOutput[]] {
-  const { data } = event as UserMessageEvent;
-  const turnId = generateId();
+  // If there's already a pending turn (e.g. tool_use didn't end the turn),
+  // don't start a new one
+  if (state.pendingTurn) {
+    return [state, []];
+  }
 
-  // Extract content as string (UserMessage.content can be string or array)
-  const contentText = typeof data.content === "string" ? data.content : "";
+  const turnId = generateId();
+  const messageId = event.data.messageId ?? "";
 
   const pendingTurn: PendingTurn = {
     turnId,
-    messageId: data.id,
-    content: contentText,
+    messageId,
+    content: "",
     requestedAt: event.timestamp,
   };
 
@@ -145,8 +141,8 @@ function handleUserMessage(
     timestamp: Date.now(),
     data: {
       turnId,
-      messageId: data.id,
-      content: contentText,
+      messageId,
+      content: "",
       timestamp: event.timestamp,
     },
   };
