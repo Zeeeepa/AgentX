@@ -150,6 +150,7 @@ export interface ImageRecord {
   name?: string;
   description?: string;
   systemPrompt?: string;
+  customData?: Record<string, unknown>;
   createdAt: number;
   updatedAt: number;
 }
@@ -223,6 +224,13 @@ export interface ImageListResponse extends BaseResponse {
 }
 
 /**
+ * Image update response
+ */
+export interface ImageUpdateResponse extends BaseResponse {
+  record: ImageRecord;
+}
+
+/**
  * Container create response
  */
 export interface ContainerCreateResponse extends BaseResponse {
@@ -288,6 +296,7 @@ export interface ImageNamespace {
     description?: string;
     systemPrompt?: string;
     mcpServers?: Record<string, unknown>;
+    customData?: Record<string, unknown>;
   }): Promise<ImageCreateResponse>;
 
   /**
@@ -299,6 +308,15 @@ export interface ImageNamespace {
    * List images
    */
   list(containerId?: string): Promise<ImageListResponse>;
+
+  /**
+   * Update image
+   */
+  update(imageId: string, updates: {
+    name?: string;
+    description?: string;
+    customData?: Record<string, unknown>;
+  }): Promise<ImageUpdateResponse>;
 
   /**
    * Delete image

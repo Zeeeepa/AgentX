@@ -1,0 +1,23 @@
+{
+  "name": "tool-call-block-has-populated-toolinput-and-toolresult",
+  "description": "VCR recording: tool-call-block-has-populated-toolinput-and-toolresult",
+  "recordedAt": 1770388570259,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 7,
+      "data": {
+        "messageId": "msg_1770388570266",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "error",
+      "delay": 738,
+      "data": {
+        "message": "AI_APICallError: Forbidden",
+        "errorCode": "stream_error"
+      }
+    }
+  ]
+}

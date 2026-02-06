@@ -9,10 +9,13 @@ import {
   SettingsIcon,
   LogOutIcon,
   UserIcon,
-  Trash2Icon,
   BotIcon,
   StarIcon,
   LayoutGridIcon,
+  MoreHorizontalIcon,
+  PinIcon,
+  PencilIcon,
+  Trash2Icon,
 } from "lucide-react";
 import {
   Sidebar,
@@ -26,7 +29,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { Session, User } from "./types";
 
 interface ChatSidebarProps {
@@ -36,6 +46,8 @@ interface ChatSidebarProps {
   onNewChat: () => void;
   onSelectSession: (id: string) => void;
   onDeleteSession: (id: string) => void;
+  onPinSession: (id: string) => void;
+  onRenameSession: (id: string, newTitle: string) => void;
 }
 
 export function ChatSidebar({
@@ -45,13 +57,31 @@ export function ChatSidebar({
   onNewChat,
   onSelectSession,
   onDeleteSession,
+  onPinSession,
+  onRenameSession,
 }: ChatSidebarProps) {
   const router = useRouter();
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [editValue, setEditValue] = React.useState("");
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
     router.refresh();
+  };
+
+  const startRename = (session: Session) => {
+    setEditingId(session.id);
+    setEditValue(session.title);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const commitRename = () => {
+    if (editingId && editValue.trim()) {
+      onRenameSession(editingId, editValue.trim());
+    }
+    setEditingId(null);
   };
 
   const getSessionPreview = (session: Session): string => {
@@ -61,15 +91,16 @@ export function ChatSidebar({
   };
 
   return (
-    <Sidebar data-testid="sidebar">
+    <Sidebar data-testid="sidebar" collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1">
-          <BotIcon className="size-5 text-primary" />
-          <span className="font-semibold text-base">Portagent</span>
+        <div className="flex items-center gap-2 px-2 py-1 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
+          <BotIcon className="size-5 shrink-0 text-primary group-data-[collapsible=icon]:hidden" />
+          <span className="font-semibold text-base truncate group-data-[collapsible=icon]:hidden">Portagent</span>
+          <SidebarTrigger className="ml-auto shrink-0 group-data-[collapsible=icon]:ml-0" />
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="overflow-x-hidden">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -95,40 +126,82 @@ export function ChatSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarSeparator />
+        <SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
 
-        <SidebarGroup className="pt-4">
+        <SidebarGroup className="pt-4 group-data-[collapsible=icon]:hidden">
           <SidebarGroupLabel>History</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {sessions.map((session) => {
                 const preview = getSessionPreview(session);
+                const isEditing = editingId === session.id;
+
                 return (
                   <SidebarMenuItem key={session.id} className="group/session">
                     <SidebarMenuButton
                       isActive={session.id === activeSessionId}
-                      onClick={() => onSelectSession(session.id)}
+                      onClick={() => !isEditing && onSelectSession(session.id)}
                       className="h-auto py-2 items-start"
                     >
-                      <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="truncate text-sm">{session.title}</span>
-                        {preview && (
+                      <div className="flex flex-col gap-0.5 min-w-0 w-full">
+                        {isEditing ? (
+                          <input
+                            ref={inputRef}
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onBlur={commitRename}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") commitRename();
+                              if (e.key === "Escape") setEditingId(null);
+                            }}
+                            className="text-sm bg-transparent border-b border-primary outline-none w-full"
+                          />
+                        ) : (
+                          <div className="flex items-center gap-1 min-w-0">
+                            {session.pinned && (
+                              <PinIcon className="size-3 shrink-0 text-muted-foreground" />
+                            )}
+                            <span className="truncate text-sm">{session.title}</span>
+                          </div>
+                        )}
+                        {!isEditing && preview && (
                           <span className="truncate text-xs text-muted-foreground">
                             {preview}
                           </span>
                         )}
                       </div>
                     </SidebarMenuButton>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteSession(session.id);
-                      }}
-                      className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/session:opacity-100 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
-                    >
-                      <Trash2Icon className="size-3.5" />
-                    </button>
+
+                    {!isEditing && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/session:opacity-100 p-1 rounded hover:bg-accent text-muted-foreground transition-all"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreHorizontalIcon className="size-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-36">
+                          <DropdownMenuItem onClick={() => onPinSession(session.id)}>
+                            <PinIcon className="size-4 mr-2" />
+                            {session.pinned ? "Unpin" : "Pin to Top"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => startRename(session)}>
+                            <PencilIcon className="size-4 mr-2" />
+                            Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => onDeleteSession(session.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2Icon className="size-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </SidebarMenuItem>
                 );
               })}

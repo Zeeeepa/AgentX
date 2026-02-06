@@ -144,19 +144,20 @@ export class CommandHandler {
   // ==================== Image Commands ====================
 
   private async handleImageCreate(params: unknown): Promise<RpcResponse> {
-    const { containerId, name, description, systemPrompt, mcpServers } = params as {
+    const { containerId, name, description, systemPrompt, mcpServers, customData } = params as {
       containerId: string;
       name?: string;
       description?: string;
       systemPrompt?: string;
       mcpServers?: Record<string, unknown>;
+      customData?: Record<string, unknown>;
     };
 
     const { imageRepository, sessionRepository } = this.runtime.platform;
     const { createImage } = await import("@agentxjs/core/image");
 
     const image = await createImage(
-      { containerId, name, description, systemPrompt, mcpServers: mcpServers as any },
+      { containerId, name, description, systemPrompt, mcpServers: mcpServers as any, customData },
       { imageRepository, sessionRepository }
     );
 
@@ -265,7 +266,7 @@ export class CommandHandler {
   private async handleImageUpdate(params: unknown): Promise<RpcResponse> {
     const { imageId, updates } = params as {
       imageId: string;
-      updates: { name?: string; description?: string };
+      updates: { name?: string; description?: string; customData?: Record<string, unknown> };
     };
 
     // Get existing image

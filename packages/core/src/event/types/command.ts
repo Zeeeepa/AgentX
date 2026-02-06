@@ -373,6 +373,7 @@ export interface ImageCreateRequest extends BaseCommandRequest<
       name?: string;
       description?: string;
       systemPrompt?: string;
+      customData?: Record<string, unknown>;
     };
   }
 > {}
@@ -446,6 +447,7 @@ export interface ImageUpdateRequest extends BaseCommandRequest<
     updates: {
       name?: string;
       description?: string;
+      customData?: Record<string, unknown>;
     };
   }
 > {}

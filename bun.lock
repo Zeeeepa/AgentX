@@ -162,7 +162,6 @@
       },
       "devDependencies": {
         "@agentxjs/claude-driver": "workspace:*",
-        "agentxjs": "workspace:*",
         "typescript": "^5.3.3",
       },
       "peerDependencies": {

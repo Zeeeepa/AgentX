@@ -475,6 +475,141 @@ Then(
 );
 
 // ============================================================================
+// Phase: Image Custom Data
+// ============================================================================
+
+When(
+  "I create an image {string} in {string}",
+  async function (this: AgentXWorld, name: string, containerId: string) {
+    const result = await this.localAgentX!.images.create({
+      containerId,
+      name,
+    });
+    const state = getState(this);
+    state.imageId = result.record.imageId;
+    state.sessionId = result.record.sessionId;
+  }
+);
+
+When(
+  "I create an image {string} in {string} with customData:",
+  async function (this: AgentXWorld, name: string, containerId: string, table: DataTable) {
+    const customData: Record<string, unknown> = {};
+    for (const row of table.hashes()) {
+      // Parse "true"/"false" as booleans, numbers as numbers
+      let value: unknown = row.value;
+      if (value === "true") value = true;
+      else if (value === "false") value = false;
+      else if (!isNaN(Number(value))) value = Number(value);
+      customData[row.key] = value;
+    }
+
+    const result = await this.localAgentX!.images.create({
+      containerId,
+      name,
+      customData,
+    });
+    const state = getState(this);
+    state.imageId = result.record.imageId;
+    state.sessionId = result.record.sessionId;
+  }
+);
+
+When(
+  "I update the image customData:",
+  async function (this: AgentXWorld, table: DataTable) {
+    const state = getState(this);
+    const customData: Record<string, unknown> = {};
+    for (const row of table.hashes()) {
+      let value: unknown = row.value;
+      if (value === "true") value = true;
+      else if (value === "false") value = false;
+      else if (!isNaN(Number(value))) value = Number(value);
+      customData[row.key] = value;
+    }
+
+    const result = await this.localAgentX!.images.update(state.imageId!, {
+      customData,
+    });
+    state.imageId = result.record.imageId;
+  }
+);
+
+When(
+  "I reload the image by id",
+  async function (this: AgentXWorld) {
+    const state = getState(this);
+    const result = await this.localAgentX!.images.get(state.imageId!);
+    assert.ok(result.record, "Image should exist after reload");
+  }
+);
+
+When(
+  "I list images in {string}",
+  async function (this: AgentXWorld, containerId: string) {
+    const state = getState(this);
+    const result = await this.localAgentX!.images.list(containerId);
+    (state as any).imageList = result.records;
+  }
+);
+
+Then(
+  "the image customData {string} should be {string}",
+  async function (this: AgentXWorld, key: string, expected: string) {
+    const state = getState(this);
+    const result = await this.localAgentX!.images.get(state.imageId!);
+    assert.ok(result.record, "Image should exist");
+    assert.ok(result.record!.customData, "Image should have customData");
+    assert.equal(
+      String(result.record!.customData![key]),
+      expected,
+      `customData.${key} should be "${expected}"`
+    );
+  }
+);
+
+Then(
+  "the image should have no customData",
+  async function (this: AgentXWorld) {
+    const state = getState(this);
+    const result = await this.localAgentX!.images.get(state.imageId!);
+    assert.ok(result.record, "Image should exist");
+    const cd = result.record!.customData;
+    assert.ok(!cd || Object.keys(cd).length === 0, "Image should have no customData");
+  }
+);
+
+Then(
+  "the image list should contain {string} with customData {string} = {string}",
+  function (this: AgentXWorld, name: string, key: string, expected: string) {
+    const state = getState(this);
+    const list = (state as any).imageList as any[];
+    const image = list.find((r) => r.name === name);
+    assert.ok(image, `Image "${name}" not found in list`);
+    assert.ok(image.customData, `Image "${name}" should have customData`);
+    assert.equal(
+      String(image.customData[key]),
+      expected,
+      `Image "${name}" customData.${key} should be "${expected}"`
+    );
+  }
+);
+
+Then(
+  "the image list should contain {string} without customData {string}",
+  function (this: AgentXWorld, name: string, key: string) {
+    const state = getState(this);
+    const list = (state as any).imageList as any[];
+    const image = list.find((r) => r.name === name);
+    assert.ok(image, `Image "${name}" not found in list`);
+    assert.ok(
+      !image.customData || !(key in image.customData),
+      `Image "${name}" should not have customData.${key}`
+    );
+  }
+);
+
+// ============================================================================
 // Phase 4: Cleanup
 // ============================================================================
 

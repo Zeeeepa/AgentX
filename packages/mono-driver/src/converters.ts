@@ -6,7 +6,7 @@
 
 import { tool, jsonSchema } from "ai";
 import type { ModelMessage, ToolSet } from "ai";
-import type { Message } from "@agentxjs/core/agent";
+import type { Message, ToolResultMessage } from "@agentxjs/core/agent";
 import type { DriverStreamEvent, StopReason, ToolDefinition } from "@agentxjs/core/driver";
 
 // ============================================================================
@@ -58,15 +58,15 @@ export function toVercelMessage(message: Message): ModelMessage | null {
     }
 
     case "tool-result": {
-      const msg = message as unknown as { toolCallId: string; toolResult: { result: unknown } };
+      const msg = message as ToolResultMessage;
       return {
         role: "tool",
         content: [
           {
             type: "tool-result" as const,
             toolCallId: msg.toolCallId,
-            toolName: "unknown",
-            output: msg.toolResult.result,
+            toolName: msg.toolResult.name,
+            output: msg.toolResult.output,
           },
         ],
       } as unknown as ModelMessage;

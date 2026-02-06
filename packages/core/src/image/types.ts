@@ -34,13 +34,14 @@ export interface Image {
   readonly description: string | undefined;
   readonly systemPrompt: string | undefined;
   readonly mcpServers: Record<string, McpServerConfig> | undefined;
+  readonly customData: Record<string, unknown> | undefined;
   readonly createdAt: number;
   readonly updatedAt: number;
 
   /**
-   * Update image metadata (name, description)
+   * Update image metadata (name, description, customData)
    */
-  update(updates: { name?: string; description?: string }): Promise<Image>;
+  update(updates: { name?: string; description?: string; customData?: Record<string, unknown> }): Promise<Image>;
 
   /**
    * Delete this image and its session
@@ -74,4 +75,5 @@ export interface ImageCreateConfig {
   description?: string;
   systemPrompt?: string;
   mcpServers?: Record<string, McpServerConfig>;
+  customData?: Record<string, unknown>;
 }

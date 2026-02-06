@@ -93,6 +93,9 @@ export interface ImageRecord {
   /** Provider-specific metadata */
   metadata?: ImageMetadata;
 
+  /** Application-specific custom data (favorites, sort order, tags, etc.) */
+  customData?: Record<string, unknown>;
+
   /** Creation timestamp (Unix milliseconds) */
   createdAt: number;
 

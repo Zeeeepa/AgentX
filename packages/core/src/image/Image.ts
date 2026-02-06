@@ -49,6 +49,10 @@ export class ImageImpl implements Image {
     return this.record.mcpServers;
   }
 
+  get customData(): Record<string, unknown> | undefined {
+    return this.record.customData;
+  }
+
   get createdAt(): number {
     return this.record.createdAt;
   }
@@ -76,6 +80,7 @@ export class ImageImpl implements Image {
       description: config.description,
       systemPrompt: config.systemPrompt,
       mcpServers: config.mcpServers,
+      customData: config.customData,
       createdAt: now,
       updatedAt: now,
     };
@@ -135,12 +140,13 @@ export class ImageImpl implements Image {
   /**
    * Update image metadata
    */
-  async update(updates: { name?: string; description?: string }): Promise<Image> {
+  async update(updates: { name?: string; description?: string; customData?: Record<string, unknown> }): Promise<Image> {
     const now = Date.now();
     const updatedRecord: ImageRecord = {
       ...this.record,
       name: updates.name ?? this.record.name,
       description: updates.description ?? this.record.description,
+      customData: updates.customData !== undefined ? updates.customData : this.record.customData,
       updatedAt: now,
     };
 

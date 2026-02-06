@@ -16,6 +16,8 @@ export interface Session {
   id: string;
   title: string;
   messages: Message[];
+  pinned?: boolean;
+  renamed?: boolean;
 }
 
 export interface User {

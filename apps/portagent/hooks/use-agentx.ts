@@ -28,6 +28,7 @@ interface ImageRecord {
   containerId: string;
   sessionId: string;
   name?: string;
+  customData?: Record<string, unknown>;
   createdAt: number;
   updatedAt: number;
 }
@@ -38,11 +39,14 @@ interface AgentXClient {
     create(containerId: string): Promise<{ containerId: string }>;
   };
   images: {
-    create(params: { containerId: string; name?: string; systemPrompt?: string }): Promise<{
+    create(params: { containerId: string; name?: string; systemPrompt?: string; customData?: Record<string, unknown> }): Promise<{
       record: { imageId: string; sessionId: string };
     }>;
     list(containerId?: string): Promise<{
       records: ImageRecord[];
+    }>;
+    update(imageId: string, updates: { name?: string; customData?: Record<string, unknown> }): Promise<{
+      record: ImageRecord;
     }>;
     delete(imageId: string): Promise<{ requestId: string }>;
   };
@@ -114,6 +118,8 @@ export interface AgentXSession {
   imageId: string;
   sessionId: string;
   title: string;
+  pinned?: boolean;
+  renamed?: boolean;
   // Lazily loaded when session is selected
   agentId?: string;
   presentation?: PresentationLocal;
@@ -127,6 +133,8 @@ export interface UseAgentXReturn {
   createSession: () => Promise<AgentXSession | null>;
   selectSession: (imageId: string) => void;
   deleteSession: (imageId: string) => Promise<void>;
+  pinSession: (imageId: string) => Promise<void>;
+  renameSession: (imageId: string, newTitle: string) => Promise<void>;
   sendMessage: (text: string) => Promise<void>;
   error: string | null;
 }
@@ -205,11 +213,19 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
 
         if (imageRes.records.length > 0) {
           const restored: AgentXSession[] = imageRes.records
-            .sort((a, b) => b.updatedAt - a.updatedAt)
+            .sort((a, b) => {
+              // Pinned first, then by updatedAt
+              const aPinned = a.customData?.pinned ? 1 : 0;
+              const bPinned = b.customData?.pinned ? 1 : 0;
+              if (aPinned !== bPinned) return bPinned - aPinned;
+              return b.updatedAt - a.updatedAt;
+            })
             .map((record) => ({
               imageId: record.imageId,
               sessionId: record.sessionId,
               title: record.name || "Chat",
+              pinned: !!record.customData?.pinned,
+              renamed: !!record.customData?.renamed,
             }));
           setSessions(restored);
         }
@@ -347,21 +363,22 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
   const sendMessage = useCallback(
     async (text: string) => {
       if (!activeSession?.presentation) return;
+      const client = clientRef.current;
 
       try {
         await activeSession.presentation.send(text);
 
-        // Update session title if it's still the default
-        setSessions((prev) =>
-          prev.map((s) => {
-            if (s.imageId !== activeSession.imageId) return s;
-            if (s.title === "New Chat") {
-              const title = text.length > 20 ? text.slice(0, 20) + "..." : text;
-              return { ...s, title };
-            }
-            return s;
-          })
-        );
+        // Auto-update title if not manually renamed
+        if (!activeSession.renamed) {
+          const title = text.length > 30 ? text.slice(0, 30) + "..." : text;
+          setSessions((prev) =>
+            prev.map((s) =>
+              s.imageId === activeSession.imageId ? { ...s, title } : s
+            )
+          );
+          // Sync to AgentX
+          client?.images.update(activeSession.imageId, { name: title }).catch(() => {});
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       }
@@ -397,6 +414,66 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
     [sessions, activeSessionId]
   );
 
+  // Pin/unpin a session
+  const pinSession = useCallback(
+    async (imageId: string) => {
+      const client = clientRef.current;
+      if (!client) return;
+
+      const session = sessions.find((s) => s.imageId === imageId);
+      if (!session) return;
+
+      const newPinned = !session.pinned;
+      try {
+        await client.images.update(imageId, {
+          customData: { pinned: newPinned, renamed: session.renamed || false },
+        });
+
+        setSessions((prev) => {
+          const updated = prev.map((s) =>
+            s.imageId === imageId ? { ...s, pinned: newPinned } : s
+          );
+          // Re-sort: pinned first, then by position
+          return updated.sort((a, b) => {
+            const ap = a.pinned ? 1 : 0;
+            const bp = b.pinned ? 1 : 0;
+            return bp - ap;
+          });
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      }
+    },
+    [sessions]
+  );
+
+  // Rename a session
+  const renameSession = useCallback(
+    async (imageId: string, newTitle: string) => {
+      const client = clientRef.current;
+      if (!client) return;
+
+      const session = sessions.find((s) => s.imageId === imageId);
+      if (!session) return;
+
+      try {
+        await client.images.update(imageId, {
+          name: newTitle,
+          customData: { pinned: session.pinned || false, renamed: true },
+        });
+
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.imageId === imageId ? { ...s, title: newTitle, renamed: true } : s
+          )
+        );
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      }
+    },
+    [sessions]
+  );
+
   return {
     connected,
     sessions,
@@ -405,6 +482,8 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
     createSession,
     selectSession,
     deleteSession,
+    pinSession,
+    renameSession,
     sendMessage,
     error,
   };

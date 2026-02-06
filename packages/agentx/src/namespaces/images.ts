@@ -9,6 +9,7 @@ import type {
   ImageCreateResponse,
   ImageGetResponse,
   ImageListResponse,
+  ImageUpdateResponse,
   BaseResponse,
 } from "../types";
 
@@ -23,6 +24,7 @@ export function createLocalImages(platform: AgentXPlatform): ImageNamespace {
       description?: string;
       systemPrompt?: string;
       mcpServers?: Record<string, unknown>;
+      customData?: Record<string, unknown>;
     }): Promise<ImageCreateResponse> {
       const { imageRepository, sessionRepository } = platform;
       const { createImage } = await import("@agentxjs/core/image");
@@ -34,6 +36,7 @@ export function createLocalImages(platform: AgentXPlatform): ImageNamespace {
           description: params.description,
           systemPrompt: params.systemPrompt,
           mcpServers: params.mcpServers as any,
+          customData: params.customData,
         },
         { imageRepository, sessionRepository }
       );
@@ -66,6 +69,23 @@ export function createLocalImages(platform: AgentXPlatform): ImageNamespace {
       };
     },
 
+    async update(imageId: string, updates: {
+      name?: string;
+      description?: string;
+      customData?: Record<string, unknown>;
+    }): Promise<ImageUpdateResponse> {
+      const { loadImage } = await import("@agentxjs/core/image");
+      const { imageRepository, sessionRepository } = platform;
+
+      const image = await loadImage(imageId, { imageRepository, sessionRepository });
+      if (!image) {
+        throw new Error(`Image not found: ${imageId}`);
+      }
+
+      const updated = await image.update(updates);
+      return { record: updated.toRecord(), requestId: "" };
+    },
+
     async delete(imageId: string): Promise<BaseResponse> {
       const { loadImage } = await import("@agentxjs/core/image");
       const { imageRepository, sessionRepository } = platform;
@@ -94,6 +114,7 @@ export function createRemoteImages(
       description?: string;
       systemPrompt?: string;
       mcpServers?: Record<string, unknown>;
+      customData?: Record<string, unknown>;
     }): Promise<ImageCreateResponse> {
       const result = await rpcClient.call<ImageCreateResponse>("image.create", params);
 
@@ -130,6 +151,15 @@ export function createRemoteImages(
         }
       }
 
+      return { ...result, requestId: "" };
+    },
+
+    async update(imageId: string, updates: {
+      name?: string;
+      description?: string;
+      customData?: Record<string, unknown>;
+    }): Promise<ImageUpdateResponse> {
+      const result = await rpcClient.call<ImageUpdateResponse>("image.update", { imageId, updates });
       return { ...result, requestId: "" };
     },
 

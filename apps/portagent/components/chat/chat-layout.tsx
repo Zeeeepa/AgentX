@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { ChatSidebar } from "./chat-sidebar";
 import { ChatMessages } from "./chat-messages";
 import { ChatInput } from "./chat-input";
@@ -103,6 +103,8 @@ export function ChatLayout({ user }: ChatLayoutProps) {
     id: s.imageId,
     title: s.title,
     messages: [],
+    pinned: s.pinned,
+    renamed: s.renamed,
   }));
 
   const activeSessionId = agentx.activeSession?.imageId ?? null;
@@ -134,6 +136,14 @@ export function ChatLayout({ user }: ChatLayoutProps) {
     await agentx.deleteSession(id);
   };
 
+  const handlePinSession = async (id: string) => {
+    await agentx.pinSession(id);
+  };
+
+  const handleRenameSession = async (id: string, newTitle: string) => {
+    await agentx.renameSession(id, newTitle);
+  };
+
   const handleSend = async (text: string) => {
     if (!agentx.activeSession) {
       // Auto-create session if none active
@@ -156,15 +166,29 @@ export function ChatLayout({ user }: ChatLayoutProps) {
         onNewChat={handleNewChat}
         onSelectSession={handleSelectSession}
         onDeleteSession={handleDeleteSession}
+        onPinSession={handlePinSession}
+        onRenameSession={handleRenameSession}
       />
-      <SidebarInset>
-        <header className="flex items-center gap-2 border-b px-4 py-2">
-          <SidebarTrigger />
+      <SidebarInset className="h-svh overflow-hidden">
+        <header className="shrink-0 flex items-center gap-2 border-b px-4 py-2">
           <h1 className="text-lg font-semibold">Portagent</h1>
-          {!agentx.connected && (
-            <span className="ml-auto text-xs text-muted-foreground">Connecting...</span>
+          {status !== "idle" && (
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="relative flex size-2">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/60" />
+                <span className="relative inline-flex size-2 rounded-full bg-primary" />
+              </span>
+              {status === "thinking" && "Thinking..."}
+              {status === "responding" && "Responding..."}
+              {status === "executing" && "Executing tool..."}
+            </span>
           )}
-          {agentx.error && <span className="ml-auto text-xs text-destructive">{agentx.error}</span>}
+          <span className="ml-auto flex items-center gap-2">
+            {!agentx.connected && (
+              <span className="text-xs text-muted-foreground">Connecting...</span>
+            )}
+            {agentx.error && <span className="text-xs text-destructive">{agentx.error}</span>}
+          </span>
         </header>
         <div className="flex flex-1 flex-col overflow-hidden">
           <ChatMessages messages={messages} isThinking={isThinking} />
