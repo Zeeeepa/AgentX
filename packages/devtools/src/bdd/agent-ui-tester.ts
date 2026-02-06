@@ -1,8 +1,7 @@
-import { spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync, unlinkSync, mkdirSync } from "node:fs";
-import { resolve, dirname, join } from "node:path";
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { tmpdir } from "node:os";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -48,20 +47,7 @@ export interface UiTesterOptions {
 /**
  * Run a UI test scenario using Claude Code CLI + agent-browser.
  *
- * Uses a temporary bash script to avoid Bun subprocess auth issues
- * with nested Claude CLI invocations.
- *
- * @example
- * ```ts
- * const result = agentUiTester(`
- *   Navigate to http://localhost:3000
- *   Verify redirect to /setup
- *   Fill email "admin@example.com", password "admin123"
- *   Click Setup
- *   Verify logged in as admin
- * `);
- * expect(result.passed).toBe(true);
- * ```
+ * BDD scripts must run under Node.js (not Bun) to avoid claude CLI auth bug.
  */
 export function agentUiTester(
   prompt: string,
@@ -75,43 +61,28 @@ export function agentUiTester(
 
   const systemPrompt = loadSystemPrompt(headed);
 
-  // Write prompt and system prompt to temp files to avoid shell escaping issues
-  const tmpDir = join(tmpdir(), "agent-ui-tester");
-  mkdirSync(tmpDir, { recursive: true });
-  const promptFile = join(tmpDir, `prompt-${Date.now()}.txt`);
-  const sysPromptFile = join(tmpDir, `sys-${Date.now()}.txt`);
-  const scriptFile = join(tmpDir, `run-${Date.now()}.sh`);
-
-  writeFileSync(promptFile, fullPrompt);
-  writeFileSync(sysPromptFile, systemPrompt);
-  writeFileSync(
-    scriptFile,
-    [
-      "#!/bin/bash",
-      "unset CLAUDECODE CLAUDE_CODE_SSE_PORT CLAUDE_CODE_ENTRYPOINT",
-      `PROMPT=$(cat "${promptFile}")`,
-      `SYS_PROMPT=$(cat "${sysPromptFile}")`,
-      `claude -p "$PROMPT" --model ${model} --append-system-prompt "$SYS_PROMPT" --allowedTools "Bash(agent-browser:*)"`,
-    ].join("\n")
+  // Filter out CLAUDE* env vars to avoid auth conflicts when spawned from Claude Code
+  const cleanEnv = Object.fromEntries(
+    Object.entries(process.env).filter(([k]) => !k.startsWith("CLAUDE"))
   );
 
   try {
-    const result = spawnSync("/bin/bash", [scriptFile], {
+    const output = execFileSync("claude", [
+      "-p", fullPrompt,
+      "--model", model,
+      "--append-system-prompt", systemPrompt,
+      "--allowedTools", "Bash(agent-browser:*)",
+    ], {
       encoding: "utf-8",
       timeout,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
+      env: cleanEnv,
+      maxBuffer: 10 * 1024 * 1024,
+    }).trim();
 
-    const output = (result.stdout || result.stderr || "").trim();
     const passed = /\*{0,2}PASS\*{0,2}\b/m.test(output);
-
     return { passed, output };
   } catch (error: any) {
-    return { passed: false, output: error.message || "Unknown error" };
-  } finally {
-    // Cleanup temp files
-    try { unlinkSync(promptFile); } catch {}
-    try { unlinkSync(sysPromptFile); } catch {}
-    try { unlinkSync(scriptFile); } catch {}
+    const output = error.stdout || error.stderr || error.message || "Unknown error";
+    return { passed: false, output: output.trim() };
   }
 }

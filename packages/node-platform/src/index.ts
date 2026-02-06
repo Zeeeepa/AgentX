@@ -15,6 +15,7 @@
 import type { AgentXPlatform } from "@agentxjs/core/runtime";
 import type { LogLevel } from "commonxjs/logger";
 import { setLoggerFactory } from "commonxjs/logger";
+import { LoggerFactoryImpl } from "commonxjs/logger";
 import { EventBusImpl } from "@agentxjs/core/event";
 import { createPersistence, sqliteDriver } from "./persistence";
 import { NodeBashProvider } from "./bash/NodeBashProvider";
@@ -88,13 +89,15 @@ export async function createNodePlatform(
 ): Promise<AgentXPlatform> {
   const dataPath = options.dataPath ?? "./data";
 
-  // Configure file logging if logDir is provided
+  // Configure logging
   if (options.logDir) {
     const loggerFactory = new FileLoggerFactory({
       logDir: options.logDir,
       level: options.logLevel ?? "debug",
     });
     setLoggerFactory(loggerFactory);
+  } else if (options.logLevel) {
+    LoggerFactoryImpl.configure({ defaultLevel: options.logLevel });
   }
 
   // Create persistence with SQLite
@@ -106,12 +109,16 @@ export async function createNodePlatform(
   // Create event bus
   const eventBus = new EventBusImpl();
 
+  // Create WebSocket factory (uses ws library for Node.js)
+  const { createNodeWebSocket } = await import("./network/WebSocketFactory");
+
   return {
     containerRepository: persistence.containers,
     imageRepository: persistence.images,
     sessionRepository: persistence.sessions,
     eventBus,
     bashProvider,
+    webSocketFactory: createNodeWebSocket,
   };
 }
 

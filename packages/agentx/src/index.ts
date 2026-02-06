@@ -49,8 +49,9 @@ import type { AgentX, AgentXConfig } from "./types";
  */
 export async function createAgentX(config: AgentXConfig): Promise<AgentX> {
   if (config.serverUrl) {
-    // Remote mode
-    const client = new RemoteClient(config);
+    // Remote mode — resolve platform for WebSocket factory if needed
+    const resolvedConfig = await resolvePlatformForRemote(config);
+    const client = new RemoteClient(resolvedConfig);
     await client.connect();
     return client;
   }
@@ -63,6 +64,38 @@ export async function createAgentX(config: AgentXConfig): Promise<AgentX> {
   throw new Error(
     "Invalid AgentX config: provide either 'serverUrl' (remote mode) or 'apiKey' (local mode)"
   );
+}
+
+/**
+ * Resolve platform for remote mode
+ *
+ * In Node.js: auto-import node-platform to get webSocketFactory
+ * In browser: no platform needed (native WebSocket is the default)
+ */
+async function resolvePlatformForRemote(config: AgentXConfig): Promise<AgentXConfig> {
+  if (config.customPlatform?.webSocketFactory) {
+    return config;
+  }
+
+  // In browser, native WebSocket works — no platform needed
+  if (typeof globalThis !== "undefined" && (globalThis as any).window?.document !== undefined) {
+    return config;
+  }
+
+  // Node.js — auto-resolve webSocketFactory from node-platform
+  try {
+    const { createNodeWebSocket } = await import("@agentxjs/node-platform/network");
+    return {
+      ...config,
+      customPlatform: {
+        ...config.customPlatform,
+        webSocketFactory: createNodeWebSocket,
+      } as any,
+    };
+  } catch {
+    // node-platform not available, fall back to global WebSocket
+    return config;
+  }
 }
 
 /**
@@ -79,6 +112,7 @@ async function createLocalClient(config: AgentXConfig): Promise<AgentX> {
     const { createNodePlatform } = await import("@agentxjs/node-platform");
     platform = await createNodePlatform({
       dataPath: config.dataPath ?? ":memory:",
+      logLevel: config.logLevel ?? (config.debug ? "debug" : undefined),
     });
   }
 

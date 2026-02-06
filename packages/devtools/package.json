@@ -54,11 +54,15 @@
     "typescript": "^5.3.3"
   },
   "peerDependencies": {
+    "agentxjs": "workspace:*",
     "@agentxjs/claude-driver": "workspace:*",
     "@playwright/test": "^1.50.0",
     "@cucumber/cucumber": "^11.0.0"
   },
   "peerDependenciesMeta": {
+    "agentxjs": {
+      "optional": true
+    },
     "@agentxjs/claude-driver": {
       "optional": true
     },

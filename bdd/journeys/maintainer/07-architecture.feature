@@ -87,6 +87,12 @@ Feature: Monorepo Architecture
       | 3     | @agentxjs/server, agentxjs                                |
       | 4     | @agentxjs/cli, @agentx/portagent                          |
 
+  Scenario: Core layer has no platform-specific imports
+    Given the package "@agentxjs/core"
+    Then its source files should not import platform-specific modules:
+      | module | reason                                       |
+      | ws     | WebSocket impl belongs in platform layer     |
+
   Scenario: All packages share base TypeScript config
     Given the file "tsconfig.base.json"
     Then all packages should extend it

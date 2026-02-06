@@ -8,12 +8,16 @@ const nextConfig: NextConfig = {
     "@agentxjs/mono-driver",
     "@agentxjs/core",
     "commonxjs",
+    "ws",
   ],
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // ws is only used by RpcClient in Node.js (guarded by isBrowser() check)
+      // Node.js-only packages used by agentxjs in local mode (dynamic imports,
+      // never executed in browser). Tell webpack to provide empty modules.
       config.resolve.alias = {
         ...config.resolve.alias,
+        "@agentxjs/node-platform": false,
+        "@agentxjs/mono-driver": false,
         ws: false,
       };
     }

@@ -39,18 +39,17 @@ import {
 } from "./jsonrpc";
 import type { SystemEvent } from "../event/types/base";
 
-/**
- * Check if running in browser environment
- */
-function isBrowser(): boolean {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const globalWindow = typeof globalThis !== "undefined" ? (globalThis as any).window : undefined;
-  return globalWindow?.document !== undefined;
-}
-
 // ============================================================================
 // Types
 // ============================================================================
+
+/**
+ * Factory function for creating WebSocket instances.
+ * Platform layer provides the implementation:
+ * - Browser: native WebSocket (default)
+ * - Node.js: ws library (via @agentxjs/node-platform)
+ */
+export type WebSocketFactory = (url: string) => WebSocket;
 
 /**
  * RpcClient configuration
@@ -60,6 +59,12 @@ export interface RpcClientConfig {
    * WebSocket URL
    */
   url: string;
+
+  /**
+   * Factory for creating WebSocket instances.
+   * If not provided, falls back to the global WebSocket constructor.
+   */
+  createWebSocket?: WebSocketFactory;
 
   /**
    * Request timeout in milliseconds (default: 30000)
@@ -77,7 +82,7 @@ export interface RpcClientConfig {
   reconnectDelay?: number;
 
   /**
-   * Headers for authentication (Node.js only, sent in first message for browser)
+   * Headers for authentication (sent in first message after connection)
    */
   headers?:
     | Record<string, string>
@@ -172,14 +177,9 @@ export class RpcClient {
 
     const url = this.config.url;
 
-    // Create WebSocket (browser or Node.js)
-    let ws: WebSocket;
-    if (isBrowser()) {
-      ws = new WebSocket(url);
-    } else {
-      const { default: WS } = await import("ws");
-      ws = new WS(url) as unknown as WebSocket;
-    }
+    // Create WebSocket via injected factory or global WebSocket
+    const factory = this.config.createWebSocket ?? ((u: string) => new WebSocket(u));
+    const ws = factory(url);
 
     this.ws = ws;
 
@@ -191,8 +191,9 @@ export class RpcClient {
           console.log("[RpcClient] Connected to", url);
         }
 
-        // Send auth if in browser (headers not supported in WebSocket API)
-        if (isBrowser() && this.config.headers) {
+        // Send auth headers after connection (for environments where
+        // WebSocket constructor doesn't support headers, e.g. browser)
+        if (this.config.headers) {
           const headers =
             typeof this.config.headers === "function"
               ? await this.config.headers()

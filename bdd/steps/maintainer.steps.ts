@@ -426,6 +426,49 @@ Then("it defines the fundamental types: Container, Image, Session, Driver, Agent
   }
 });
 
+// --- Automatable: No platform-specific imports in core ---
+Then("its source files should not import platform-specific modules:", function (table: any) {
+  const forbidden = table.hashes().map((r: any) => r.module);
+  // Find the package source directory
+  let pkgSrcDir = "";
+  for (const d of packageDirs()) {
+    const pkg = pkgJson(`packages/${d}`);
+    if (pkg.name === currentPackageName) {
+      pkgSrcDir = resolve(ROOT, `packages/${d}/src`);
+      break;
+    }
+  }
+  assert.ok(pkgSrcDir, `Source dir not found for ${currentPackageName}`);
+
+  // Scan all .ts files recursively
+  const violations: string[] = [];
+  function scanDir(dir: string) {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = resolve(dir, entry.name);
+      if (entry.isDirectory()) {
+        scanDir(full);
+      } else if (entry.name.endsWith(".ts")) {
+        const content = readFileSync(full, "utf-8");
+        for (const mod of forbidden) {
+          // Match: import ... from "mod" / import("mod") / require("mod")
+          const pattern = new RegExp(`(?:from\\s+|import\\(\\s*)["']${mod}["']`);
+          if (pattern.test(content)) {
+            const relPath = full.replace(pkgSrcDir + "/", "");
+            violations.push(`${relPath} imports "${mod}"`);
+          }
+        }
+      }
+    }
+  }
+  scanDir(pkgSrcDir);
+
+  assert.deepStrictEqual(
+    violations,
+    [],
+    `${currentPackageName} has platform-specific imports:\n  ${violations.join("\n  ")}`
+  );
+});
+
 // --- Automatable: Layer dependencies ---
 Given("these packages:", function (table: any) {
   const rows = table.hashes();

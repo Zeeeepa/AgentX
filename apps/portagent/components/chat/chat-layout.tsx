@@ -100,12 +100,11 @@ export function ChatLayout({ user }: ChatLayoutProps) {
   const handleSend = async (text: string) => {
     if (!agentx.activeSession) {
       // Auto-create session if none active
-      const imageId = await agentx.createSession();
-      if (!imageId) return;
-      // Wait a tick for state to update, then send
-      setTimeout(() => {
-        agentx.sendMessage(text);
-      }, 0);
+      const session = await agentx.createSession();
+      if (!session) return;
+      // Send directly through the returned session's presentation
+      // (avoids stale closure where activeSession is still null)
+      await session.presentation.send(text);
       return;
     }
     await agentx.sendMessage(text);

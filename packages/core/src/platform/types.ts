@@ -24,6 +24,7 @@ import type { ImageRepository } from "../image/types";
 import type { SessionRepository } from "../session/types";
 import type { EventBus } from "../event/types";
 import type { BashProvider } from "../bash/types";
+import type { WebSocketFactory } from "../network/RpcClient";
 
 // ============================================================================
 // AgentXPlatform - Dependency Injection
@@ -72,4 +73,12 @@ export interface AgentXPlatform {
    * Node.js platform provides child_process based implementation.
    */
   readonly bashProvider?: BashProvider;
+
+  /**
+   * WebSocket factory for creating client connections
+   *
+   * Optional — browser uses native WebSocket by default.
+   * Node.js platform provides ws-based implementation.
+   */
+  readonly webSocketFactory?: WebSocketFactory;
 }

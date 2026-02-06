@@ -188,16 +188,13 @@ Then("the first paragraph should clearly state:", function (table: any) {
 
 import { After } from "@cucumber/cucumber";
 
-After({ timeout: 120000 }, function () {
+After({ timeout: 120000 }, async function () {
   if (!currentReadme || docRequirements.length === 0) return;
 
-  const result = agentDocTester(
-    {
-      files: [currentReadme],
-      requirements: docRequirements.join("\n"),
-    },
-    { model: "haiku" }
-  );
+  const result = await agentDocTester({
+    files: [currentReadme],
+    requirements: docRequirements.join("\n"),
+  });
 
   assert.ok(result.passed, `Documentation review failed:\n${result.output}`);
 });

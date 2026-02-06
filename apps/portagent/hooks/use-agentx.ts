@@ -113,7 +113,7 @@ export interface UseAgentXReturn {
   sessions: AgentXSession[];
   activeSession: AgentXSession | null;
   presentationState: PresentationStateLocal;
-  createSession: () => Promise<string | null>;
+  createSession: () => Promise<AgentXSession | null>;
   selectSession: (imageId: string) => void;
   sendMessage: (text: string) => Promise<void>;
   error: string | null;
@@ -204,7 +204,7 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
   }, [userId]);
 
   // Create a new session (image + agent)
-  const createSession = useCallback(async (): Promise<string | null> => {
+  const createSession = useCallback(async (): Promise<AgentXSession | null> => {
     const client = clientRef.current;
     if (!client) return null;
 
@@ -245,7 +245,7 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
       setActiveSessionId(imageId);
       setPresentationState(INITIAL_PRESENTATION_STATE);
 
-      return imageId;
+      return newSession;
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       return null;

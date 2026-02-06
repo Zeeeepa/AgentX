@@ -1,7 +1,4 @@
-import { spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync, unlinkSync, mkdirSync, existsSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { readFileSync, existsSync } from "node:fs";
 
 const SYSTEM_PROMPT = `You are a documentation reviewer evaluating documents from the reader's experience.
 
@@ -23,45 +20,49 @@ export interface DocTestResult {
 }
 
 export interface DocTesterOptions {
+  /** LLM provider (default: "anthropic") */
+  provider?: string;
+  /** Model name */
   model?: string;
+  /** API key (reads from env if not provided) */
+  apiKey?: string;
+  /** Base URL (reads from env if not provided) */
+  baseUrl?: string;
+  /** Timeout in ms */
   timeout?: number;
 }
 
 /**
- * Evaluate a document against requirements using Claude CLI.
+ * Evaluate a document against requirements using AgentX.
  *
- * @example
- * ```ts
- * const result = agentDocTester({
- *   files: ["packages/core/README.md"],
- *   requirements: `
- *     The README should explain Container, Image, Session, Driver, Platform.
- *     A contributor should understand these concepts without opening .ts files.
- *     There should be a Quick Start example.
- *   `,
- * });
- * expect(result.passed).toBe(true);
- * ```
+ * Uses agentxjs local mode — no subprocess, no CLI, no auth issues.
+ * Requires `agentxjs` as a peer dependency.
  */
-export function agentDocTester(
+export async function agentDocTester(
   options: {
     files: string[];
     requirements: string;
   },
   testerOptions: DocTesterOptions = {}
-): DocTestResult {
-  const { model = "haiku", timeout = 120_000 } = testerOptions;
+): Promise<DocTestResult> {
+  const {
+    provider = process.env.AGENTX_PROVIDER || "anthropic",
+    model = process.env.DEEPRACTICE_MODEL || "claude-haiku-4-5-20251001",
+    apiKey = process.env.DEEPRACTICE_API_KEY || process.env.ANTHROPIC_API_KEY || "",
+    baseUrl = process.env.DEEPRACTICE_BASE_URL,
+    timeout = 120_000,
+  } = testerOptions;
 
-  // Read all document files
-  const docContents = options.files.map((filePath) => {
-    if (!existsSync(filePath)) {
-      return `--- ${filePath} ---\n[FILE NOT FOUND]`;
-    }
-    const content = readFileSync(filePath, "utf-8");
-    return `--- ${filePath} ---\n${content}`;
-  }).join("\n\n");
+  const docContents = options.files
+    .map((filePath) => {
+      if (!existsSync(filePath)) {
+        return `--- ${filePath} ---\n[FILE NOT FOUND]`;
+      }
+      return `--- ${filePath} ---\n${readFileSync(filePath, "utf-8")}`;
+    })
+    .join("\n\n");
 
-  const fullPrompt = [
+  const userPrompt = [
     "Evaluate the following document(s) against the requirements below.",
     "",
     "DOCUMENTS:",
@@ -73,41 +74,54 @@ export function agentDocTester(
     "Evaluate each requirement. Output PASS if all are met, FAIL if any are not.",
   ].join("\n");
 
-  const tmpDir = join(tmpdir(), "agent-doc-tester");
-  mkdirSync(tmpDir, { recursive: true });
-  const promptFile = join(tmpDir, `prompt-${Date.now()}.txt`);
-  const sysPromptFile = join(tmpDir, `sys-${Date.now()}.txt`);
-  const scriptFile = join(tmpDir, `run-${Date.now()}.sh`);
+  // Dynamic import to avoid circular dependency (devtools ↔ agentxjs)
+  const agentxjs: any = await import("agentxjs");
+  const createAgentX: (...args: any[]) => Promise<any> = agentxjs.createAgentX;
 
-  writeFileSync(promptFile, fullPrompt);
-  writeFileSync(sysPromptFile, SYSTEM_PROMPT);
-  writeFileSync(
-    scriptFile,
-    [
-      "#!/bin/bash",
-      "unset CLAUDECODE CLAUDE_CODE_SSE_PORT CLAUDE_CODE_ENTRYPOINT",
-      `PROMPT=$(cat "${promptFile}")`,
-      `SYS_PROMPT=$(cat "${sysPromptFile}")`,
-      `claude -p "$PROMPT" --model ${model} --append-system-prompt "$SYS_PROMPT"`,
-    ].join("\n")
-  );
+  let agentx: any = null;
 
   try {
-    const result = spawnSync("/bin/bash", [scriptFile], {
-      encoding: "utf-8",
-      timeout,
-      stdio: ["pipe", "pipe", "pipe"],
+    agentx = await createAgentX({
+      apiKey,
+      provider,
+      model,
+      baseUrl,
+      logLevel: "silent",
     });
 
-    const output = (result.stdout || result.stderr || "").trim();
-    const passed = /\*{0,2}PASS\*{0,2}\b/m.test(output);
+    await agentx.containers.create("doc-tester");
 
+    const { record: image } = await agentx.images.create({
+      containerId: "doc-tester",
+      systemPrompt: SYSTEM_PROMPT,
+    });
+
+    const { agentId } = await agentx.agents.create({ imageId: image.imageId });
+
+    // Collect response text
+    let output = "";
+    agentx.on("text_delta", (e: any) => {
+      output += e.data.text;
+    });
+
+    // Send prompt and wait for completion
+    await Promise.race([
+      agentx.sessions.send(agentId, userPrompt),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), timeout)
+      ),
+    ]);
+
+    output = output.trim();
+    const passed = /\*{0,2}PASS\*{0,2}\b/m.test(output);
     return { passed, output };
   } catch (error: any) {
     return { passed: false, output: error.message || "Unknown error" };
   } finally {
-    try { unlinkSync(promptFile); } catch {}
-    try { unlinkSync(sysPromptFile); } catch {}
-    try { unlinkSync(scriptFile); } catch {}
+    if (agentx) {
+      try {
+        await agentx.shutdown();
+      } catch {}
+    }
   }
 }

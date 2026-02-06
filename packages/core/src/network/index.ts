@@ -72,5 +72,5 @@ export {
 } from "./jsonrpc";
 
 // RPC Client
-export type { RpcClientConfig, RpcClientState } from "./RpcClient";
+export type { RpcClientConfig, RpcClientState, WebSocketFactory } from "./RpcClient";
 export { RpcClient } from "./RpcClient";

@@ -101,12 +101,20 @@ export interface AgentXConfig {
   // ===== Common =====
 
   /**
+   * Log level for AgentX runtime
+   * Controls verbosity of console/file logging.
+   * @default "info"
+   */
+  logLevel?: "debug" | "info" | "warn" | "error" | "silent";
+
+  /**
    * Request timeout in milliseconds (default: 30000)
    */
   timeout?: number;
 
   /**
    * Enable debug logging
+   * @deprecated Use `logLevel: "debug"` instead
    */
   debug?: boolean;
 

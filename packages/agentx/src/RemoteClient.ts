@@ -44,9 +44,10 @@ export class RemoteClient implements AgentX {
     this.config = config;
     this.eventBus = new EventBusImpl();
 
-    // Create RPC client
+    // Create RPC client (WebSocket factory from platform if available)
     this.rpcClient = new RpcClient({
       url: config.serverUrl!,
+      createWebSocket: config.customPlatform?.webSocketFactory,
       timeout: config.timeout ?? 30000,
       autoReconnect: config.autoReconnect ?? true,
       headers: config.headers as Record<string, string> | undefined,
