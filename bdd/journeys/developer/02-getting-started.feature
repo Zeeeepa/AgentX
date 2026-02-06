@@ -144,9 +144,9 @@ Feature: Getting Started with AgentX SDK
     Given I need structured conversation state for a UI
     When I use the Presentation API:
       """
-      const presentation = agentx.presentations.create(agentId, {
+      const presentation = await agentx.presentations.create(agentId, {
         onUpdate: (state) => {
-          // state.conversations — completed messages
+          // state.conversations — completed messages (includes history)
           // state.streaming — current streaming response (or null)
           // state.status — "idle" | "thinking" | "responding" | "executing"
           renderUI(state);

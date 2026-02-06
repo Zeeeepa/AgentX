@@ -1,267 +1,146 @@
 # Contributing to AgentX
 
-Thank you for your interest in contributing to AgentX! This document provides guidelines and instructions for contributing.
+## Prerequisites
 
-## Getting Started
-
-### Prerequisites
-
-- **Node.js** 20+
-- **pnpm** 8+ (we use pnpm workspaces)
+- **Bun** 1.3.0+
+- **Node.js** 22.0.0+
 - **Git**
 
-### Setup
+## Setup
 
 ```bash
-# Fork and clone the repository
-git clone https://github.com/YOUR_USERNAME/AgentX.git
+git clone https://github.com/Deepractice/AgentX.git
 cd AgentX
-
-# Install dependencies
-pnpm install
-
-# Build all packages
-pnpm build
-
-# Verify setup
-pnpm typecheck
+bun install
+bun run build
 ```
 
-## Development Workflow
-
-### Running Development Mode
+Verify everything works:
 
 ```bash
-# Start all packages in dev mode
-pnpm dev
-
-# Start specific package
-pnpm dev --filter=@agentxjs/ui
+bun run bdd
 ```
 
-### Building
+## Project Structure
 
-```bash
-# Build all packages (respects dependency order)
-pnpm build
-
-# Build specific package
-pnpm build --filter=@agentxjs/agent
+```
+AgentX/
+├── packages/        # Publishable library packages
+│   ├── core/        # Types, interfaces, base classes
+│   ├── agentx/      # Unified SDK (main entry for developers)
+│   ├── server/      # WebSocket server
+│   ├── mono-driver/ # Multi-provider LLM driver
+│   ├── claude-driver/ # Claude-native driver
+│   ├── node-platform/ # Node.js runtime (storage, events)
+│   └── devtools/    # Testing utilities (BDD tools)
+├── apps/            # Deployable applications
+│   ├── portagent/   # Web app (Next.js)
+│   └── cli/         # Terminal UI
+└── bdd/             # Root-level Living Documentation
+    └── journeys/    # Feature files organized by role
 ```
 
-### Testing
+Build order follows the dependency graph (handled automatically by Turbo):
 
-```bash
-# Run all tests
-pnpm test
+1. `@agentxjs/core`, `@agentxjs/devtools`
+2. `@agentxjs/node-platform`, `@agentxjs/claude-driver`, `@agentxjs/mono-driver`
+3. `@agentxjs/server`, `agentxjs`
+4. `@agentxjs/cli`, `@agentx/portagent`
 
-# Run tests for specific package
-pnpm test --filter=@agentxjs/engine
-```
+## Daily Workflow
 
-### Code Quality
+| Command | Purpose |
+|---------|---------|
+| `bun dev` | Start dev environment with hot reload |
+| `bun run build` | Rebuild all packages |
+| `bun run bdd` | Run non-UI tests |
+| `bun run bdd:ui` | Run UI tests (requires browser) |
+| `bun run bdd:docs` | Run documentation quality tests |
 
-```bash
-# Type check
-pnpm typecheck
+## BDD-First Workflow
 
-# Lint
-pnpm lint
+> **Iron Law: No feature = no code.**
 
-# Format
-pnpm format
-```
+Every change starts with a `.feature` file. Follow the 4-step process:
 
-## Code Style
+| Step | Action |
+|------|--------|
+| 1 | Write `.feature` file describing the goal |
+| 2 | Write `.steps.ts` with test definitions |
+| 3 | Implement the code |
+| 4 | Run `bun run bdd` until all pass |
 
-### Language
+### Where to put BDD files
 
-- Use **English** for all code comments, logs, error messages, and documentation.
+| What you're working on | BDD location |
+|------------------------|-------------|
+| A specific package | `packages/<name>/bdd/` |
+| A specific app | `apps/<name>/bdd/` |
+| Monorepo-wide norms | `bdd/` (root) |
 
-### Naming Conventions
+Each `bdd/` directory has:
+- `cucumber.js` — Cucumber configuration
+- `journeys/` — Feature files organized by role
+- `steps/` — Step definitions
 
-| Type       | Convention                | Example                           |
-| ---------- | ------------------------- | --------------------------------- |
-| Classes    | PascalCase with suffix    | `ClaudeDriver`, `SessionManager`  |
-| Interfaces | PascalCase, no `I` prefix | `Agent`, `Session`                |
-| Events     | snake_case                | `text_delta`, `assistant_message` |
-| Functions  | camelCase with verb       | `createAgent`, `buildMessage`     |
-| Files      | PascalCase for classes    | `AgentInstance.ts`, `Session.ts`  |
+## Environment Variables
 
-### Class Suffixes
+| Variable | Purpose | Required |
+|----------|---------|----------|
+| `ANTHROPIC_API_KEY` | Anthropic API access | Yes |
+| `DEEPRACTICE_API_KEY` | Deepractice API access | Alternative |
+| `DEEPRACTICE_BASE_URL` | Custom API base URL | No |
+| `DEEPRACTICE_MODEL` | Override default model | No |
 
-- `*Driver` - Message processors (e.g., `ClaudeDriver`)
-- `*Manager` - Lifecycle managers (e.g., `SessionManager`)
-- `*Repository` - Data persistence (e.g., `SQLiteRepository`)
-- `*Container` - Collection managers (e.g., `MemoryAgentContainer`)
-
-### File Organization
-
-- One type per file
-- Feature-based directories
-- Barrel exports via `index.ts`
-
-### Logging
-
-Always use the logger facade:
-
-```typescript
-import { createLogger } from "@agentxjs/common";
-
-const logger = createLogger("engine/AgentEngine");
-logger.debug("Processing event", { agentId, eventType });
-```
-
-Never use direct `console.*` calls (except in tests and Storybook stories).
+Tests using VCR can run without an API key (replays recorded fixtures).
 
 ## Commit Guidelines
 
-We use [Conventional Commits](https://www.conventionalcommits.org/).
-
-### Format
+We use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
 type(scope): description
-
-[optional body]
-
-[optional footer]
 ```
 
-### Types
-
-| Type       | Description                                             |
-| ---------- | ------------------------------------------------------- |
-| `feat`     | New feature                                             |
-| `fix`      | Bug fix                                                 |
-| `docs`     | Documentation only                                      |
-| `style`    | Code style (formatting, semicolons, etc.)               |
+| Type | Description |
+|------|-------------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation only |
 | `refactor` | Code change that neither fixes a bug nor adds a feature |
-| `perf`     | Performance improvement                                 |
-| `test`     | Adding or updating tests                                |
-| `chore`    | Maintenance tasks                                       |
+| `test` | Adding or updating tests |
+| `chore` | Maintenance tasks |
 
-### Scope
-
-Use package name without prefix:
-
-- `types`, `common`, `engine`, `agent`, `agentx`, `node`, `ui`
-
-### Examples
-
-```bash
-feat(engine): add turn tracking processor
-fix(node): handle connection timeout in ClaudeDriver
-docs: update README with new API examples
-refactor(agent): simplify event subscription logic
-```
+Scope uses package name: `core`, `agentx`, `server`, `mono-driver`, `node-platform`, `claude-driver`, `devtools`, `portagent`, `cli`.
 
 ## Changeset
 
-We use [Changesets](https://github.com/changesets/changesets) for version management.
+We use [Changesets](https://github.com/changesets/changesets) with fixed versioning — bumping any package bumps all of them.
 
-### Creating a Changeset
-
-Before creating a PR, add a changeset file:
+Before creating a PR with user-facing changes:
 
 ```bash
-# Create .changeset/your-change-name.md manually:
+bun changeset
 ```
 
-```markdown
----
-"@agentxjs/engine": minor
-"@agentxjs/agent": patch
----
-
-Add turn tracking processor to engine
-```
-
-### Version Types
-
-| Type    | When to use                        |
-| ------- | ---------------------------------- |
-| `major` | Breaking changes                   |
-| `minor` | New features (backward compatible) |
-| `patch` | Bug fixes                          |
+Select affected packages, choose bump type (patch/minor/major), and write a summary.
 
 ## Pull Request Process
 
-### Branch Naming
+1. Create a feature branch: `feat/short-description` or `fix/short-description`
+2. Follow BDD-first workflow (feature file → steps → implementation → tests pass)
+3. Add a changeset if applicable
+4. Push and create PR against `main`
+5. Wait for CI, address feedback, squash and merge
 
-```
-type/short-description
-```
+## Code Style
 
-Examples:
-
-- `feat/turn-tracking`
-- `fix/connection-timeout`
-- `docs/api-examples`
-
-### PR Checklist
-
-Before submitting:
-
-- [ ] Code compiles (`pnpm build`)
-- [ ] Types check (`pnpm typecheck`)
-- [ ] Linting passes (`pnpm lint`)
-- [ ] Tests pass (`pnpm test`)
-- [ ] Changeset added (if applicable)
-- [ ] Documentation updated (if applicable)
-
-### PR Title
-
-Use the same format as commits:
-
-```
-feat(engine): add turn tracking processor
-```
-
-### Review Process
-
-1. Create PR against `main` branch
-2. Wait for CI checks to pass
-3. Request review from maintainers
-4. Address feedback
-5. Squash and merge
-
-## Issue Guidelines
-
-### Bug Reports
-
-Please include:
-
-- AgentX version
-- Node.js version
-- Steps to reproduce
-- Expected behavior
-- Actual behavior
-- Error messages / logs
-
-### Feature Requests
-
-Please include:
-
-- Use case description
-- Proposed solution (if any)
-- Alternatives considered
-
-## Architecture Notes
-
-When contributing, keep these principles in mind:
-
-1. **Docker-style Lifecycle**: Definition → Image → Session → Agent
-2. **4-Layer Events**: Stream → State → Message → Turn
-3. **Mealy Machines**: "State is means, output is goal"
-4. **Isomorphic**: Same API for Node.js and Browser
-5. **Stream-Only SSE**: Server forwards Stream events only
-
-See [CLAUDE.md](./CLAUDE.md) for detailed architecture documentation.
+- **English** for all code, comments, and documentation
+- **ESM modules** (`"type": "module"`)
+- Use `commonxjs/logger` instead of `console.log`
+- Use `commonxjs/sqlite` instead of direct SQLite bindings
+- See `CLAUDE.md` for full conventions
 
 ## Questions?
 
 - Open a [GitHub Issue](https://github.com/Deepractice/AgentX/issues)
-- Check existing issues and discussions
-
-Thank you for contributing!

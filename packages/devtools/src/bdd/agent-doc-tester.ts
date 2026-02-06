@@ -75,7 +75,9 @@ export async function agentDocTester(
   ].join("\n");
 
   // Dynamic import to avoid circular dependency (devtools ↔ agentxjs)
-  const agentxjs: any = await import("agentxjs");
+  // Use variable to prevent TypeScript DTS from resolving the module
+  const moduleName = "agentxjs";
+  const agentxjs: any = await import(/* @vite-ignore */ moduleName);
   const createAgentX: (...args: any[]) => Promise<any> = agentxjs.createAgentX;
 
   let agentx: any = null;

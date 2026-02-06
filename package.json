@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "bun dev/dev-manager.ts",
     "start": "bun apps/portagent/bin/portagent.js",
-    "build": "turbo build --filter='!@agentxjs/cli'",
+    "build": "PATH=$(echo \"$PATH\" | tr ':' '\\n' | grep -v bun-node | paste -sd: -) turbo build --filter='!@agentxjs/cli'",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "format": "prettier --write .",

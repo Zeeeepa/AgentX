@@ -16,6 +16,7 @@ export default defineConfig({
   external: [
     "@agentxjs/core",
     "@agentxjs/claude-driver",
+    "agentxjs",
     "commonxjs",
     "@playwright/test",
     "@cucumber/cucumber",

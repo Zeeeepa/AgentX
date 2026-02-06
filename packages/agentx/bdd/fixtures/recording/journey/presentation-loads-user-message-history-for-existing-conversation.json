@@ -1,0 +1,36 @@
+{
+  "name": "presentation-loads-history-for-existing-conversation",
+  "description": "VCR recording: presentation-loads-history-for-existing-conversation",
+  "recordedAt": 1770372650717,
+  "events": [
+    {
+      "type": "message_start",
+      "delay": 5,
+      "data": {
+        "messageId": "msg_1770372650723",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 100,
+      "data": {
+        "text": "Got it! I'll remember"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 10,
+      "data": {
+        "text": " the word: pineapple."
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 50,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    }
+  ]
+}

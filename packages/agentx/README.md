@@ -148,14 +148,15 @@ interface AgentX {
 High-level UI state management. Aggregates raw stream events into a structured conversation state.
 
 ```typescript
-const presentation = agentx.presentations.create(agentId, {
+const presentation = await agentx.presentations.create(agentId, {
   onUpdate: (state: PresentationState) => renderUI(state),
   onError: (error) => console.error(error),
 });
+// For existing sessions, getState() already contains conversation history
 
 await presentation.send("What is the weather?");
 const state = presentation.getState();
-// state.conversations -- completed conversations
+// state.conversations -- completed conversations (includes history)
 // state.streaming     -- current streaming response (or null)
 // state.status        -- "idle" | "thinking" | "responding" | "executing"
 

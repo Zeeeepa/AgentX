@@ -15,10 +15,15 @@ const base = {
 
 export default createCucumberConfig({
   ...base,
-  tags: "not @pending and not @skip and not @ui",
+  tags: "not @pending and not @skip and not @ui and not @slow",
 });
 
 export const docs = createCucumberConfig({
   ...base,
   tags: "@pending and not @skip",
+});
+
+export const slow = createCucumberConfig({
+  ...base,
+  tags: "@slow and not @skip",
 });

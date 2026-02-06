@@ -25,6 +25,7 @@ interface DeveloperState {
   lastReplyText?: string;
   events: BusEvent[];
   unsubscribes: Array<() => void>;
+  presentation?: import("agentxjs").Presentation;
 }
 
 const KEY = "__developer";
@@ -233,6 +234,95 @@ Then(
 );
 
 // ============================================================================
+// Phase: Presentation
+// ============================================================================
+
+When(
+  "I create a presentation for the agent",
+  { timeout: 10000 },
+  async function (this: AgentXWorld) {
+    const state = getState(this);
+    const presentation = await this.localAgentX!.presentations.create(state.agentId!);
+    state.presentation = presentation;
+  }
+);
+
+Then(
+  "the presentation state should have {int} conversations",
+  function (this: AgentXWorld, count: number) {
+    const state = getState(this);
+    const ps = state.presentation!.getState();
+    assert.equal(
+      ps.conversations.length,
+      count,
+      `Expected ${count} conversations, got ${ps.conversations.length}`
+    );
+  }
+);
+
+Then(
+  "the presentation state should have at least {int} conversation(s)",
+  function (this: AgentXWorld, minCount: number) {
+    const state = getState(this);
+    const ps = state.presentation!.getState();
+    assert.ok(
+      ps.conversations.length >= minCount,
+      `Expected at least ${minCount} conversations, got ${ps.conversations.length}`
+    );
+  }
+);
+
+Then(
+  "conversation {int} should be a user message containing {string}",
+  function (this: AgentXWorld, index: number, expected: string) {
+    const state = getState(this);
+    const ps = state.presentation!.getState();
+    const conv = ps.conversations[index - 1];
+    assert.ok(conv, `Conversation ${index} does not exist`);
+    assert.equal(conv.role, "user", `Conversation ${index} should be a user message`);
+    if (conv.role === "user") {
+      const text = conv.blocks
+        .filter((b): b is { type: "text"; content: string } => b.type === "text")
+        .map((b) => b.content)
+        .join("");
+      assert.ok(
+        text.includes(expected),
+        `User message should contain "${expected}", got: "${text}"`
+      );
+    }
+  }
+);
+
+// ============================================================================
+// Phase: Session Messages
+// ============================================================================
+
+When(
+  "I check the session messages",
+  async function (this: AgentXWorld) {
+    const state = getState(this);
+    const messages = await this.localAgentX!.sessions.getMessages(state.agentId!);
+    (state as any).sessionMessages = messages;
+  }
+);
+
+Then(
+  /^the session should contain an? "([^"]*)" message$/,
+  function (this: AgentXWorld, role: string) {
+    const state = getState(this);
+    const messages = (state as any).sessionMessages as Array<{ role: string; subtype: string }>;
+    assert.ok(messages, "Session messages not loaded");
+
+    // Map role to subtype: "user" → "user", "assistant" → "assistant"
+    const found = messages.some((m) => m.subtype === role || m.role === role);
+    assert.ok(
+      found,
+      `Session should contain a "${role}" message, got subtypes: [${messages.map((m) => m.subtype).join(", ")}]`
+    );
+  }
+);
+
+// ============================================================================
 // Phase 4: Cleanup
 // ============================================================================
 
@@ -242,6 +332,11 @@ When("I destroy the agent", async function (this: AgentXWorld) {
     unsub();
   }
   state.unsubscribes = [];
+
+  if (state.presentation) {
+    state.presentation.dispose();
+    state.presentation = undefined;
+  }
 
   await this.localAgentX!.agents.destroy(state.agentId!);
 });

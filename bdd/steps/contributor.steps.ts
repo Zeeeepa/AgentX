@@ -8,8 +8,10 @@
 
 import { Given, When, Then, Before, After } from "@cucumber/cucumber";
 import { strict as assert } from "node:assert";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync, mkdtempSync, rmSync } from "node:fs";
 import { resolve, dirname } from "node:path";
+import { tmpdir } from "node:os";
+import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { agentDocTester } from "@agentxjs/devtools/bdd";
 
@@ -23,11 +25,15 @@ const ROOT = resolve(__dirname, "../..");
 let contributingContent = "";
 let contributingPath = "";
 let docRequirements: string[] = [];
+let tempDir = "";
+let lastExitCode = 0;
 
 Before(function () {
   contributingContent = "";
   contributingPath = "";
   docRequirements = [];
+  tempDir = "";
+  lastExitCode = 0;
 });
 
 // ============================================================================
@@ -176,25 +182,86 @@ Then("it should mention these environment variables:", function (table: any) {
 
 Then("it should state Bun minimum version as {string}", function (version: string) {
   const content = readContributing();
+  const pattern = new RegExp(`[Bb]un[*]*\\s+${version.replace(/\./g, "\\.")}`);
   assert.ok(
-    content.includes(`Bun ${version}`) || content.includes(`bun ${version}`),
+    pattern.test(content),
     `CONTRIBUTING.md does not state Bun minimum version as ${version}`
   );
 });
 
 Then("it should state Node.js minimum version as {string}", function (version: string) {
   const content = readContributing();
+  const pattern = new RegExp(`[Nn]ode\\.?j?s?[*]*\\s+${version.replace(/\./g, "\\.")}`);
   assert.ok(
-    content.includes(`Node.js ${version}`) || content.includes(`node ${version}`),
+    pattern.test(content),
     `CONTRIBUTING.md does not state Node.js minimum version as ${version}`
   );
 });
 
 // ============================================================================
-// After — Run agentDocTester for @pending scenarios
+// Block 3: Bootstrap smoke test (@slow)
+// ============================================================================
+
+Given("a fresh clone of the repository in a temp directory", { timeout: 120000 }, function () {
+  tempDir = mkdtempSync(resolve(tmpdir(), "agentx-smoke-"));
+  // Clone committed state, then overlay uncommitted changes
+  execSync(`git clone --depth 1 file://${ROOT} ${tempDir}`, { stdio: "pipe" });
+  // Overlay all modified and untracked files from working tree
+  execSync(
+    `rsync -a --files-from=<(git ls-files -m -o --exclude-standard) "${ROOT}/" "${tempDir}/"`,
+    { cwd: ROOT, stdio: "pipe", shell: "/bin/bash" }
+  );
+  assert.ok(
+    existsSync(resolve(tempDir, "package.json")),
+    "Clone failed: package.json not found in temp directory"
+  );
+});
+
+When("I run {string} in the temp directory", { timeout: 300000 }, function (command: string) {
+  // Clean env to simulate a real contributor's terminal:
+  // - Remove NODE_ENV: bun auto-loads .env.local which may set NODE_ENV=development,
+  //   causing Next.js build workers to prerender in dev mode and crash on React context.
+  // - Strip bun-node shim from PATH for safety.
+  const env = { ...process.env };
+  delete env.NODE_ENV;
+  env.PATH = (env.PATH || "")
+    .split(":")
+    .filter((p) => !p.includes("bun-node"))
+    .join(":");
+  try {
+    execSync(command, { cwd: tempDir, stdio: "pipe", timeout: 300000, env });
+    lastExitCode = 0;
+  } catch (err: any) {
+    lastExitCode = err.status ?? 1;
+    const stderr = err.stderr?.toString().slice(-4000) || "";
+    const stdout = err.stdout?.toString().slice(-4000) || "";
+    const output = [stderr, stdout].filter(Boolean).join("\n---\n") || "(no output)";
+    assert.fail(`Command "${command}" failed (exit ${lastExitCode}):\n${output}`);
+  }
+});
+
+Then("the command should succeed", function () {
+  assert.strictEqual(lastExitCode, 0, `Last command failed with exit code ${lastExitCode}`);
+});
+
+Then("the temp directory is cleaned up", function () {
+  if (tempDir && existsSync(tempDir)) {
+    rmSync(tempDir, { recursive: true, force: true });
+    tempDir = "";
+  }
+});
+
+// ============================================================================
+// After — Run agentDocTester for @pending scenarios + cleanup temp dir
 // ============================================================================
 
 After({ timeout: 120000 }, async function () {
+  // Cleanup temp dir if test failed before reaching cleanup step
+  if (tempDir && existsSync(tempDir)) {
+    rmSync(tempDir, { recursive: true, force: true });
+    tempDir = "";
+  }
+
   if (!contributingPath || docRequirements.length === 0) return;
   if (!existsSync(contributingPath)) return;
 
