@@ -29,11 +29,7 @@ Feature: BDD-Driven Development Workflow
       | cucumber.js   | Cucumber configuration           |
       | journeys/     | Feature files organized by role  |
       | steps/        | Step definitions                 |
-    Examples:
-      | project            | bdd_path                  |
-      | apps/portagent     | apps/portagent/bdd/       |
-      | packages/agentx    | packages/agentx/bdd/      |
-      | monorepo root      | bdd/                      |
+    # e.g. apps/portagent/bdd/, packages/agentx/bdd/, bdd/ (root)
 
   Scenario: Monorepo BDD is Living Documentation
     Given the monorepo root "bdd/" directory

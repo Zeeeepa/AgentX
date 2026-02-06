@@ -22,7 +22,11 @@ Feature: Testing Infrastructure
 
   Scenario: Documentation is tested by agentDocTester
     Given a contributor writes documentation
-    Then agentDocTester should evaluate the doc against requirements
+    Then agentDocTester should evaluate the doc from reader's experience:
+      | dimension    | what it checks                           |
+      | Completeness | All required information is present      |
+      | Logic        | Structure flows naturally, no jumps      |
+      | Readability  | A newcomer can follow without confusion  |
     And it reads the file content and sends to Claude for review
     And it returns PASS or FAIL based on whether requirements are met
 

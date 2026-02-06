@@ -42,7 +42,7 @@ Feature: Monorepo Architecture
   Scenario: Core layer has no internal dependencies
     Given the package "@agentxjs/core"
     Then it should have zero dependencies on other @agentxjs packages
-    And it defines the fundamental types: Agent, Driver, Platform, Session
+    And it defines the fundamental types: Container, Image, Session, Driver, AgentXPlatform
 
   Scenario: Platform and driver layer depends only on core
     Given these packages:

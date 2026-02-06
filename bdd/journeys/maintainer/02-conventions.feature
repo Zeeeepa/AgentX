@@ -8,12 +8,9 @@ Feature: Naming and Tagging Conventions
     Then the filename should use numbered prefix with hyphenated description:
       | pattern                     | meaning                            |
       | NN-description.feature      | NN = two-digit sequence number     |
-    Examples:
-      | good                           | bad                       |
-      | 01-bdd-workflow.feature        | bdd-workflow.feature      |
-      | 04-chat-ui.feature             | ChatUI.feature            |
-      | 00-app-bootstrap.feature       | app_bootstrap.feature     |
     And the number reflects the logical reading order, not priority
+    # Good: 01-bdd-workflow.feature, 04-chat-ui.feature
+    # Bad:  bdd-workflow.feature, ChatUI.feature, app_bootstrap.feature
 
   Scenario: Features have correct tags
     Given a journey feature file
@@ -31,10 +28,8 @@ Feature: Naming and Tagging Conventions
     Given a journey scenario
     Then it should describe "what" the user achieves
     And not "how" it is technically implemented
-    Examples:
-      | good                                  | bad                                |
-      | I should receive a non-empty reply    | The API should return 200 OK       |
-      | The agent should remember my name     | SQLite should persist the session  |
+    # Good: "I should receive a non-empty reply"
+    # Bad:  "The API should return 200 OK"
 
   Scenario: Journeys are independently runnable
     Given any single journey feature file

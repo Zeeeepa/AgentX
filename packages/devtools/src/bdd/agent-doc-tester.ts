@@ -3,14 +3,19 @@ import { readFileSync, writeFileSync, unlinkSync, mkdirSync, existsSync } from "
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-const SYSTEM_PROMPT = `You are a documentation reviewer. You evaluate whether a document meets specific requirements.
+const SYSTEM_PROMPT = `You are a documentation reviewer evaluating documents from the reader's experience.
+
+EVALUATION DIMENSIONS:
+1. Completeness — All required information is present. Nothing critical is missing.
+2. Logic — Structure flows naturally. Concepts build on each other without jumps.
+3. Readability — A newcomer can follow without confusion. No unexplained jargon.
 
 RULES:
 - Read the provided document carefully
-- Evaluate each requirement listed in the prompt
+- Evaluate each requirement listed in the prompt against ALL three dimensions
 - Be strict but fair — the document should genuinely help the reader achieve the stated goal
 - Output your result as a single line: PASS or FAIL followed by a brief reason
-- If FAIL, list which specific requirements are not met`;
+- If FAIL, list which specific requirements are not met and which dimension they violate`;
 
 export interface DocTestResult {
   passed: boolean;

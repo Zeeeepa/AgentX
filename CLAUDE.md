@@ -22,7 +22,7 @@ Before writing ANY code, read `bdd/journeys/`. Details: `bdd/journeys/maintainer
 | Release & publishing | `bdd/journeys/maintainer/06-release.feature` |
 | Monorepo architecture | `bdd/journeys/maintainer/07-architecture.feature` |
 | Adding new packages | `bdd/journeys/maintainer/08-new-package.feature` |
-| Package READMEs | `bdd/journeys/contributor/package-readmes.feature` |
+| Package READMEs | `bdd/journeys/contributor/01-package-readmes.feature` |
 
 ## Commands
 
