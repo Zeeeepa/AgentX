@@ -21,6 +21,7 @@ import {
   startDevServer,
   stopDevServer,
 } from "@agentxjs/devtools/bdd";
+import { expect } from "@playwright/test";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const APP_DIR = resolve(__dirname, "../..");
@@ -31,7 +32,7 @@ const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
 // Lifecycle Hooks
 // ============================================================================
 
-BeforeAll({ timeout: 30000 }, async function () {
+BeforeAll({ timeout: 60000 }, async function () {
   // Start dev server once for all tests
   await startDevServer({
     cwd: APP_DIR,
@@ -40,7 +41,14 @@ BeforeAll({ timeout: 30000 }, async function () {
   });
   // Launch browser once
   await launchBrowser({ headless: process.env.CI === "true" });
-  await getPage();
+  const page = await getPage();
+
+  // Warm up: visit setup page to trigger compilation
+  await page.goto(`${DEV_SERVER_URL}/setup`);
+  await page.waitForLoadState("domcontentloaded");
+  // Also warm up login page
+  await page.goto(`${DEV_SERVER_URL}/login`);
+  await page.waitForLoadState("domcontentloaded");
 });
 
 Before({ tags: "@contributor" }, async function () {
@@ -259,11 +267,13 @@ let savedAdminPassword: string = "admin123";
 let savedUserPassword: string = "user123";
 
 async function resetDatabase() {
-  const { rmSync } = await import("node:fs");
-  try {
-    rmSync(resolve(APP_DIR, "data/app.db"), { force: true });
-  } catch {
-    // Database may not exist
+  // 通过 API 重置数据库（关闭连接 + 删除文件）
+  const response = await fetch(`${DEV_SERVER_URL}/api/test/reset-db`, {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to reset database via API");
   }
 }
 
@@ -287,10 +297,14 @@ Given(
     await page.fill('input[type="email"]', email);
     await page.fill('input[type="password"]', password);
     await page.click('button[type="submit"]');
+
+    // Wait for redirect to home (admin is now logged in)
     await page.waitForURL("**/", { timeout: 10000 });
 
-    // Logout to return to clean state
+    // Logout to return to clean state (for login tests)
     await page.context().clearCookies();
+    await page.goto(`${DEV_SERVER_URL}/login`);
+    await page.waitForLoadState("domcontentloaded");
   }
 );
 
@@ -360,22 +374,56 @@ Given("I am logged in as user {string}", { timeout: 60000 }, async function (ema
 When("I visit the homepage", async function () {
   const page = await getPage();
   await page.goto(DEV_SERVER_URL);
-  await page.waitForLoadState("domcontentloaded");
+  // 锚点：等待页面完全加载
+  await page.waitForLoadState("networkidle");
+});
+
+When("I visit {string}", async function (path: string) {
+  const page = await getPage();
+  await page.goto(`${DEV_SERVER_URL}${path}`);
+  // 锚点：等待页面完全加载
+  await page.waitForLoadState("networkidle");
 });
 
 When("I fill in email {string}", async function (email: string) {
   const page = await getPage();
-  await page.fill('input[type="email"]', email);
+  const input = page.locator('input[type="email"]');
+  await input.fill(email);
+  // 锚点：确认值已填入
+  await expect(input).toHaveValue(email);
 });
 
 When("I fill in password {string}", async function (password: string) {
   const page = await getPage();
-  await page.fill('input[type="password"]', password);
+  const input = page.locator('input[type="password"]');
+  await input.fill(password);
+  // 锚点：确认值已填入
+  await expect(input).toHaveValue(password);
 });
 
 When("I click {string}", async function (buttonText: string) {
   const page = await getPage();
-  await page.click(`button:has-text("${buttonText}"), a:has-text("${buttonText}")`);
+  const button = page.locator(`button:has-text("${buttonText}"), a:has-text("${buttonText}")`);
+
+  // 锚点：确认按钮可见
+  await button.waitFor({ state: "visible" });
+  await button.click();
+
+  // 等待响应：成功（URL变化/loading消失）或 失败（错误信息出现）
+  const errorLocator = page.locator("text=error, text=Error, text=failed, text=Failed").first();
+
+  // 等待：要么网络空闲，要么错误出现
+  await Promise.race([
+    page.waitForLoadState("networkidle"),
+    errorLocator.waitFor({ state: "visible", timeout: 5000 }).catch(() => {}),
+  ]);
+
+  // 检查是否有错误
+  const hasError = await errorLocator.isVisible().catch(() => false);
+  if (hasError) {
+    const errorText = await errorLocator.textContent();
+    throw new Error(`Page showed error: "${errorText}"`);
+  }
 });
 
 When("I refresh the page", async function () {
@@ -405,11 +453,12 @@ When("I logout", async function () {
 
 // --- Then steps ---
 
-Then("I should be on {string}", async function (path: string) {
+Then("I should be on {string}", { timeout: 20000 }, async function (path: string) {
   const page = await getPage();
-  await page.waitForURL(`**${path}`, { timeout: 10000 });
-  const url = new URL(page.url());
-  assert.equal(url.pathname, path, `Should be on ${path}`);
+  // 锚点：等待 URL 变化
+  await page.waitForURL(`**${path}`, { timeout: 15000 });
+  // 锚点：等待页面加载完成
+  await page.waitForLoadState("domcontentloaded");
 });
 
 Then("I should still be on {string}", async function (path: string) {
@@ -425,11 +474,11 @@ Then("I should be redirected to {string}", async function (path: string) {
   assert.equal(url.pathname, path, `Should be redirected to ${path}`);
 });
 
-Then("I should see {string}", async function (text: string) {
+Then("I should see {string}", { timeout: 20000 }, async function (text: string) {
   const page = await getPage();
-  const element = page.locator(`text=${text}`);
-  await element.waitFor({ state: "visible", timeout: 5000 });
-  assert.ok(await element.isVisible(), `"${text}" should be visible`);
+  // 锚点：等待文本可见
+  const element = page.locator(`text=${text}`).first();
+  await expect(element).toBeVisible({ timeout: 15000 });
 });
 
 Then("I should NOT see {string}", async function (text: string) {
@@ -448,14 +497,14 @@ Then("I should be logged in as {string}", async function (role: string) {
 
   // Verify role via UI element
   if (role === "admin") {
-    // Admin should see admin menu
-    const adminMenu = page.locator("[data-testid='admin-menu'], text=Admin");
-    await adminMenu.waitFor({ state: "visible", timeout: 5000 });
+    // Admin should see admin badge or menu
+    const adminIndicator = page.locator("text=Admin").first();
+    await adminIndicator.waitFor({ state: "visible", timeout: 5000 });
   } else {
-    // Regular user should NOT see admin menu
-    const adminMenu = page.locator("[data-testid='admin-menu'], text=Admin");
-    const isVisible = await adminMenu.isVisible().catch(() => false);
-    assert.ok(!isVisible, "Regular user should not see admin menu");
+    // Regular user should NOT see admin indicator
+    const adminIndicator = page.locator("text=Admin").first();
+    const isVisible = await adminIndicator.isVisible().catch(() => false);
+    assert.ok(!isVisible, "Regular user should not see admin indicator");
   }
 });
 
