@@ -3,12 +3,13 @@
  */
 
 import type { AgentXRuntime } from "@agentxjs/core/runtime";
-import type { UserContentPart } from "@agentxjs/core/agent";
+import type { UserContentPart, Message } from "@agentxjs/core/agent";
 import type { RpcClient } from "@agentxjs/core/network";
 import type {
   SessionNamespace,
   MessageSendResponse,
   BaseResponse,
+  AgentInfo,
 } from "../types";
 
 /**
@@ -24,6 +25,12 @@ export function createLocalSessions(runtime: AgentXRuntime): SessionNamespace {
     async interrupt(agentId: string): Promise<BaseResponse> {
       runtime.interrupt(agentId);
       return { requestId: "" };
+    },
+
+    async getMessages(agentId: string): Promise<Message[]> {
+      const agent = runtime.getAgent(agentId);
+      if (!agent) return [];
+      return runtime.platform.sessionRepository.getMessages(agent.sessionId);
     },
   };
 }
@@ -44,6 +51,15 @@ export function createRemoteSessions(rpcClient: RpcClient): SessionNamespace {
     async interrupt(agentId: string): Promise<BaseResponse> {
       const result = await rpcClient.call<BaseResponse>("agent.interrupt", { agentId });
       return { ...result, requestId: "" };
+    },
+
+    async getMessages(agentId: string): Promise<Message[]> {
+      const agentRes = await rpcClient.call<{ agent: AgentInfo | null }>("agent.get", { agentId });
+      if (!agentRes.agent) return [];
+      const msgRes = await rpcClient.call<{ messages: Message[] }>("image.messages", {
+        imageId: agentRes.agent.imageId,
+      });
+      return msgRes.messages ?? [];
     },
   };
 }

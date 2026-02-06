@@ -7,7 +7,16 @@
 
 import type { BusEvent } from "@agentxjs/core/event";
 import type {
+  Message,
+  UserMessage,
+  AssistantMessage,
+  ToolCallMessage,
+  ToolResultMessage,
+  ErrorMessage,
+} from "@agentxjs/core/agent";
+import type {
   PresentationState,
+  Conversation,
   AssistantConversation,
   TextBlock,
   ToolBlock,
@@ -314,4 +323,131 @@ export function addUserConversation(
  */
 export function createInitialState(): PresentationState {
   return { ...initialPresentationState };
+}
+
+// ============================================================================
+// Message → Conversation Converter
+// ============================================================================
+
+import type { ToolResultOutput } from "@agentxjs/core/agent";
+
+function formatToolResultOutput(output: ToolResultOutput): string {
+  switch (output.type) {
+    case "text":
+    case "error-text":
+      return output.value;
+    case "json":
+    case "error-json":
+      return JSON.stringify(output.value);
+    case "execution-denied":
+      return output.reason ?? "Execution denied";
+    case "content":
+      return output.value
+        .filter((p): p is { type: "text"; text: string } => p.type === "text")
+        .map((p) => p.text)
+        .join("");
+  }
+}
+
+/**
+ * Convert persisted Messages to Presentation Conversations.
+ *
+ * Groups consecutive assistant/tool-call/tool-result messages
+ * into a single AssistantConversation.
+ */
+export function messagesToConversations(messages: Message[]): Conversation[] {
+  const conversations: Conversation[] = [];
+  let currentAssistant: AssistantConversation | null = null;
+
+  function flushAssistant() {
+    if (currentAssistant && currentAssistant.blocks.length > 0) {
+      conversations.push(currentAssistant);
+    }
+    currentAssistant = null;
+  }
+
+  for (const msg of messages) {
+    switch (msg.subtype) {
+      case "user": {
+        flushAssistant();
+        const m = msg as UserMessage;
+        const text =
+          typeof m.content === "string"
+            ? m.content
+            : m.content
+                .filter((p): p is { type: "text"; text: string } => p.type === "text")
+                .map((p) => p.text)
+                .join("");
+        conversations.push({
+          role: "user",
+          blocks: [{ type: "text", content: text }],
+        });
+        break;
+      }
+
+      case "assistant": {
+        if (!currentAssistant) {
+          currentAssistant = { role: "assistant", blocks: [], isStreaming: false };
+        }
+        const m = msg as AssistantMessage;
+        const text =
+          typeof m.content === "string"
+            ? m.content
+            : m.content
+                .filter((p): p is { type: "text"; text: string } => p.type === "text")
+                .map((p) => p.text)
+                .join("");
+        if (text) {
+          currentAssistant.blocks.push({ type: "text", content: text } as TextBlock);
+        }
+        break;
+      }
+
+      case "tool-call": {
+        if (!currentAssistant) {
+          currentAssistant = { role: "assistant", blocks: [], isStreaming: false };
+        }
+        const m = msg as ToolCallMessage;
+        currentAssistant.blocks.push({
+          type: "tool",
+          toolUseId: m.toolCall.id,
+          toolName: m.toolCall.name,
+          toolInput: m.toolCall.input,
+          status: "completed",
+        } as ToolBlock);
+        break;
+      }
+
+      case "tool-result": {
+        const m = msg as ToolResultMessage;
+        if (currentAssistant) {
+          for (const block of currentAssistant.blocks) {
+            if (block.type === "tool" && block.toolUseId === m.toolResult.id) {
+              const output = m.toolResult.output;
+              block.toolResult = formatToolResultOutput(output);
+              block.status =
+                output.type === "error-text" || output.type === "error-json" || output.type === "execution-denied"
+                  ? "error"
+                  : "completed";
+              break;
+            }
+          }
+        }
+        break;
+      }
+
+      case "error": {
+        flushAssistant();
+        const m = msg as ErrorMessage;
+        conversations.push({
+          role: "error",
+          message: m.content,
+        });
+        break;
+      }
+    }
+  }
+
+  flushAssistant();
+  return conversations;
 }

@@ -83,6 +83,43 @@ Feature: Chat UI with Sidebar
     And I should see logout option
 
   # ============================================================================
+  # IME (Input Method) Support
+  # ============================================================================
+
+  @chat @ime
+  Scenario: IME composition does not trigger send
+    Given I am logged in as admin "admin@example.com"
+    When I start composing Chinese text with IME
+    And I press Space to select a candidate
+    Then the message should NOT be sent
+    And the selected text should appear in the input
+    When I finish composing and press Enter
+    Then the message should be sent
+    # Implementation: check e.nativeEvent.isComposing || e.keyCode === 229
+
+  # ============================================================================
+  # Markdown Rendering
+  # ============================================================================
+
+  @chat @markdown
+  Scenario: AI responses render as markdown
+    Given I am logged in as admin "admin@example.com"
+    When the AI responds with markdown content
+    Then bold text should render as **bold**
+    And code blocks should render with syntax highlighting
+    And lists should render as proper HTML lists
+    And links should be clickable
+    # Uses react-markdown + remark-gfm + @tailwindcss/typography
+
+  @chat @markdown
+  Scenario: User messages remain plain text
+    Given I am logged in as admin "admin@example.com"
+    When I type "**not bold**" in the prompt
+    And I press Enter
+    Then my message should display as plain text "**not bold**"
+    # Only assistant messages use markdown rendering
+
+  # ============================================================================
   # Components Reference
   # ============================================================================
   #
@@ -91,9 +128,12 @@ Feature: Chat UI with Sidebar
   #   - Custom: SessionList, AdminMenu
   #
   # Main Area:
-  #   - Message display components
+  #   - Message display: react-markdown + remark-gfm (assistant only)
+  #   - Tool call cards (collapsible)
+  #   - Thinking indicator (animated dots)
   #   - Empty state
   #
   # Prompt Input:
   #   - shadcn/ui: Textarea, Button
-  #   - Keyboard shortcuts (Enter to send)
+  #   - Keyboard shortcuts (Enter to send, Shift+Enter for newline)
+  #   - IME-safe (isComposing check)

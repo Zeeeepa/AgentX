@@ -6,15 +6,17 @@
  */
 
 import type { AgentX, PresentationNamespace } from "../types";
-import { Presentation, type PresentationOptions } from "../presentation";
+import { Presentation, type PresentationOptions, messagesToConversations } from "../presentation";
 
 /**
  * Create presentation namespace backed by any AgentX client
  */
 export function createPresentations(agentx: AgentX): PresentationNamespace {
   return {
-    create(agentId: string, options?: PresentationOptions): Presentation {
-      return new Presentation(agentx, agentId, options);
+    async create(agentId: string, options?: PresentationOptions): Promise<Presentation> {
+      const messages = await agentx.sessions.getMessages(agentId);
+      const conversations = messagesToConversations(messages);
+      return new Presentation(agentx, agentId, options, conversations);
     },
   };
 }

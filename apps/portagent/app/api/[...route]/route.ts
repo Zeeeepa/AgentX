@@ -356,9 +356,13 @@ app.get("/chat/ws-config", (c) => {
   // For now, use the same host with the WS port
   const wsUrl = `ws://localhost:${wsPort}/ws`;
 
+  const systemPrompt =
+    SystemConfigRepository.get("agent.systemPrompt") || "You are a helpful assistant.";
+
   return c.json({
     wsUrl,
     containerId: `user-${user.userId}`,
+    systemPrompt,
   });
 });
 

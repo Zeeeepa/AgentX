@@ -87,8 +87,25 @@ function ToolStatusIcon({ status }: { status: string }) {
   }
 }
 
+function getToolSummary(tool: ToolInfo): string {
+  const input = tool.toolInput;
+  // Show the most meaningful field as a summary
+  if (input.command) return String(input.command);
+  if (input.code) return String(input.code);
+  if (input.query) return String(input.query);
+  if (input.url) return String(input.url);
+  if (input.path) return String(input.path);
+  const keys = Object.keys(input);
+  if (keys.length === 0) return "";
+  // Fallback: show first string value
+  const firstVal = input[keys[0]];
+  if (typeof firstVal === "string") return firstVal;
+  return JSON.stringify(firstVal);
+}
+
 function ToolCallBlock({ tool }: { tool: ToolInfo }) {
   const [expanded, setExpanded] = React.useState(false);
+  const summary = getToolSummary(tool);
 
   return (
     <div className="flex justify-start">
@@ -99,8 +116,9 @@ function ToolCallBlock({ tool }: { tool: ToolInfo }) {
           className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
         >
           <ToolStatusIcon status={tool.status} />
-          <span className="font-medium text-foreground">{tool.toolName}</span>
-          <span className="ml-auto">{expanded ? "\u25B2" : "\u25BC"}</span>
+          <span className="font-medium text-foreground shrink-0">{tool.toolName}</span>
+          {summary && <span className="truncate font-mono text-muted-foreground">{summary}</span>}
+          <span className="ml-auto shrink-0">{expanded ? "\u25B2" : "\u25BC"}</span>
         </button>
         {expanded && (
           <div className="mt-1 rounded-lg border bg-muted/30 px-3 py-2 text-xs">
@@ -112,13 +130,13 @@ function ToolCallBlock({ tool }: { tool: ToolInfo }) {
                 </pre>
               </div>
             )}
-            {tool.toolResult && (
+            {tool.toolResult != null && (
               <div>
                 <p className="font-medium text-muted-foreground mb-1">Result</p>
                 <pre className="overflow-x-auto whitespace-pre-wrap break-all text-foreground max-h-48 overflow-y-auto">
                   {typeof tool.toolResult === "string"
                     ? tool.toolResult
-                    : JSON.stringify(tool.toolResult, null, 2)}
+                    : JSON.stringify(tool.toolResult, null, 2) ?? ""}
                 </pre>
               </div>
             )}

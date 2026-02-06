@@ -7,7 +7,8 @@
 
 import type { AgentX } from "../types";
 import type { Unsubscribe, BusEvent } from "@agentxjs/core/event";
-import type { PresentationState } from "./types";
+import type { PresentationState, Conversation } from "./types";
+import { initialPresentationState } from "./types";
 import {
   presentationReducer,
   addUserConversation,
@@ -50,10 +51,12 @@ export class Presentation {
   private errorHandlers: Set<PresentationErrorHandler> = new Set();
   private eventUnsubscribe: Unsubscribe | null = null;
 
-  constructor(agentx: AgentX, agentId: string, options?: PresentationOptions) {
+  constructor(agentx: AgentX, agentId: string, options?: PresentationOptions, initialConversations?: Conversation[]) {
     this.agentx = agentx;
     this.agentId = agentId;
-    this.state = createInitialState();
+    this.state = initialConversations?.length
+      ? { ...initialPresentationState, conversations: initialConversations }
+      : createInitialState();
 
     // Register initial handlers
     if (options?.onUpdate) {

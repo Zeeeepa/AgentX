@@ -25,8 +25,9 @@ interface ToolBlockLike {
   status: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function blocksToMessages(
-  blocks: Array<{ type: string; [key: string]: unknown }>,
+  blocks: Array<{ type: string; [key: string]: any }>,
   idPrefix: string
 ): Message[] {
   const messages: Message[] = [];
@@ -137,7 +138,7 @@ export function ChatLayout({ user }: ChatLayoutProps) {
       if (!session) return;
       // Send directly through the returned session's presentation
       // (avoids stale closure where activeSession is still null)
-      await session.presentation.send(text);
+      await session.presentation?.send(text);
       return;
     }
     await agentx.sendMessage(text);

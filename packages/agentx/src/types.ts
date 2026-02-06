@@ -5,6 +5,7 @@
 import type { BusEvent, EventBus, Unsubscribe, BusEventHandler } from "@agentxjs/core/event";
 import type { CreateDriver } from "@agentxjs/core/driver";
 import type { AgentXPlatform } from "@agentxjs/core/runtime";
+import type { Message } from "@agentxjs/core/agent";
 import type { Presentation, PresentationOptions } from "./presentation";
 
 // ============================================================================
@@ -343,6 +344,11 @@ export interface SessionNamespace {
    * Interrupt agent
    */
   interrupt(agentId: string): Promise<BaseResponse>;
+
+  /**
+   * Get message history for an agent's session
+   */
+  getMessages(agentId: string): Promise<Message[]>;
 }
 
 /**
@@ -363,7 +369,7 @@ export interface PresentationNamespace {
    * pres.dispose();
    * ```
    */
-  create(agentId: string, options?: PresentationOptions): Presentation;
+  create(agentId: string, options?: PresentationOptions): Promise<Presentation>;
 }
 
 // ============================================================================

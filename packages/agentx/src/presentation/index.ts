@@ -22,6 +22,7 @@ export {
   presentationReducer,
   addUserConversation,
   createInitialState,
+  messagesToConversations,
 } from "./reducer";
 
 export {

@@ -190,4 +190,5 @@ export {
   addUserConversation,
   createInitialState,
   initialPresentationState,
+  messagesToConversations,
 } from "./presentation";

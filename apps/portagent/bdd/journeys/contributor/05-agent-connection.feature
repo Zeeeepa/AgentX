@@ -114,6 +114,47 @@ Feature: AgentX Connection
       | text | "Here are the results"      |
 
   # ============================================================================
+  # Session Persistence
+  # ============================================================================
+  #
+  #  On page load / refresh:
+  #  1. Connect WebSocket
+  #  2. client.images.list(containerId) → get all saved images
+  #  3. For each image, client.agents.create({ imageId }) → resume agent
+  #  4. Populate sidebar with image names
+  #
+  #  On select session:
+  #  - Create presentation for the agent
+  #  - presentation.getState() → restore conversation history
+  #
+
+  @ui
+  Scenario: Sessions persist after page refresh
+    Given I am logged in as admin "admin@example.com"
+    And I have sent "Hello" in a conversation
+    When I refresh the page
+    Then I should see the session in the sidebar
+    When I click the session
+    Then I should see the previous conversation including "Hello"
+    # images.list(containerId) loads saved images on init
+    # agents.create({ imageId }) + presentations.create() on select (lazy)
+
+  @ui
+  Scenario: Multiple sessions are restored on refresh
+    Given I am logged in as admin "admin@example.com"
+    And I have two conversations: "Chat A" and "Chat B"
+    When I refresh the page
+    Then I should see both sessions in the sidebar
+    And I can switch between them to see their histories
+
+  @ui
+  Scenario: Empty state when user has no sessions
+    Given I am logged in as a new user with no previous conversations
+    When the page loads
+    Then I should see "Start a new conversation" prompt
+    And the sidebar should show no sessions
+
+  # ============================================================================
   # Data Model
   # ============================================================================
   #
@@ -126,6 +167,11 @@ Feature: AgentX Connection
   # - Portagent "session" UI = AgentX "image"
   # - New chat = create new image
   # - Switch session = switch image
+  #
+  # Restoration:
+  # - images.list(containerId) → list saved images
+  # - agents.create({ imageId }) → resume/create agent for image
+  # - presentations.create(agentId) → get conversation state
   #
 
   # ============================================================================

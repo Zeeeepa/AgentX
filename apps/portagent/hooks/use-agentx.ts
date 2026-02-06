@@ -7,7 +7,8 @@
  * 1. Fetches WebSocket config from /api/chat/ws-config
  * 2. Creates RemoteClient and connects via WebSocket
  * 3. Creates a container for the current user
- * 4. Provides methods to create images (conversations) and send messages
+ * 4. Loads existing images (sessions) from the server
+ * 5. Provides methods to create images (conversations) and send messages
  *
  * Data model mapping:
  * - Portagent "session" = AgentX "image" (a conversation template)
@@ -22,18 +23,26 @@ import { useEffect, useRef, useState, useCallback } from "react";
 // package statically, which would pull in Node.js dependencies at build time)
 // ============================================================================
 
+interface ImageRecord {
+  imageId: string;
+  containerId: string;
+  sessionId: string;
+  name?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
 interface AgentXClient {
   connected: boolean;
   containers: {
     create(containerId: string): Promise<{ containerId: string }>;
   };
   images: {
-    create(params: {
-      containerId: string;
-      name?: string;
-      systemPrompt?: string;
-    }): Promise<{
+    create(params: { containerId: string; name?: string; systemPrompt?: string }): Promise<{
       record: { imageId: string; sessionId: string };
+    }>;
+    list(containerId?: string): Promise<{
+      records: ImageRecord[];
     }>;
   };
   agents: {
@@ -48,7 +57,7 @@ interface AgentXClient {
         onUpdate?: (state: PresentationStateLocal) => void;
         onError?: (error: Error) => void;
       }
-    ): PresentationLocal;
+    ): Promise<PresentationLocal>;
   };
   dispose(): Promise<void>;
 }
@@ -102,10 +111,11 @@ interface UseAgentXOptions {
 
 export interface AgentXSession {
   imageId: string;
-  agentId: string;
   sessionId: string;
   title: string;
-  presentation: PresentationLocal;
+  // Lazily loaded when session is selected
+  agentId?: string;
+  presentation?: PresentationLocal;
 }
 
 export interface UseAgentXReturn {
@@ -147,6 +157,7 @@ async function createRemoteClient(wsUrl: string): Promise<AgentXClient> {
 export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
   const clientRef = useRef<AgentXClient | null>(null);
   const containerIdRef = useRef<string>(`user-${userId}`);
+  const systemPromptRef = useRef<string>("You are a helpful assistant.");
   const [connected, setConnected] = useState(false);
   const [sessions, setSessions] = useState<AgentXSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -157,7 +168,7 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
 
   const activeSession = sessions.find((s) => s.imageId === activeSessionId) ?? null;
 
-  // Initialize connection
+  // Initialize connection and load existing sessions
   useEffect(() => {
     let disposed = false;
 
@@ -169,8 +180,9 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
           setError("Failed to get WebSocket config");
           return;
         }
-        const { wsUrl, containerId } = await configRes.json();
+        const { wsUrl, containerId, systemPrompt } = await configRes.json();
         containerIdRef.current = containerId;
+        if (systemPrompt) systemPromptRef.current = systemPrompt;
 
         const client = await createRemoteClient(wsUrl);
 
@@ -184,6 +196,21 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
 
         // Ensure container exists
         await client.containers.create(containerId);
+
+        // Load existing images (sessions) from server
+        const imageRes = await client.images.list(containerId);
+        if (disposed) return;
+
+        if (imageRes.records.length > 0) {
+          const restored: AgentXSession[] = imageRes.records
+            .sort((a, b) => b.updatedAt - a.updatedAt)
+            .map((record) => ({
+              imageId: record.imageId,
+              sessionId: record.sessionId,
+              title: record.name || "Chat",
+            }));
+          setSessions(restored);
+        }
       } catch (err) {
         if (!disposed) {
           setError(err instanceof Error ? err.message : String(err));
@@ -203,6 +230,50 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
     };
   }, [userId]);
 
+  // Activate a session: create agent + presentation if not yet loaded
+  const activateSession = useCallback(
+    async (imageId: string): Promise<AgentXSession | null> => {
+      const client = clientRef.current;
+      if (!client) return null;
+
+      const session = sessions.find((s) => s.imageId === imageId);
+      if (!session) return null;
+
+      // Already loaded
+      if (session.agentId && session.presentation) {
+        setPresentationState(session.presentation.getState());
+        return session;
+      }
+
+      try {
+        // Create agent for this image (resumes existing session history)
+        const agentRes = await client.agents.create({ imageId });
+        const agentId = agentRes.agentId;
+
+        // Create presentation (loads history from session)
+        const presentation = await client.presentations.create(agentId, {
+          onUpdate: (state) => {
+            setPresentationState(state);
+          },
+          onError: (err) => {
+            setError(err.message);
+          },
+        });
+
+        const loaded: AgentXSession = { ...session, agentId, presentation };
+
+        setSessions((prev) => prev.map((s) => (s.imageId === imageId ? loaded : s)));
+        setPresentationState(presentation.getState());
+
+        return loaded;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+        return null;
+      }
+    },
+    [sessions]
+  );
+
   // Create a new session (image + agent)
   const createSession = useCallback(async (): Promise<AgentXSession | null> => {
     const client = clientRef.current;
@@ -213,7 +284,7 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
       const imageRes = await client.images.create({
         containerId: containerIdRef.current,
         name: "New Chat",
-        systemPrompt: "You are a helpful assistant.",
+        systemPrompt: systemPromptRef.current,
       });
 
       const imageId = imageRes.record.imageId;
@@ -224,7 +295,7 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
       const agentId = agentRes.agentId;
 
       // Create a Presentation for this agent
-      const presentation = client.presentations.create(agentId, {
+      const presentation = await client.presentations.create(agentId, {
         onUpdate: (state) => {
           setPresentationState(state);
         },
@@ -252,23 +323,28 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
     }
   }, []);
 
-  // Select a session
+  // Select a session (lazy-loads agent + presentation)
   const selectSession = useCallback(
     (imageId: string) => {
       setActiveSessionId(imageId);
-      // Restore presentation state for this session
+
       const session = sessions.find((s) => s.imageId === imageId);
-      if (session) {
+      if (session?.presentation) {
+        // Already loaded, just restore state
         setPresentationState(session.presentation.getState());
+      } else {
+        // Need to load agent + presentation
+        setPresentationState(INITIAL_PRESENTATION_STATE);
+        activateSession(imageId);
       }
     },
-    [sessions]
+    [sessions, activateSession]
   );
 
   // Send a message
   const sendMessage = useCallback(
     async (text: string) => {
-      if (!activeSession) return;
+      if (!activeSession?.presentation) return;
 
       try {
         await activeSession.presentation.send(text);
