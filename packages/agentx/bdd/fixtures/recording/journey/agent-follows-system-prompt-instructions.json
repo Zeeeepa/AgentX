@@ -1,22 +1,136 @@
 {
   "name": "agent-follows-system-prompt-instructions",
   "description": "VCR recording: agent-follows-system-prompt-instructions",
-  "recordedAt": 1770435424788,
+  "recordedAt": 1770436778493,
   "events": [
     {
       "type": "message_start",
-      "delay": 1,
+      "delay": 2,
       "data": {
-        "messageId": "msg_1770435424789",
+        "messageId": "msg_1770436778495",
         "model": "claude-haiku-4-5-20251001"
       }
     },
     {
-      "type": "error",
-      "delay": 183,
+      "type": "text_delta",
+      "delay": 1745,
       "data": {
-        "message": "AI_APICallError: Forbidden",
-        "errorCode": "stream_error"
+        "text": "你好！我很好，"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 21,
+      "data": {
+        "text": "谢谢你的问候。"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 39,
+      "data": {
+        "text": "我"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 96,
+      "data": {
+        "text": "是"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 30,
+      "data": {
+        "text": "一"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 11,
+      "data": {
+        "text": "个AI助手，随"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 36,
+      "data": {
+        "text": "时准"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 39,
+      "data": {
+        "text": "备帮助你"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 49,
+      "data": {
+        "text": "。你"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 29,
+      "data": {
+        "text": "今"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": "天过得"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 39,
+      "data": {
+        "text": "怎么样？有"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": "什么我"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 38,
+      "data": {
+        "text": "可以帮助你的"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 85,
+      "data": {
+        "text": "吗？"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 22,
+      "data": {
+        "usage": {
+          "inputTokens": 1051,
+          "outputTokens": 39
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 1,
+      "data": {
+        "stopReason": "end_turn"
       }
     }
   ]

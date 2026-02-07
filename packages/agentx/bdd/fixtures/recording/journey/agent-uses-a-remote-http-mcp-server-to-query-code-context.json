@@ -1,22 +1,950 @@
 {
   "name": "agent-uses-a-remote-http-mcp-server-to-query-code-context",
   "description": "VCR recording: agent-uses-a-remote-http-mcp-server-to-query-code-context",
-  "recordedAt": 1770435429754,
+  "recordedAt": 1770436835430,
   "events": [
     {
       "type": "message_start",
-      "delay": 1,
+      "delay": 3,
       "data": {
-        "messageId": "msg_1770435429755",
+        "messageId": "msg_1770436835433",
         "model": "claude-haiku-4-5-20251001"
       }
     },
     {
-      "type": "error",
-      "delay": 180,
+      "type": "text_delta",
+      "delay": 2635,
       "data": {
-        "message": "AI_APICallError: Forbidden",
-        "errorCode": "stream_error"
+        "text": "I'll use"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 64,
+      "data": {
+        "text": " the deepwiki tool to get"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " information about the Deepractice/"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": "AgentX repository."
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 17,
+      "data": {
+        "toolCallId": "tooluse_ZSH1uQy5XBr35rYF78Svkb",
+        "toolName": "ask_question"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "{\"rep"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 6,
+      "data": {
+        "partialJson": "oN"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 16,
+      "data": {
+        "partialJson": "ame"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 14,
+      "data": {
+        "partialJson": "\": \"Deep"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "ract"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 4,
+      "data": {
+        "partialJson": "ice/Agent"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 17,
+      "data": {
+        "partialJson": "X\""
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 175,
+      "data": {
+        "partialJson": ", \"quest"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "ion\": "
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "\"What i"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "s this rep"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "osito"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "ry about?"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": " Please prov"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 4,
+      "data": {
+        "partialJson": "ide a compre"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "hensive des"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "cription in"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 14,
+      "data": {
+        "partialJson": "cl"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "uding "
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "its purp"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "ose, m"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "ain fea"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "tures, and "
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "key func"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "tiona"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "lity.\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 1,
+      "data": {
+        "toolCallId": "tooluse_ZSH1uQy5XBr35rYF78Svkb",
+        "toolName": "ask_question",
+        "input": {
+          "repoName": "Deepractice/AgentX",
+          "question": "What is this repository about? Please provide a comprehensive description including its purpose, main features, and key functionality."
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 13300,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 1,
+      "data": {
+        "toolCallId": "tooluse_ZSH1uQy5XBr35rYF78Svkb",
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "This repository, Deepractice/AgentX, is a full-stack application that provides a visual AI agent interface for interacting with Anthropic's Claude AI, eliminating the need for command-line tools  . Its purpose is to make AI agent capabilities accessible through a user-friendly web UI, offering features like session management, real-time streaming, and tool integration . The key functionality revolves around enabling users to chat with the AI, manage conversations, and allow the AI to perform actions like executing code or accessing files .\n\n## Purpose and Core Philosophy\n\nThe core philosophy of Deepractice AgentX is to provide a \"full-stack desktop-class application\" that offers AI agent capabilities through a web interface, moving away from command-line-only interactions  . It aims to simplify the user experience by offering a visual chat interface for interacting with AI, managing sessions, and integrating tools, all within a self-hosted environment . The project follows a \"separated development, unified deployment\" architecture, meaning components are developed independently but deployed as a single unit .\n\n## Main Features\n\nDeepractice AgentX offers several key features:\n*   **Visual Chat Interface**: It provides a modern, React-based web UI for interacting with the Claude AI, removing the need for terminal commands  .\n*   **Session Management**: Users can organize and revisit their conversations with the AI . Sessions are persisted in an SQLite database .\n*   **Real-time Streaming**: The application displays AI responses in real-time as they are generated .\n*   **Tool Integration**: The AI agent can execute code, access files, and perform other operations through tool integration . For example, it can access a `CLAUDE.md` file in the project directory for context .\n*   **Self-hosted and Browser-based**: The application runs locally on the user's machine, ensuring data privacy, and can be accessed from any device on the network via a web browser .\n*   **All-in-One Package**: The server, web UI, and CLI are bundled into a single deployable unit, simplifying installation and deployment  .\n\n## Key Functionality and Architecture\n\nThe system is built with a three-tier architecture within a monorepo structure :\n\n### Tier 1: Frontend (React)\nThe frontend is a single-page application built with React 18, utilizing Zustand for state management and an EventBus pattern for asynchronous operations . It follows a unidirectional data flow: Components call Store actions, which emit EventBus events, leading to Store handlers updating the state and re-rendering components . Key components include `ChatInterface` for the main conversation UI, `useSessionStore` and `useMessageStore` for state management, and `WebSocketClient` for real-time communication .\n\n### Tier 2: Backend (Express + WebSocket)\nThe backend provides REST APIs for session management and WebSocket streaming for real-time communication . It delegates all AI operations to the Agent SDK . Important modules include the Express server entry point (`apps/agent/server/index.ts`), session API routes (`apps/agent/server/routes/sessions.ts`), and WebSocket chat handling (`apps/agent/server/websocket/chat.ts`) . The backend also includes a CLI (`apps/agent/cli/index.ts`) for command-line interactions .\n\n### Tier 3: Agent SDK (RxJS Event-Driven)\nThe Agent SDK (`packages/agent-sdk/`) provides a reactive abstraction over the Anthropic Claude API using RxJS Observables for streaming . It manages session lifecycles and handles interactions with the Anthropic API . Core classes include `ClaudeAgent`, `SessionManager`, `ClaudeSession`, and `ClaudeAdapter` . The SDK is event-driven, with all state changes emitting RxJS Observable events .\n\n## Deployment and Development\n\nThe application is designed for unified deployment, where the frontend, backend, and CLI are bundled into a single npm package (`@deepractice-ai/agent`)  . It can be deployed via npm CLI, Docker run, or Docker Compose  . For development, a separate Vite development server runs for the frontend, allowing for Hot Module Replacement (HMR), while the backend runs independently . In production, the agent server on port 5200 serves everything, including static frontend files, API, and WebSocket connections .\n\n## Notes\n\nThe `CLAUDE.md` file in the repository is primarily for providing guidance to Claude Code (claude.ai/code) when working with the codebase, rather than being a core functional component of the Deepractice AgentX application itself . However, the application does have a feature to access a `CLAUDE.md` file within a project for context, as seen in the `/memory` command handler .\n\nWiki pages you might want to explore:\n- [First Conversation (Deepractice/AgentX)](/wiki/Deepractice/AgentX#2.3)\n- [Architecture Overview (Deepractice/AgentX)](/wiki/Deepractice/AgentX#3)\n\nView this search on DeepWiki: https://deepwiki.com/search/what-is-this-repository-about_5500250f-7c53-4904-a542-62d22b10c84f\n"
+            }
+          ],
+          "structuredContent": {
+            "result": "This repository, Deepractice/AgentX, is a full-stack application that provides a visual AI agent interface for interacting with Anthropic's Claude AI, eliminating the need for command-line tools  . Its purpose is to make AI agent capabilities accessible through a user-friendly web UI, offering features like session management, real-time streaming, and tool integration . The key functionality revolves around enabling users to chat with the AI, manage conversations, and allow the AI to perform actions like executing code or accessing files .\n\n## Purpose and Core Philosophy\n\nThe core philosophy of Deepractice AgentX is to provide a \"full-stack desktop-class application\" that offers AI agent capabilities through a web interface, moving away from command-line-only interactions  . It aims to simplify the user experience by offering a visual chat interface for interacting with AI, managing sessions, and integrating tools, all within a self-hosted environment . The project follows a \"separated development, unified deployment\" architecture, meaning components are developed independently but deployed as a single unit .\n\n## Main Features\n\nDeepractice AgentX offers several key features:\n*   **Visual Chat Interface**: It provides a modern, React-based web UI for interacting with the Claude AI, removing the need for terminal commands  .\n*   **Session Management**: Users can organize and revisit their conversations with the AI . Sessions are persisted in an SQLite database .\n*   **Real-time Streaming**: The application displays AI responses in real-time as they are generated .\n*   **Tool Integration**: The AI agent can execute code, access files, and perform other operations through tool integration . For example, it can access a `CLAUDE.md` file in the project directory for context .\n*   **Self-hosted and Browser-based**: The application runs locally on the user's machine, ensuring data privacy, and can be accessed from any device on the network via a web browser .\n*   **All-in-One Package**: The server, web UI, and CLI are bundled into a single deployable unit, simplifying installation and deployment  .\n\n## Key Functionality and Architecture\n\nThe system is built with a three-tier architecture within a monorepo structure :\n\n### Tier 1: Frontend (React)\nThe frontend is a single-page application built with React 18, utilizing Zustand for state management and an EventBus pattern for asynchronous operations . It follows a unidirectional data flow: Components call Store actions, which emit EventBus events, leading to Store handlers updating the state and re-rendering components . Key components include `ChatInterface` for the main conversation UI, `useSessionStore` and `useMessageStore` for state management, and `WebSocketClient` for real-time communication .\n\n### Tier 2: Backend (Express + WebSocket)\nThe backend provides REST APIs for session management and WebSocket streaming for real-time communication . It delegates all AI operations to the Agent SDK . Important modules include the Express server entry point (`apps/agent/server/index.ts`), session API routes (`apps/agent/server/routes/sessions.ts`), and WebSocket chat handling (`apps/agent/server/websocket/chat.ts`) . The backend also includes a CLI (`apps/agent/cli/index.ts`) for command-line interactions .\n\n### Tier 3: Agent SDK (RxJS Event-Driven)\nThe Agent SDK (`packages/agent-sdk/`) provides a reactive abstraction over the Anthropic Claude API using RxJS Observables for streaming . It manages session lifecycles and handles interactions with the Anthropic API . Core classes include `ClaudeAgent`, `SessionManager`, `ClaudeSession`, and `ClaudeAdapter` . The SDK is event-driven, with all state changes emitting RxJS Observable events .\n\n## Deployment and Development\n\nThe application is designed for unified deployment, where the frontend, backend, and CLI are bundled into a single npm package (`@deepractice-ai/agent`)  . It can be deployed via npm CLI, Docker run, or Docker Compose  . For development, a separate Vite development server runs for the frontend, allowing for Hot Module Replacement (HMR), while the backend runs independently . In production, the agent server on port 5200 serves everything, including static frontend files, API, and WebSocket connections .\n\n## Notes\n\nThe `CLAUDE.md` file in the repository is primarily for providing guidance to Claude Code (claude.ai/code) when working with the codebase, rather than being a core functional component of the Deepractice AgentX application itself . However, the application does have a feature to access a `CLAUDE.md` file within a project for context, as seen in the `/memory` command handler .\n\nWiki pages you might want to explore:\n- [First Conversation (Deepractice/AgentX)](/wiki/Deepractice/AgentX#2.3)\n- [Architecture Overview (Deepractice/AgentX)](/wiki/Deepractice/AgentX#3)\n\nView this search on DeepWiki: https://deepwiki.com/search/what-is-this-repository-about_5500250f-7c53-4904-a542-62d22b10c84f\n"
+          },
+          "isError": false
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 1,
+      "data": {
+        "usage": {
+          "inputTokens": 1412,
+          "outputTokens": 78
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 2143,
+      "data": {
+        "messageId": "msg_1770436853848",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "##"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " Deepractice/AgentX"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 39,
+      "data": {
+        "text": " Repository Description"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 34,
+      "data": {
+        "text": "\n\n**"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 80,
+      "data": {
+        "text": "Deepractice/AgentX**"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": " is a full-stack application that"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": " provides a visual AI agent interface for inter"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 38,
+      "data": {
+        "text": "acting with Anthropic's Claude AI"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 102,
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " It elimin"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 16,
+      "data": {
+        "text": "ates the need for command-line tools"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": " by"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 44,
+      "data": {
+        "text": " offering a user"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 33,
+      "data": {
+        "text": "-friendly web UI for"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": " AI"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 37,
+      "data": {
+        "text": " interactions.\n\n###"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": " **"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 151,
+      "data": {
+        "text": "Purpose**"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 7,
+      "data": {
+        "text": "\nThe repository aims"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 12,
+      "data": {
+        "text": " to make AI agent capabilities accessible through a"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " modern"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 25,
+      "data": {
+        "text": " web interface, moving away from command-"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": "line-only interactions. It follows"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 45,
+      "data": {
+        "text": " a \"separated development, unified deployment\""
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 36,
+      "data": {
+        "text": " architecture where"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 43,
+      "data": {
+        "text": " components are developed independently but deployed as a"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 78,
+      "data": {
+        "text": " single unit.\n\n### **Main Features"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 3,
+      "data": {
+        "text": "**"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 49,
+      "data": {
+        "text": "\n\n1. **Visual Chat Interface**"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 71,
+      "data": {
+        "text": " - A modern"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 57,
+      "data": {
+        "text": " React-based web UI for convers"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 2,
+      "data": {
+        "text": "ing with Claude AI without"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 27,
+      "data": {
+        "text": " terminal"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 75,
+      "data": {
+        "text": " commands"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 56,
+      "data": {
+        "text": "\n\n2. **Session Management** -"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 32,
+      "data": {
+        "text": " Organize"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 15,
+      "data": {
+        "text": " and revisit conversations with persistent"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 19,
+      "data": {
+        "text": " storage in SQLite database\n\n3."
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": " **Real-time Streaming** -"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 36,
+      "data": {
+        "text": " Display AI responses in real-time as"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": " they're"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 38,
+      "data": {
+        "text": " generated\n\n4. **Tool Integration**"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": " - The"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 38,
+      "data": {
+        "text": " AI agent"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 50,
+      "data": {
+        "text": " can execute code, access files, an"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 183,
+      "data": {
+        "text": "d perform various"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 64,
+      "data": {
+        "text": " operations\n\n5. **Self-hoste"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 13,
+      "data": {
+        "text": "d &"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 7,
+      "data": {
+        "text": " Browser-based** -"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 5,
+      "data": {
+        "text": " Runs locally for"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 18,
+      "data": {
+        "text": " data"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 6,
+      "data": {
+        "text": " privacy an"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 16,
+      "data": {
+        "text": "d can"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 33,
+      "data": {
+        "text": " be accessed from any device on"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 37,
+      "data": {
+        "text": " network\n\n6. **All-in"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 51,
+      "data": {
+        "text": "-One Package** - Server, web"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 38,
+      "data": {
+        "text": " UI, and CLI bundled into a"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 31,
+      "data": {
+        "text": " single deployable unit\n\n### **Architecture"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 43,
+      "data": {
+        "text": "**"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 35,
+      "data": {
+        "text": "\n\nThe system uses"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": " a **"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": "three-tier architecture** within a mon"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 62,
+      "data": {
+        "text": "orepo:\n\n- **Tier"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 19,
+      "data": {
+        "text": " 1: Frontend (React)**"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 47,
+      "data": {
+        "text": " - Single-page application with Zu"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": "stand for"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 53,
+      "data": {
+        "text": " state management and EventBus pattern for"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 26,
+      "data": {
+        "text": " async operations"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 52,
+      "data": {
+        "text": "\n\n- **Tier 2: Backen"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 19,
+      "data": {
+        "text": "d (Express + WebSocket)** -"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": " REST APIs for"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 56,
+      "data": {
+        "text": " session management and WebSocket for"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 21,
+      "data": {
+        "text": " real-time communication\n\n- **"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 196,
+      "data": {
+        "text": "Tier 3: Agent SDK (R"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 6,
+      "data": {
+        "text": "xJS)"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 17,
+      "data": {
+        "text": "** -"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " Reactive abstraction over Anthropic Claude"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 35,
+      "data": {
+        "text": " API using RxJS Observables"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": " for streaming\n\n### **"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": "Deployment Options"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 37,
+      "data": {
+        "text": "**\n- npm CLI"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": "\n- Docker run\n- Docker Compose"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 51,
+      "data": {
+        "text": "\n\nThe"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 44,
+      "data": {
+        "text": " application runs"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 33,
+      "data": {
+        "text": " on port 5200 in"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 50,
+      "data": {
+        "text": " production, serving static files"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 21,
+      "data": {
+        "text": ", APIs"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 38,
+      "data": {
+        "text": ", and WebSocket connections from"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 43,
+      "data": {
+        "text": " single server"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 35,
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 100,
+      "data": {
+        "usage": {
+          "inputTokens": 4105,
+          "outputTokens": 546
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 0,
+      "data": {
+        "stopReason": "end_turn"
       }
     }
   ]

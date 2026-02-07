@@ -1,22 +1,713 @@
 {
   "name": "agent-executes-commands-and-works-with-files",
   "description": "VCR recording: agent-executes-commands-and-works-with-files",
-  "recordedAt": 1770435425973,
+  "recordedAt": 1770436788513,
   "events": [
     {
       "type": "message_start",
       "delay": 1,
       "data": {
-        "messageId": "msg_1770435425974",
+        "messageId": "msg_1770436788514",
         "model": "claude-haiku-4-5-20251001"
       }
     },
     {
-      "type": "error",
-      "delay": 184,
+      "type": "tool_use_start",
+      "delay": 1845,
       "data": {
-        "message": "AI_APICallError: Forbidden",
-        "errorCode": "stream_error"
+        "toolCallId": "tooluse_4af5xSXtsTZksTIZs8cbGu",
+        "toolName": "bash"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 163,
+      "data": {
+        "partialJson": "{\"command\":"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": " \"echo h"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "ello-agentx\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 16,
+      "data": {
+        "toolCallId": "tooluse_4af5xSXtsTZksTIZs8cbGu",
+        "toolName": "bash",
+        "input": {
+          "command": "echo hello-agentx"
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 3,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_4af5xSXtsTZksTIZs8cbGu",
+        "result": {
+          "stdout": "hello-agentx",
+          "stderr": "",
+          "exitCode": 0
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 2,
+      "data": {
+        "usage": {
+          "inputTokens": 855,
+          "outputTokens": 10
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 1703,
+      "data": {
+        "messageId": "msg_1770436792247",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "The command execute"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 24,
+      "data": {
+        "text": "d successfully an"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 33,
+      "data": {
+        "text": "d output"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 37,
+      "data": {
+        "text": ":"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": " **"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 39,
+      "data": {
+        "text": "hello"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 38,
+      "data": {
+        "text": "-agentx**"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 112,
+      "data": {
+        "usage": {
+          "inputTokens": 660,
+          "outputTokens": 18
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 0,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 205,
+      "data": {
+        "messageId": "msg_1770436792775",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 1859,
+      "data": {
+        "toolCallId": "tooluse_RaoA8CSOBKsYgwypts98yK",
+        "toolName": "bash"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 235,
+      "data": {
+        "partialJson": "{\"comm"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 11,
+      "data": {
+        "partialJson": "and\": \""
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "echo 'Hello"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": " World'"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": " > te"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 2,
+      "data": {
+        "partialJson": "st.txt\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 3,
+      "data": {
+        "toolCallId": "tooluse_RaoA8CSOBKsYgwypts98yK",
+        "toolName": "bash",
+        "input": {
+          "command": "echo 'Hello World' > test.txt"
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 3,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_RaoA8CSOBKsYgwypts98yK",
+        "result": {
+          "stdout": "",
+          "stderr": "",
+          "exitCode": 0
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 245,
+      "data": {
+        "usage": {
+          "inputTokens": 726,
+          "outputTokens": 14
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 2084,
+      "data": {
+        "messageId": "msg_1770436797218",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_byQVvKH2kw3TKOYCJOeRiF",
+        "toolName": "bash"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 214,
+      "data": {
+        "partialJson": "{\"com"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "mand\": \"cat "
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "te"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "st.txt\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 18,
+      "data": {
+        "toolCallId": "tooluse_byQVvKH2kw3TKOYCJOeRiF",
+        "toolName": "bash",
+        "input": {
+          "command": "cat test.txt"
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 6,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 1,
+      "data": {
+        "toolCallId": "tooluse_byQVvKH2kw3TKOYCJOeRiF",
+        "result": {
+          "stdout": "Hello World",
+          "stderr": "",
+          "exitCode": 0
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 1,
+      "data": {
+        "usage": {
+          "inputTokens": 1460,
+          "outputTokens": 9
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 3215,
+      "data": {
+        "messageId": "msg_1770436800674",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "The"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " file"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " test"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": ".txt was created an"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "d contains: **Hello World**"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 30,
+      "data": {
+        "usage": {
+          "inputTokens": 1391,
+          "outputTokens": 17
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 1,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 209,
+      "data": {
+        "messageId": "msg_1770436800914",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 1938,
+      "data": {
+        "toolCallId": "tooluse_7QrW9xnOmHDrOiyTxCk24u",
+        "toolName": "bash"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 168,
+      "data": {
+        "partialJson": "{\"command\""
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": ": \""
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "ls *.tx"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "t\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 8,
+      "data": {
+        "toolCallId": "tooluse_7QrW9xnOmHDrOiyTxCk24u",
+        "toolName": "bash",
+        "input": {
+          "command": "ls *.txt"
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 6,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_7QrW9xnOmHDrOiyTxCk24u",
+        "result": {
+          "stdout": "test.txt",
+          "stderr": "",
+          "exitCode": 0
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 1,
+      "data": {
+        "usage": {
+          "inputTokens": 1087,
+          "outputTokens": 8
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 1657,
+      "data": {
+        "messageId": "msg_1770436804694",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "The"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " ."
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": "txt files in the current directory are:"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 65,
+      "data": {
+        "text": " **test.txt**"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 4,
+      "data": {
+        "usage": {
+          "inputTokens": 1208,
+          "outputTokens": 17
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 1,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 207,
+      "data": {
+        "messageId": "msg_1770436804972",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 2486,
+      "data": {
+        "toolCallId": "tooluse_BykMARWsOd5QSjULB4jDGr",
+        "toolName": "bash"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 173,
+      "data": {
+        "partialJson": "{\"comm"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "and"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "\": "
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "\"MY_VAR=he"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 2,
+      "data": {
+        "partialJson": "llo12"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "3 && echo "
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "$MY_VAR\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 22,
+      "data": {
+        "toolCallId": "tooluse_BykMARWsOd5QSjULB4jDGr",
+        "toolName": "bash",
+        "input": {
+          "command": "MY_VAR=hello123 && echo $MY_VAR"
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 5,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_BykMARWsOd5QSjULB4jDGr",
+        "result": {
+          "stdout": "hello123",
+          "stderr": "",
+          "exitCode": 0
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 1,
+      "data": {
+        "usage": {
+          "inputTokens": 1852,
+          "outputTokens": 14
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 3083,
+      "data": {
+        "messageId": "msg_1770436810746",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": "The"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " environment"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " variable MY_VAR was"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 6,
+      "data": {
+        "text": " set an"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 3,
+      "data": {
+        "text": "d echoed back:"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 5,
+      "data": {
+        "text": " **hello123**"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 32,
+      "data": {
+        "usage": {
+          "inputTokens": 1816,
+          "outputTokens": 20
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 1,
+      "data": {
+        "stopReason": "end_turn"
       }
     }
   ]

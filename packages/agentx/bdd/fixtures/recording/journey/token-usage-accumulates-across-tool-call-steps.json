@@ -1,22 +1,172 @@
 {
   "name": "token-usage-accumulates-across-tool-call-steps",
   "description": "VCR recording: token-usage-accumulates-across-tool-call-steps",
-  "recordedAt": 1770435433447,
+  "recordedAt": 1770436878405,
   "events": [
     {
       "type": "message_start",
       "delay": 2,
       "data": {
-        "messageId": "msg_1770435433449",
+        "messageId": "msg_1770436878407",
         "model": "claude-haiku-4-5-20251001"
       }
     },
     {
-      "type": "error",
-      "delay": 180,
+      "type": "text_delta",
+      "delay": 9337,
       "data": {
-        "message": "AI_APICallError: Forbidden",
-        "errorCode": "stream_error"
+        "text": "I'll run that"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 2,
+      "data": {
+        "text": " command for you."
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 27,
+      "data": {
+        "toolCallId": "tooluse_WW4k5lWqd85e6aR62C08lT",
+        "toolName": "bash"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 379,
+      "data": {
+        "partialJson": "{\"comma"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "nd\": \"ech"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "o toke"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "n-test\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 5,
+      "data": {
+        "toolCallId": "tooluse_WW4k5lWqd85e6aR62C08lT",
+        "toolName": "bash",
+        "input": {
+          "command": "echo token-test"
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 4,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 1,
+      "data": {
+        "toolCallId": "tooluse_WW4k5lWqd85e6aR62C08lT",
+        "result": {
+          "stdout": "token-test",
+          "stderr": "",
+          "exitCode": 0
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 1,
+      "data": {
+        "usage": {
+          "inputTokens": 1201,
+          "outputTokens": 18
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 1723,
+      "data": {
+        "messageId": "msg_1770436889887",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "The command execute"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 23,
+      "data": {
+        "text": "d successfully an"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 28,
+      "data": {
+        "text": "d output"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 44,
+      "data": {
+        "text": ":"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 36,
+      "data": {
+        "text": " **"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 302,
+      "data": {
+        "text": "token-test**"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 30,
+      "data": {
+        "usage": {
+          "inputTokens": 881,
+          "outputTokens": 18
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 0,
+      "data": {
+        "stopReason": "end_turn"
       }
     }
   ]

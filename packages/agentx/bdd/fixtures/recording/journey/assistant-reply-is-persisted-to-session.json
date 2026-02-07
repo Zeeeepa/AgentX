@@ -1,22 +1,52 @@
 {
   "name": "assistant-reply-is-persisted-to-session",
   "description": "VCR recording: assistant-reply-is-persisted-to-session",
-  "recordedAt": 1770435430575,
+  "recordedAt": 1770436860237,
   "events": [
     {
       "type": "message_start",
-      "delay": 2,
+      "delay": 1,
       "data": {
-        "messageId": "msg_1770435430577",
+        "messageId": "msg_1770436860238",
         "model": "claude-haiku-4-5-20251001"
       }
     },
     {
-      "type": "error",
-      "delay": 180,
+      "type": "text_delta",
+      "delay": 1801,
       "data": {
-        "message": "AI_APICallError: Forbidden",
-        "errorCode": "stream_error"
+        "text": "Hello"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": "! How"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": " can I help you today?"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 75,
+      "data": {
+        "usage": {
+          "inputTokens": 325,
+          "outputTokens": 9
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 0,
+      "data": {
+        "stopReason": "end_turn"
       }
     }
   ]

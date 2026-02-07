@@ -89,12 +89,20 @@ interface ToolBlockLocal {
 
 type BlockLocal = TextBlockLocal | ToolBlockLocal | { type: string };
 
+interface TokenUsageLocal {
+  inputTokens: number;
+  outputTokens: number;
+}
+
 interface ConversationLocal {
   role: "user" | "assistant" | "error";
   blocks?: BlockLocal[];
   message?: string;
   isStreaming?: boolean;
+  usage?: TokenUsageLocal;
 }
+
+export type { TokenUsageLocal };
 
 export interface PresentationStateLocal {
   conversations: ConversationLocal[];
@@ -102,6 +110,7 @@ export interface PresentationStateLocal {
     role: "assistant";
     blocks: BlockLocal[];
     isStreaming: boolean;
+    usage?: TokenUsageLocal;
   } | null;
   status: "idle" | "thinking" | "responding" | "executing";
 }

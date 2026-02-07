@@ -349,6 +349,15 @@ export class MockDriver implements Driver {
           },
         };
 
+      case "message_delta":
+        return {
+          type: "message_delta",
+          timestamp,
+          data: {
+            usage: data.usage as { inputTokens: number; outputTokens: number } | undefined,
+          },
+        };
+
       case "message_stop":
         return {
           type: "message_stop",

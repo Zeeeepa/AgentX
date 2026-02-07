@@ -1,22 +1,73 @@
 {
   "name": "agent-remembers-conversation-after-restart",
   "description": "VCR recording: agent-remembers-conversation-after-restart",
-  "recordedAt": 1770435425583,
+  "recordedAt": 1770436785961,
   "events": [
     {
       "type": "message_start",
-      "delay": 1,
+      "delay": 3,
       "data": {
-        "messageId": "msg_1770435425584",
+        "messageId": "msg_1770436785964",
         "model": "claude-haiku-4-5-20251001"
       }
     },
     {
-      "type": "error",
-      "delay": 179,
+      "type": "text_delta",
+      "delay": 1835,
       "data": {
-        "message": "AI_APICallError: Forbidden",
-        "errorCode": "stream_error"
+        "text": "Hello"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": " Bob! I've"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 30,
+      "data": {
+        "text": " note"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 38,
+      "data": {
+        "text": "d your name."
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 39,
+      "data": {
+        "text": " How"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 45,
+      "data": {
+        "text": " can I help you today?"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 107,
+      "data": {
+        "usage": {
+          "inputTokens": 944,
+          "outputTokens": 17
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 0,
+      "data": {
+        "stopReason": "end_turn"
       }
     }
   ]

@@ -1,22 +1,91 @@
 {
   "name": "agent-remembers-context-from-previous-messages",
   "description": "VCR recording: agent-remembers-context-from-previous-messages",
-  "recordedAt": 1770435425183,
+  "recordedAt": 1770436781068,
   "events": [
     {
       "type": "message_start",
       "delay": 2,
       "data": {
-        "messageId": "msg_1770435425185",
+        "messageId": "msg_1770436781070",
         "model": "claude-haiku-4-5-20251001"
       }
     },
     {
-      "type": "error",
-      "delay": 188,
+      "type": "text_delta",
+      "delay": 2489,
       "data": {
-        "message": "AI_APICallError: Forbidden",
-        "errorCode": "stream_error"
+        "text": "Nice"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " to meet you,"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 15,
+      "data": {
+        "text": " Alice!"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 34,
+      "data": {
+        "usage": {
+          "inputTokens": 760,
+          "outputTokens": 7
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 0,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 208,
+      "data": {
+        "messageId": "msg_1770436783816",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1831,
+      "data": {
+        "text": "Your"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 16,
+      "data": {
+        "text": " name is Alice!"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 81,
+      "data": {
+        "usage": {
+          "inputTokens": 648,
+          "outputTokens": 7
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 0,
+      "data": {
+        "stopReason": "end_turn"
       }
     }
   ]

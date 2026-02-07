@@ -1,22 +1,214 @@
 {
   "name": "tool-call-block-has-populated-toolinput-and-toolresult",
   "description": "VCR recording: tool-call-block-has-populated-toolinput-and-toolresult",
-  "recordedAt": 1770435430967,
+  "recordedAt": 1770436862344,
   "events": [
     {
       "type": "message_start",
-      "delay": 2,
+      "delay": 6,
       "data": {
-        "messageId": "msg_1770435430969",
+        "messageId": "msg_1770436862350",
         "model": "claude-haiku-4-5-20251001"
       }
     },
     {
-      "type": "error",
-      "delay": 178,
+      "type": "text_delta",
+      "delay": 1887,
       "data": {
-        "message": "AI_APICallError: Forbidden",
-        "errorCode": "stream_error"
+        "text": "I'll run that"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 9,
+      "data": {
+        "text": " echo"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": " command for you using"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " bash."
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 65,
+      "data": {
+        "toolCallId": "tooluse_cVSZKT036rlkfoEUWWJKEV",
+        "toolName": "bash"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 280,
+      "data": {
+        "partialJson": "{\"c"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "om"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "mand\": \""
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 2,
+      "data": {
+        "partialJson": "echo tool-"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "input-tes"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "t\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 3,
+      "data": {
+        "toolCallId": "tooluse_cVSZKT036rlkfoEUWWJKEV",
+        "toolName": "bash",
+        "input": {
+          "command": "echo tool-input-test"
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 4,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_cVSZKT036rlkfoEUWWJKEV",
+        "result": {
+          "stdout": "tool-input-test",
+          "stderr": "",
+          "exitCode": 0
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 5,
+      "data": {
+        "usage": {
+          "inputTokens": 462,
+          "outputTokens": 24
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 2925,
+      "data": {
+        "messageId": "msg_1770436867533",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "The comman"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "d execute"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 37,
+      "data": {
+        "text": "d successfully an"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 30,
+      "data": {
+        "text": "d output"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 24,
+      "data": {
+        "text": ":"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 8,
+      "data": {
+        "text": " **"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 5,
+      "data": {
+        "text": "tool"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "-input-test**"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 99,
+      "data": {
+        "usage": {
+          "inputTokens": 1180,
+          "outputTokens": 19
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 1,
+      "data": {
+        "stopReason": "end_turn"
       }
     }
   ]

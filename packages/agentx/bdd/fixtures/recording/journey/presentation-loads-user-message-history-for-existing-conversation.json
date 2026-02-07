@@ -1,22 +1,136 @@
 {
   "name": "presentation-loads-user-message-history-for-existing-conversation",
   "description": "VCR recording: presentation-loads-user-message-history-for-existing-conversation",
-  "recordedAt": 1770435430169,
+  "recordedAt": 1770436857881,
   "events": [
     {
       "type": "message_start",
       "delay": 2,
       "data": {
-        "messageId": "msg_1770435430171",
+        "messageId": "msg_1770436857883",
         "model": "claude-haiku-4-5-20251001"
       }
     },
     {
-      "type": "error",
-      "delay": 178,
+      "type": "text_delta",
+      "delay": 1713,
       "data": {
-        "message": "AI_APICallError: Forbidden",
-        "errorCode": "stream_error"
+        "text": "I'll remember"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 3,
+      "data": {
+        "text": " the word:"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 3,
+      "data": {
+        "text": " **"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 5,
+      "data": {
+        "text": "pineapple**\n\nI"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 9,
+      "data": {
+        "text": "'ve"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 5,
+      "data": {
+        "text": " note"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 25,
+      "data": {
+        "text": "d it"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 30,
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 37,
+      "data": {
+        "text": " Is"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 50,
+      "data": {
+        "text": " there anything else you'd like me to"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 28,
+      "data": {
+        "text": " "
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": "do with this word or"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": " any other task"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 39,
+      "data": {
+        "text": " I"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 94,
+      "data": {
+        "text": " can help you with?"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 9,
+      "data": {
+        "usage": {
+          "inputTokens": 1286,
+          "outputTokens": 43
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 1,
+      "data": {
+        "stopReason": "end_turn"
       }
     }
   ]

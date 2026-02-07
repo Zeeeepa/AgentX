@@ -1,22 +1,313 @@
 {
   "name": "multiple-tool-calls-each-have-their-own-toolinput",
   "description": "VCR recording: multiple-tool-calls-each-have-their-own-toolinput",
-  "recordedAt": 1770435431669,
+  "recordedAt": 1770436868252,
   "events": [
     {
       "type": "message_start",
-      "delay": 3,
+      "delay": 2,
       "data": {
-        "messageId": "msg_1770435431672",
+        "messageId": "msg_1770436868254",
         "model": "claude-haiku-4-5-20251001"
       }
     },
     {
-      "type": "error",
-      "delay": 186,
+      "type": "text_delta",
+      "delay": 1875,
       "data": {
-        "message": "AI_APICallError: Forbidden",
-        "errorCode": "stream_error"
+        "text": "I'll run"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " those"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": " two commands separately"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " for"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 20,
+      "data": {
+        "text": " you."
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 113,
+      "data": {
+        "toolCallId": "tooluse_ikmYN98VTZNzohKmCagTow",
+        "toolName": "bash"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 275,
+      "data": {
+        "partialJson": "{\"com"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "mand\""
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": ": \"ech"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "o aaa\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 1,
+      "data": {
+        "toolCallId": "tooluse_ikmYN98VTZNzohKmCagTow",
+        "toolName": "bash",
+        "input": {
+          "command": "echo aaa"
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 3,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_ikmYN98VTZNzohKmCagTow",
+        "result": {
+          "stdout": "aaa",
+          "stderr": "",
+          "exitCode": 0
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 1,
+      "data": {
+        "usage": {
+          "inputTokens": 1366,
+          "outputTokens": 21
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 1872,
+      "data": {
+        "messageId": "msg_1770436872416",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_0w3UyvgJSAGb9trV4klrLJ",
+        "toolName": "bash"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 193,
+      "data": {
+        "partialJson": "{\"comma"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "nd\":"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": " \"echo b"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "bb\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 2,
+      "data": {
+        "toolCallId": "tooluse_0w3UyvgJSAGb9trV4klrLJ",
+        "toolName": "bash",
+        "input": {
+          "command": "echo bbb"
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 3,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_0w3UyvgJSAGb9trV4klrLJ",
+        "result": {
+          "stdout": "bbb",
+          "stderr": "",
+          "exitCode": 0
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 8,
+      "data": {
+        "usage": {
+          "inputTokens": 646,
+          "outputTokens": 7
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 2027,
+      "data": {
+        "messageId": "msg_1770436874650",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "Done"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 25,
+      "data": {
+        "text": "! I've run"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 24,
+      "data": {
+        "text": " both commands separately:\n1. First"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 31,
+      "data": {
+        "text": " comman"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 35,
+      "data": {
+        "text": "d `"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 43,
+      "data": {
+        "text": "echo aaa` output"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": ": **"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": "a"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 52,
+      "data": {
+        "text": "aa**\n2. Second command `"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 56,
+      "data": {
+        "text": "echo bbb` output: **b"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 39,
+      "data": {
+        "text": "bb**"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 92,
+      "data": {
+        "usage": {
+          "inputTokens": 968,
+          "outputTokens": 38
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 0,
+      "data": {
+        "stopReason": "end_turn"
       }
     }
   ]

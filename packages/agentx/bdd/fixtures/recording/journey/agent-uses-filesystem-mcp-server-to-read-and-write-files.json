@@ -1,22 +1,848 @@
 {
   "name": "agent-uses-filesystem-mcp-server-to-read-and-write-files",
   "description": "VCR recording: agent-uses-filesystem-mcp-server-to-read-and-write-files",
-  "recordedAt": 1770435427505,
+  "recordedAt": 1770436812475,
   "events": [
     {
       "type": "message_start",
-      "delay": 1,
+      "delay": 4,
       "data": {
-        "messageId": "msg_1770435427506",
+        "messageId": "msg_1770436812479",
         "model": "claude-haiku-4-5-20251001"
       }
     },
     {
-      "type": "error",
-      "delay": 180,
+      "type": "text_delta",
+      "delay": 2251,
       "data": {
-        "message": "AI_APICallError: Forbidden",
-        "errorCode": "stream_error"
+        "text": "I'll create"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " the file at"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": " /"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "tmp/agentx/hello."
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "txt with the content 'Hello from"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 39,
+      "data": {
+        "text": " MCP'."
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 147,
+      "data": {
+        "toolCallId": "tooluse_PEyrpzChGGB8Qr0CRu7drl",
+        "toolName": "create_directory"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 203,
+      "data": {
+        "partialJson": "{\"path\""
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": ": \"/tmp/"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 2,
+      "data": {
+        "partialJson": "ag"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "entx\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 1,
+      "data": {
+        "toolCallId": "tooluse_PEyrpzChGGB8Qr0CRu7drl",
+        "toolName": "create_directory",
+        "input": {
+          "path": "/tmp/agentx"
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 2,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_PEyrpzChGGB8Qr0CRu7drl",
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "Access denied - path outside allowed directories: /tmp/agentx not in /private/tmp/agentx"
+            }
+          ],
+          "isError": true
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 423,
+      "data": {
+        "usage": {
+          "inputTokens": 3852,
+          "outputTokens": 31
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 2994,
+      "data": {
+        "messageId": "msg_1770436818542",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "Let"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": " me check"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": " the allowe"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 5,
+      "data": {
+        "text": "d directories first"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 4,
+      "data": {
+        "text": ":"
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 8,
+      "data": {
+        "toolCallId": "tooluse_JlG3VkqGIqmMUgrtscSNQq",
+        "toolName": "list_allowed_directories"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 25,
+      "data": {
+        "toolCallId": "tooluse_JlG3VkqGIqmMUgrtscSNQq",
+        "toolName": "list_allowed_directories",
+        "input": {}
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 1,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_JlG3VkqGIqmMUgrtscSNQq",
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "Allowed directories:\n/private/tmp/agentx"
+            }
+          ],
+          "structuredContent": {
+            "content": "Allowed directories:\n/private/tmp/agentx"
+          },
+          "isError": false
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 5,
+      "data": {
+        "usage": {
+          "inputTokens": 3163,
+          "outputTokens": 12
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 2003,
+      "data": {
+        "messageId": "msg_1770436820595",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "I"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 16,
+      "data": {
+        "text": " see"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 80,
+      "data": {
+        "text": ","
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 2,
+      "data": {
+        "text": " the allowed directory"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 59,
+      "data": {
+        "text": " is `/"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 23,
+      "data": {
+        "text": "private/tmp/agentx`."
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 34,
+      "data": {
+        "text": " Let me create the file there:"
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 205,
+      "data": {
+        "toolCallId": "tooluse_PpxEStk6Ro62fXVRuFJsA2",
+        "toolName": "create_directory"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 269,
+      "data": {
+        "partialJson": "{\"path\": \"/"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "private/tm"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "p/agentx\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 1,
+      "data": {
+        "toolCallId": "tooluse_PpxEStk6Ro62fXVRuFJsA2",
+        "toolName": "create_directory",
+        "input": {
+          "path": "/private/tmp/agentx"
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 1,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_PpxEStk6Ro62fXVRuFJsA2",
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "Successfully created directory /private/tmp/agentx"
+            }
+          ],
+          "structuredContent": {
+            "content": "Successfully created directory /private/tmp/agentx"
+          },
+          "isError": false
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 405,
+      "data": {
+        "usage": {
+          "inputTokens": 3899,
+          "outputTokens": 34
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 2596,
+      "data": {
+        "messageId": "msg_1770436824286",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 1,
+      "data": {
+        "toolCallId": "tooluse_ARzCQKoA8gdkmexT0V2kAm",
+        "toolName": "write_file"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 404,
+      "data": {
+        "partialJson": "{\"path\""
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 2,
+      "data": {
+        "partialJson": ": \"/private/"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 4,
+      "data": {
+        "partialJson": "tmp/agent"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 5,
+      "data": {
+        "partialJson": "x/h"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "el"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 2,
+      "data": {
+        "partialJson": "lo.tx"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "t\""
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 4,
+      "data": {
+        "partialJson": ", \""
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 1,
+      "data": {
+        "partialJson": "con"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 7,
+      "data": {
+        "partialJson": "tent\": \"H"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "ello from MC"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "P\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 5,
+      "data": {
+        "toolCallId": "tooluse_ARzCQKoA8gdkmexT0V2kAm",
+        "toolName": "write_file",
+        "input": {
+          "path": "/private/tmp/agentx/hello.txt",
+          "content": "Hello from MCP"
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 3,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_ARzCQKoA8gdkmexT0V2kAm",
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "Successfully wrote to /private/tmp/agentx/hello.txt"
+            }
+          ],
+          "structuredContent": {
+            "content": "Successfully wrote to /private/tmp/agentx/hello.txt"
+          },
+          "isError": false
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 11,
+      "data": {
+        "usage": {
+          "inputTokens": 3386,
+          "outputTokens": 22
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 2075,
+      "data": {
+        "messageId": "msg_1770436826812",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "Perfect"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": "! I've successfully created the file at"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 56,
+      "data": {
+        "text": " `/private/tmp/agentx"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 176,
+      "data": {
+        "text": "/hello.txt` with the content"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 4,
+      "data": {
+        "text": " 'Hello from MCP'. The"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 5,
+      "data": {
+        "text": " file has"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 4,
+      "data": {
+        "text": " been written"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 2,
+      "data": {
+        "text": " the allowe"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "d directory path"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 81,
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 80,
+      "data": {
+        "usage": {
+          "inputTokens": 3602,
+          "outputTokens": 49
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 0,
+      "data": {
+        "stopReason": "end_turn"
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 204,
+      "data": {
+        "messageId": "msg_1770436827426",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 3488,
+      "data": {
+        "text": "I'll read the file at"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " /tmp/agentx/hello"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": ".txt for"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " you."
+      }
+    },
+    {
+      "type": "tool_use_start",
+      "delay": 1,
+      "data": {
+        "toolCallId": "tooluse_9Yc08Eiet5wiNv1i8P37Od",
+        "toolName": "read_text_file"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "{\""
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "pat"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "h\": \"/pri"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 0,
+      "data": {
+        "partialJson": "vate/tmp/"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 6,
+      "data": {
+        "partialJson": "agen"
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 11,
+      "data": {
+        "partialJson": "tx/hello."
+      }
+    },
+    {
+      "type": "input_json_delta",
+      "delay": 9,
+      "data": {
+        "partialJson": "txt\"}"
+      }
+    },
+    {
+      "type": "tool_use_stop",
+      "delay": 41,
+      "data": {
+        "toolCallId": "tooluse_9Yc08Eiet5wiNv1i8P37Od",
+        "toolName": "read_text_file",
+        "input": {
+          "path": "/private/tmp/agentx/hello.txt"
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 2,
+      "data": {
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "type": "tool_result",
+      "delay": 0,
+      "data": {
+        "toolCallId": "tooluse_9Yc08Eiet5wiNv1i8P37Od",
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "Hello from MCP"
+            }
+          ],
+          "structuredContent": {
+            "content": "Hello from MCP"
+          },
+          "isError": false
+        },
+        "isError": false
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 15,
+      "data": {
+        "usage": {
+          "inputTokens": 4004,
+          "outputTokens": 28
+        }
+      }
+    },
+    {
+      "type": "message_start",
+      "delay": 2366,
+      "data": {
+        "messageId": "msg_1770436833366",
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": "The file contains"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": ":"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 0,
+      "data": {
+        "text": " **"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 19,
+      "data": {
+        "text": "\""
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": "Hello from MCP\"**\n\nThis"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 40,
+      "data": {
+        "text": " is the content we"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 35,
+      "data": {
+        "text": " just wrote to the file in"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 41,
+      "data": {
+        "text": " the previous"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 39,
+      "data": {
+        "text": " step."
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 144,
+      "data": {
+        "usage": {
+          "inputTokens": 4295,
+          "outputTokens": 31
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 0,
+      "data": {
+        "stopReason": "end_turn"
       }
     }
   ]

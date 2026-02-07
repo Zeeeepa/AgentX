@@ -1,22 +1,52 @@
 {
   "name": "presentation-state-includes-token-usage-after-agent-response",
   "description": "VCR recording: presentation-state-includes-token-usage-after-agent-response",
-  "recordedAt": 1770435432749,
+  "recordedAt": 1770436875683,
   "events": [
     {
       "type": "message_start",
-      "delay": 3,
+      "delay": 1,
       "data": {
-        "messageId": "msg_1770435432752",
+        "messageId": "msg_1770436875684",
         "model": "claude-haiku-4-5-20251001"
       }
     },
     {
-      "type": "error",
-      "delay": 178,
+      "type": "text_delta",
+      "delay": 2126,
       "data": {
-        "message": "AI_APICallError: Forbidden",
-        "errorCode": "stream_error"
+        "text": "Hello"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": "! How"
+      }
+    },
+    {
+      "type": "text_delta",
+      "delay": 1,
+      "data": {
+        "text": " can I help you today?"
+      }
+    },
+    {
+      "type": "message_delta",
+      "delay": 82,
+      "data": {
+        "usage": {
+          "inputTokens": 1118,
+          "outputTokens": 9
+        }
+      }
+    },
+    {
+      "type": "message_stop",
+      "delay": 1,
+      "data": {
+        "stopReason": "end_turn"
       }
     }
   ]

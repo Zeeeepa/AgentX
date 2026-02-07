@@ -4,6 +4,7 @@ import * as React from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { ChatSidebar } from "./chat-sidebar";
 import { ChatMessages } from "./chat-messages";
+import { ChatStatusBar } from "./chat-status-bar";
 import { ChatInput } from "./chat-input";
 import { useAgentX } from "@/hooks/use-agentx";
 import type { PresentationStateLocal } from "@/hooks/use-agentx";
@@ -192,6 +193,7 @@ export function ChatLayout({ user }: ChatLayoutProps) {
         </header>
         <div className="flex flex-1 flex-col overflow-hidden">
           <ChatMessages messages={messages} isThinking={isThinking} />
+          <ChatStatusBar state={agentx.presentationState} />
           <ChatInput onSend={handleSend} disabled={isBusy} />
         </div>
       </SidebarInset>
