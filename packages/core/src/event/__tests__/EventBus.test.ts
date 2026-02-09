@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from "bun:test";
-import { EventBus } from "../EventBus";
+import { EventBusImpl as EventBus } from "../EventBus";
 import type { BusEvent } from "../types";
 
 // Test event factory
