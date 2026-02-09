@@ -10,12 +10,12 @@ Client SDK for building AI agent applications. Supports local (embedded) and rem
 
 ### When to use which mode?
 
-| | Local Mode | Remote Mode |
-|---|---|---|
-| **Use when** | Prototyping, CLI tools, single-user apps, tests | Multi-tenant apps, shared infrastructure, horizontal scaling |
-| **Trade-off** | Simpler setup, no server to manage | Centralized state, multiple clients can share agents |
-| **Data** | In-process SQLite (or `:memory:`) | Server-managed persistent storage |
-| **Config** | `apiKey` | `serverUrl` |
+|               | Local Mode                                      | Remote Mode                                                  |
+| ------------- | ----------------------------------------------- | ------------------------------------------------------------ |
+| **Use when**  | Prototyping, CLI tools, single-user apps, tests | Multi-tenant apps, shared infrastructure, horizontal scaling |
+| **Trade-off** | Simpler setup, no server to manage              | Centralized state, multiple clients can share agents         |
+| **Data**      | In-process SQLite (or `:memory:`)               | Server-managed persistent storage                            |
+| **Config**    | `apiKey`                                        | `serverUrl`                                                  |
 
 **Start with Local mode.** Switch to Remote when you need multiple processes or users sharing the same agents.
 
@@ -73,12 +73,12 @@ await agentx.sessions.send(agentId, "Hello!");
 
 Creates an AgentX client. Mode is auto-detected:
 
-| Config field | Mode | Trigger |
-|---|---|---|
-| `serverUrl` | Remote | Connects via WebSocket |
-| `apiKey` | Local | Starts embedded runtime with MonoDriver |
-| `createDriver` | Local | Uses custom driver factory |
-| `customPlatform` | Local | Uses custom platform |
+| Config field     | Mode   | Trigger                                 |
+| ---------------- | ------ | --------------------------------------- |
+| `serverUrl`      | Remote | Connects via WebSocket                  |
+| `apiKey`         | Local  | Starts embedded runtime with MonoDriver |
+| `createDriver`   | Local  | Uses custom driver factory              |
+| `customPlatform` | Local  | Uses custom platform                    |
 
 ### AgentX Interface
 
@@ -108,40 +108,45 @@ interface AgentX {
 ### Namespace Operations
 
 **containers**:
+
 - `create(containerId: string): Promise<ContainerCreateResponse>`
 - `get(containerId: string): Promise<ContainerGetResponse>`
 - `list(): Promise<ContainerListResponse>`
 
 **images**:
+
 - `create(params: { containerId, name?, description?, systemPrompt?, mcpServers? }): Promise<ImageCreateResponse>`
 - `get(imageId: string): Promise<ImageGetResponse>`
 - `list(containerId?: string): Promise<ImageListResponse>`
 - `delete(imageId: string): Promise<BaseResponse>`
 
 **agents**:
+
 - `create(params: { imageId, agentId? }): Promise<AgentCreateResponse>`
 - `get(agentId: string): Promise<AgentGetResponse>`
 - `list(containerId?: string): Promise<AgentListResponse>`
 - `destroy(agentId: string): Promise<BaseResponse>`
 
 **sessions**:
+
 - `send(agentId: string, content: string | unknown[]): Promise<MessageSendResponse>`
 - `interrupt(agentId: string): Promise<BaseResponse>`
 
 **presentations**:
+
 - `create(agentId: string, options?: PresentationOptions): Presentation`
 
 ### Stream Events
 
-| Event | Data | Description |
-|-------|------|-------------|
-| `message_start` | `{ messageId, model }` | Response begins |
-| `text_delta` | `{ text }` | Incremental text chunk |
-| `tool_use_start` | `{ toolCallId, toolName }` | Tool call begins |
-| `input_json_delta` | `{ partialJson }` | Incremental tool input |
-| `tool_result` | `{ toolCallId, result }` | Tool execution result |
-| `message_stop` | `{ stopReason }` | Response complete |
-| `error` | `{ message }` | Error occurred |
+| Event              | Data                       | Description            |
+| ------------------ | -------------------------- | ---------------------- |
+| `message_start`    | `{ messageId, model }`     | Response begins        |
+| `text_delta`       | `{ text }`                 | Incremental text chunk |
+| `tool_use_start`   | `{ toolCallId, toolName }` | Tool call begins       |
+| `input_json_delta` | `{ partialJson }`          | Incremental tool input |
+| `tool_result`      | `{ toolCallId, result }`   | Tool execution result  |
+| `message_stop`     | `{ stopReason }`           | Response complete      |
+| `error`            | `{ message }`              | Error occurred         |
 
 ### Presentation API
 
@@ -167,7 +172,7 @@ presentation.dispose();
 
 ```typescript
 interface PresentationState {
-  conversations: Conversation[];                  // UserConversation | AssistantConversation | ErrorConversation
+  conversations: Conversation[]; // UserConversation | AssistantConversation | ErrorConversation
   streaming: AssistantConversation | null;
   status: "idle" | "thinking" | "responding" | "executing";
 }
@@ -192,39 +197,39 @@ state = presentationReducer(state, event); // pure function
 ```typescript
 interface AgentXConfig {
   // --- Local Mode ---
-  apiKey?: string;                    // LLM provider API key
-  provider?: LLMProvider;             // default: "anthropic"
-  model?: string;                     // e.g. "claude-sonnet-4-20250514"
-  baseUrl?: string;                   // custom API endpoint
-  dataPath?: string;                  // default: ":memory:"
-  createDriver?: CreateDriver;        // custom driver factory (advanced)
-  customPlatform?: AgentXPlatform;    // custom platform (advanced)
+  apiKey?: string; // LLM provider API key
+  provider?: LLMProvider; // default: "anthropic"
+  model?: string; // e.g. "claude-sonnet-4-20250514"
+  baseUrl?: string; // custom API endpoint
+  dataPath?: string; // default: ":memory:"
+  createDriver?: CreateDriver; // custom driver factory (advanced)
+  customPlatform?: AgentXPlatform; // custom platform (advanced)
 
   // --- Remote Mode ---
-  serverUrl?: string;                 // WebSocket URL
-  headers?: MaybeAsync<Record<string, string>>;    // auth headers
-  context?: MaybeAsync<Record<string, unknown>>;   // business context
+  serverUrl?: string; // WebSocket URL
+  headers?: MaybeAsync<Record<string, string>>; // auth headers
+  context?: MaybeAsync<Record<string, unknown>>; // business context
 
   // --- Common ---
-  timeout?: number;                   // default: 30000 ms
+  timeout?: number; // default: 30000 ms
   debug?: boolean;
-  autoReconnect?: boolean;            // default: true (remote only)
+  autoReconnect?: boolean; // default: true (remote only)
 }
 ```
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `apiKey` | `string` | -- | LLM provider API key (triggers local mode) |
-| `provider` | `LLMProvider` | `"anthropic"` | `"anthropic"` \| `"openai"` \| `"google"` \| `"xai"` \| `"deepseek"` \| `"mistral"` |
-| `model` | `string` | provider default | Model identifier |
-| `baseUrl` | `string` | -- | Custom API endpoint |
-| `dataPath` | `string` | `":memory:"` | SQLite path or `:memory:` |
-| `serverUrl` | `string` | -- | WebSocket URL (triggers remote mode) |
-| `headers` | `MaybeAsync<Record<string, string>>` | -- | Static, dynamic, or async auth headers |
-| `context` | `MaybeAsync<Record<string, unknown>>` | -- | Business context (userId, tenantId, etc.) |
-| `timeout` | `number` | `30000` | Request timeout in ms |
-| `debug` | `boolean` | `false` | Enable debug logging |
-| `autoReconnect` | `boolean` | `true` | Auto reconnect on connection loss (remote only) |
+| Field           | Type                                  | Default          | Description                                                                         |
+| --------------- | ------------------------------------- | ---------------- | ----------------------------------------------------------------------------------- |
+| `apiKey`        | `string`                              | --               | LLM provider API key (triggers local mode)                                          |
+| `provider`      | `LLMProvider`                         | `"anthropic"`    | `"anthropic"` \| `"openai"` \| `"google"` \| `"xai"` \| `"deepseek"` \| `"mistral"` |
+| `model`         | `string`                              | provider default | Model identifier                                                                    |
+| `baseUrl`       | `string`                              | --               | Custom API endpoint                                                                 |
+| `dataPath`      | `string`                              | `":memory:"`     | SQLite path or `:memory:`                                                           |
+| `serverUrl`     | `string`                              | --               | WebSocket URL (triggers remote mode)                                                |
+| `headers`       | `MaybeAsync<Record<string, string>>`  | --               | Static, dynamic, or async auth headers                                              |
+| `context`       | `MaybeAsync<Record<string, unknown>>` | --               | Business context (userId, tenantId, etc.)                                           |
+| `timeout`       | `number`                              | `30000`          | Request timeout in ms                                                               |
+| `debug`         | `boolean`                             | `false`          | Enable debug logging                                                                |
+| `autoReconnect` | `boolean`                             | `true`           | Auto reconnect on connection loss (remote only)                                     |
 
 ### MaybeAsync
 
@@ -234,17 +239,19 @@ interface AgentXConfig {
 type MaybeAsync<T> = T | (() => T) | (() => Promise<T>);
 
 // Static
-headers: { Authorization: "Bearer sk-xxx" }
+headers: {
+  Authorization: "Bearer sk-xxx";
+}
 
 // Dynamic
-headers: () => ({ Authorization: `Bearer ${getToken()}` })
+headers: () => ({ Authorization: `Bearer ${getToken()}` });
 
 // Async
-headers: async () => ({ Authorization: `Bearer ${await refreshToken()}` })
+headers: async () => ({ Authorization: `Bearer ${await refreshToken()}` });
 ```
 
 ### Environment Variables
 
-| Variable | Description |
-|---|---|
+| Variable            | Description                            |
+| ------------------- | -------------------------------------- |
 | `ANTHROPIC_API_KEY` | Default API key for Anthropic provider |

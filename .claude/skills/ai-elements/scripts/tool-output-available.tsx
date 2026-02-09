@@ -65,12 +65,7 @@ const Example = () => (
         {toolCall.state === "output-available" && (
           <ToolOutput
             errorText={toolCall.errorText}
-            output={
-              <CodeBlock
-                code={JSON.stringify(toolCall.output)}
-                language="json"
-              />
-            }
+            output={<CodeBlock code={JSON.stringify(toolCall.output)} language="json" />}
           />
         )}
       </ToolContent>

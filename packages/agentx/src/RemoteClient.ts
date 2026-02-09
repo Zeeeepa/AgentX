@@ -110,5 +110,4 @@ export class RemoteClient implements AgentX {
     this.rpcClient.subscribe(sessionId);
     logger.debug("Subscribed to session", { sessionId });
   }
-
 }

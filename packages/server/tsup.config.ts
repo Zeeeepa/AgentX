@@ -6,10 +6,5 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: [
-    "@agentxjs/core",
-    "@agentxjs/node-platform",
-    "@agentxjs/claude-driver",
-    "commonxjs",
-  ],
+  external: ["@agentxjs/core", "@agentxjs/node-platform", "@agentxjs/claude-driver", "commonxjs"],
 });

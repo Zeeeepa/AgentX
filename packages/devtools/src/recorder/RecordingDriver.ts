@@ -31,11 +31,7 @@
  * ```
  */
 
-import type {
-  Driver,
-  DriverState,
-  DriverStreamEvent,
-} from "@agentxjs/core/driver";
+import type { Driver, DriverState, DriverStreamEvent } from "@agentxjs/core/driver";
 import type { UserMessage } from "@agentxjs/core/agent";
 import type { Fixture, FixtureEvent } from "../types";
 import { createLogger } from "commonxjs/logger";

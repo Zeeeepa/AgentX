@@ -33,8 +33,7 @@ const messages: {
     role: "user",
   },
   {
-    content:
-      "Sure! We offer a variety of AI solutions. What are you interested in?",
+    content: "Sure! We offer a variety of AI solutions. What are you interested in?",
     key: nanoid(),
     role: "assistant",
   },

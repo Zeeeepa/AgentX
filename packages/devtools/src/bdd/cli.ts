@@ -52,7 +52,9 @@ function findMonorepoRoot(startDir: string): string | null {
       try {
         const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
         if (pkg.workspaces) return dir;
-      } catch {}
+      } catch {
+        // ignore parse errors
+      }
     }
     const parent = dirname(dir);
     if (parent === dir) return null;
@@ -112,8 +114,7 @@ const cucumberPaths = [
   "cucumber-js",
 ];
 const cucumberBin =
-  cucumberPaths.find((p) => p === "cucumber-js" || existsSync(p)) ||
-  "cucumber-js";
+  cucumberPaths.find((p) => p === "cucumber-js" || existsSync(p)) || "cucumber-js";
 
 const rootNodeModules = resolve(cwd, "node_modules");
 
@@ -124,8 +125,10 @@ let effectiveConfig = configPath;
 let tempConfigPath: string | null = null;
 
 if (featurePaths.length > 0) {
-  const configRelPath = relative(dirname(resolve(cwd, "bdd/.tmp-cucumber.js")), fullConfigPath)
-    .replace(/\\/g, "/");
+  const configRelPath = relative(
+    dirname(resolve(cwd, "bdd/.tmp-cucumber.js")),
+    fullConfigPath
+  ).replace(/\\/g, "/");
   const pathsJson = JSON.stringify(featurePaths);
   const tempContent = [
     `import config from "./${configRelPath}";`,
@@ -155,7 +158,9 @@ child.on("close", (code) => {
   if (tempConfigPath && existsSync(tempConfigPath)) {
     try {
       unlinkSync(tempConfigPath);
-    } catch {}
+    } catch {
+      // ignore cleanup errors
+    }
   }
   process.exit(code ?? 0);
 });

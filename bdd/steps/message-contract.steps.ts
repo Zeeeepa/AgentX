@@ -23,7 +23,12 @@ import {
   messageAssemblerProcessor,
   createInitialMessageAssemblerState,
 } from "@agentxjs/core/agent";
-import { toVercelMessage, toVercelMessages, createEvent, toStopReason } from "@agentxjs/mono-driver";
+import {
+  toVercelMessage,
+  toVercelMessages,
+  createEvent,
+  toStopReason,
+} from "@agentxjs/mono-driver";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "../..");
@@ -169,9 +174,7 @@ Then("each ToolCallPart must map to:", function (table: any) {
   const toolCallParts = msg.content.filter((p: any) => p.type === "tool-call");
   assert.ok(toolCallParts.length > 0, "No tool-call parts found in converted message");
 
-  const sourceToolCall = (assistantMsg.content as any[]).find(
-    (p) => p.type === "tool-call"
-  );
+  const sourceToolCall = (assistantMsg.content as any[]).find((p) => p.type === "tool-call");
   const converted = toolCallParts[0];
 
   const rows = table.hashes();
@@ -305,7 +308,9 @@ import type { DriverStreamEvent } from "@agentxjs/core/driver";
  * Simulate what MonoDriver does: translate AI SDK fullStream events to engine events.
  * This mirrors the logic in MonoDriver.receive() to test the ordering fix.
  */
-function simulateDriverTranslation(sdkEvents: Array<{ type: string; data?: any }>): DriverStreamEvent[] {
+function simulateDriverTranslation(
+  sdkEvents: Array<{ type: string; data?: any }>
+): DriverStreamEvent[] {
   const driverEvents: DriverStreamEvent[] = [];
   let messageStartEmitted = false;
   let hasToolCallsInStep = false;
@@ -315,7 +320,9 @@ function simulateDriverTranslation(sdkEvents: Array<{ type: string; data?: any }
       case "start":
       case "start-step":
         if (!messageStartEmitted) {
-          driverEvents.push(createEvent("message_start", { messageId: `msg_${Date.now()}`, model: "test" }));
+          driverEvents.push(
+            createEvent("message_start", { messageId: `msg_${Date.now()}`, model: "test" })
+          );
           messageStartEmitted = true;
         }
         hasToolCallsInStep = false;
@@ -326,38 +333,48 @@ function simulateDriverTranslation(sdkEvents: Array<{ type: string; data?: any }
         break;
 
       case "tool-input-start":
-        driverEvents.push(createEvent("tool_use_start", {
-          toolCallId: evt.data.toolCallId,
-          toolName: evt.data.toolName,
-        }));
+        driverEvents.push(
+          createEvent("tool_use_start", {
+            toolCallId: evt.data.toolCallId,
+            toolName: evt.data.toolName,
+          })
+        );
         break;
 
       case "tool-input-delta":
-        driverEvents.push(createEvent("input_json_delta", {
-          partialJson: evt.data.partialJson,
-        }));
+        driverEvents.push(
+          createEvent("input_json_delta", {
+            partialJson: evt.data.partialJson,
+          })
+        );
         break;
 
       case "tool-call":
         hasToolCallsInStep = true;
-        driverEvents.push(createEvent("tool_use_stop", {
-          toolCallId: evt.data.toolCallId,
-          toolName: evt.data.toolName,
-          input: evt.data.input,
-        }));
+        driverEvents.push(
+          createEvent("tool_use_stop", {
+            toolCallId: evt.data.toolCallId,
+            toolName: evt.data.toolName,
+            input: evt.data.input,
+          })
+        );
         break;
 
       case "tool-result":
         // Key fix: emit message_stop BEFORE first tool-result
         if (hasToolCallsInStep) {
-          driverEvents.push(createEvent("message_stop", { stopReason: toStopReason("tool-calls") }));
+          driverEvents.push(
+            createEvent("message_stop", { stopReason: toStopReason("tool-calls") })
+          );
           hasToolCallsInStep = false;
         }
-        driverEvents.push(createEvent("tool_result", {
-          toolCallId: evt.data.toolCallId,
-          result: evt.data.result,
-          isError: false,
-        }));
+        driverEvents.push(
+          createEvent("tool_result", {
+            toolCallId: evt.data.toolCallId,
+            result: evt.data.result,
+            isError: false,
+          })
+        );
         break;
 
       case "finish-step":
@@ -365,7 +382,11 @@ function simulateDriverTranslation(sdkEvents: Array<{ type: string; data?: any }
         break;
 
       case "finish":
-        driverEvents.push(createEvent("message_stop", { stopReason: toStopReason(evt.data?.finishReason ?? "stop") }));
+        driverEvents.push(
+          createEvent("message_stop", {
+            stopReason: toStopReason(evt.data?.finishReason ?? "stop"),
+          })
+        );
         break;
     }
   }
@@ -385,7 +406,10 @@ Given("a multi-step tool execution produces stream events in order:", function (
     { type: "text-delta", data: { text: "Let me check." } },
     { type: "tool-input-start", data: { toolCallId: "call-001", toolName: "bash_tool" } },
     { type: "tool-input-delta", data: { partialJson: '{"command":"ls -la"}' } },
-    { type: "tool-call", data: { toolCallId: "call-001", toolName: "bash_tool", input: { command: "ls -la" } } },
+    {
+      type: "tool-call",
+      data: { toolCallId: "call-001", toolName: "bash_tool", input: { command: "ls -la" } },
+    },
     { type: "tool-result", data: { toolCallId: "call-001", result: "file listing" } },
     { type: "finish-step", data: { finishReason: "tool-calls" } },
     { type: "start-step" },
@@ -453,9 +477,17 @@ Then("the resulting message sequence is:", function (table: any) {
     assert.strictEqual(i + 1, order, `Row order mismatch at index ${i}`);
 
     if (expectedType === "AssistantMessage") {
-      assert.strictEqual(actual.type, "assistant_message", `Message ${order}: expected assistant_message, got ${actual.type}`);
+      assert.strictEqual(
+        actual.type,
+        "assistant_message",
+        `Message ${order}: expected assistant_message, got ${actual.type}`
+      );
     } else if (expectedType === "ToolResultMessage") {
-      assert.strictEqual(actual.type, "tool_result_message", `Message ${order}: expected tool_result_message, got ${actual.type}`);
+      assert.strictEqual(
+        actual.type,
+        "tool_result_message",
+        `Message ${order}: expected tool_result_message, got ${actual.type}`
+      );
     }
 
     // Verify key content
@@ -466,14 +498,21 @@ Then("the resulting message sequence is:", function (table: any) {
       // AssistantMessage with tool calls
       const content = Array.isArray(msg.content) ? msg.content : [];
       const hasToolCall = content.some((p: any) => p.type === "tool-call");
-      assert.ok(hasToolCall, `Message ${order}: expected tool-call in content, found ${content.map((p: any) => p.type).join(", ")}`);
+      assert.ok(
+        hasToolCall,
+        `Message ${order}: expected tool-call in content, found ${content.map((p: any) => p.type).join(", ")}`
+      );
 
       // Check specific tool call ID if mentioned
       const match = keyContent.match(/tool-call\(([^)]+)\)/);
       if (match) {
         const expectedId = match[1];
         const toolCall = content.find((p: any) => p.type === "tool-call");
-        assert.strictEqual(toolCall.id, expectedId, `Message ${order}: expected tool call ID ${expectedId}`);
+        assert.strictEqual(
+          toolCall.id,
+          expectedId,
+          `Message ${order}: expected tool call ID ${expectedId}`
+        );
       }
     } else if (keyContent.includes("toolCallId")) {
       // ToolResultMessage
@@ -483,12 +522,19 @@ Then("the resulting message sequence is:", function (table: any) {
       }
     } else if (keyContent.startsWith("Here are")) {
       // Final text-only AssistantMessage
-      const text = typeof msg.content === "string"
-        ? msg.content
-        : (Array.isArray(msg.content)
-          ? msg.content.filter((p: any) => p.type === "text").map((p: any) => p.text).join("")
-          : "");
-      assert.ok(text.includes("Here are"), `Message ${order}: expected text containing "Here are", got "${text}"`);
+      const text =
+        typeof msg.content === "string"
+          ? msg.content
+          : Array.isArray(msg.content)
+            ? msg.content
+                .filter((p: any) => p.type === "text")
+                .map((p: any) => p.text)
+                .join("")
+            : "";
+      assert.ok(
+        text.includes("Here are"),
+        `Message ${order}: expected text containing "Here are", got "${text}"`
+      );
     }
   }
 });
@@ -498,51 +544,54 @@ Then("the resulting message sequence is:", function (table: any) {
 let schemaTestMessages: Message[];
 let schemaTestConverted: Array<ModelMessage | null>;
 
-Given("a complete conversation with user, assistant \\(text+tool-calls), and tool results", function () {
-  schemaTestMessages = [
-    // 1. User message
-    {
-      id: "msg-u1",
-      role: "user",
-      subtype: "user",
-      content: "Hello",
-      timestamp: Date.now(),
-    },
-    // 2. Assistant with tool call
-    {
-      id: "msg-a1",
-      role: "assistant",
-      subtype: "assistant",
-      content: [
-        { type: "text", text: "Let me check." },
-        { type: "tool-call", id: "call-001", name: "bash_tool", input: { command: "ls" } },
-      ],
-      timestamp: Date.now(),
-    },
-    // 3. Tool result
-    {
-      id: "msg-t1",
-      role: "tool",
-      subtype: "tool-result",
-      toolCallId: "call-001",
-      toolResult: {
-        type: "tool-result",
-        id: "call-001",
-        name: "bash_tool",
-        output: { type: "text", value: "file1.txt\nfile2.txt" },
+Given(
+  "a complete conversation with user, assistant \\(text+tool-calls), and tool results",
+  function () {
+    schemaTestMessages = [
+      // 1. User message
+      {
+        id: "msg-u1",
+        role: "user",
+        subtype: "user",
+        content: "Hello",
+        timestamp: Date.now(),
       },
-      timestamp: Date.now(),
-    },
-    // 4. Final assistant text
-    {
-      id: "msg-a2",
-      role: "assistant",
-      subtype: "assistant",
-      content: "Here are your files.",
-      timestamp: Date.now(),
-    },
-  ] as Message[];
-});
+      // 2. Assistant with tool call
+      {
+        id: "msg-a1",
+        role: "assistant",
+        subtype: "assistant",
+        content: [
+          { type: "text", text: "Let me check." },
+          { type: "tool-call", id: "call-001", name: "bash_tool", input: { command: "ls" } },
+        ],
+        timestamp: Date.now(),
+      },
+      // 3. Tool result
+      {
+        id: "msg-t1",
+        role: "tool",
+        subtype: "tool-result",
+        toolCallId: "call-001",
+        toolResult: {
+          type: "tool-result",
+          id: "call-001",
+          name: "bash_tool",
+          output: { type: "text", value: "file1.txt\nfile2.txt" },
+        },
+        timestamp: Date.now(),
+      },
+      // 4. Final assistant text
+      {
+        id: "msg-a2",
+        role: "assistant",
+        subtype: "assistant",
+        content: "Here are your files.",
+        timestamp: Date.now(),
+      },
+    ] as Message[];
+  }
+);
 
 When("each message is converted via toVercelMessage\\()", function () {
   schemaTestConverted = schemaTestMessages.map((m) => toVercelMessage(m));
@@ -740,9 +789,7 @@ Then("the Anthropic provider must be able to convert all messages without error"
 function resolvePath(obj: any, path: string): any {
   // Handle paths like "message.toolCallId" or "content[0].toolCallId"
   // Strip the root reference (e.g., "message." prefix)
-  const cleaned = path
-    .replace(/^message\./, "")
-    .replace(/^content/, "content");
+  const cleaned = path.replace(/^message\./, "").replace(/^content/, "content");
 
   return resolveDotPath(obj, cleaned);
 }

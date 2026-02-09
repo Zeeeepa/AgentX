@@ -81,37 +81,25 @@ When("I read {word}\\/README.md", function (pkgPath: string) {
 // Then — AI-evaluated requirements
 // ============================================================================
 
-Then(
-  "I should understand what Container, Image, Session, Driver, Platform mean",
-  function () {
-    docRequirements.push(
-      "Clearly explains the 5 core concepts: Container, Image, Session, Driver, Platform"
-    );
-  }
-);
+Then("I should understand what Container, Image, Session, Driver, Platform mean", function () {
+  docRequirements.push(
+    "Clearly explains the 5 core concepts: Container, Image, Session, Driver, Platform"
+  );
+});
 
-Then(
-  "I should know which interface to implement if I want to add a new LLM provider",
-  function () {
-    docRequirements.push("Explains the Driver interface for adding new LLM providers");
-  }
-);
+Then("I should know which interface to implement if I want to add a new LLM provider", function () {
+  docRequirements.push("Explains the Driver interface for adding new LLM providers");
+});
 
-Then(
-  "I should know which interface to implement if I want to change storage backend",
-  function () {
-    docRequirements.push("Explains the Platform interface for changing storage");
-  }
-);
+Then("I should know which interface to implement if I want to change storage backend", function () {
+  docRequirements.push("Explains the Platform interface for changing storage");
+});
 
-Then(
-  "I should not need to open any .ts file to understand these concepts",
-  function () {
-    docRequirements.push(
-      "Concepts are fully explained in the README without requiring reading source code"
-    );
-  }
-);
+Then("I should not need to open any .ts file to understand these concepts", function () {
+  docRequirements.push(
+    "Concepts are fully explained in the README without requiring reading source code"
+  );
+});
 
 Then("I should be able to copy-paste a working example that:", function (table: any) {
   const rows = table.hashes();
@@ -122,19 +110,13 @@ Then("I should be able to copy-paste a working example that:", function (table: 
   }
 });
 
-Then(
-  "the example should work with just an API key and no server",
-  function () {
-    docRequirements.push("Local mode example works with just an API key, no server needed");
-  }
-);
+Then("the example should work with just an API key and no server", function () {
+  docRequirements.push("Local mode example works with just an API key, no server needed");
+});
 
-Then(
-  "I should understand when to use Local mode vs Remote mode",
-  function () {
-    docRequirements.push("Explains when to use Local mode vs Remote mode");
-  }
-);
+Then("I should understand when to use Local mode vs Remote mode", function () {
+  docRequirements.push("Explains when to use Local mode vs Remote mode");
+});
 
 Then("I should know how to:", function (table: any) {
   const rows = table.hashes();
@@ -164,12 +146,9 @@ Then("I should know how to add MCP servers to the driver", function () {
   docRequirements.push("Explains how to configure MCP servers");
 });
 
-Then(
-  "I should understand the difference between mono-driver and claude-driver",
-  function () {
-    docRequirements.push("Explains the difference between mono-driver and claude-driver");
-  }
-);
+Then("I should understand the difference between mono-driver and claude-driver", function () {
+  docRequirements.push("Explains the difference between mono-driver and claude-driver");
+});
 
 Then("I should see all NodePlatformOptions with defaults", function () {
   docRequirements.push("Shows all NodePlatformOptions with their default values");

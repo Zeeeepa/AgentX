@@ -20,13 +20,7 @@ export type MaybeAsync<T> = T | (() => T) | (() => Promise<T>);
 /**
  * LLM provider identifier
  */
-export type LLMProvider =
-  | "anthropic"
-  | "openai"
-  | "google"
-  | "xai"
-  | "deepseek"
-  | "mistral";
+export type LLMProvider = "anthropic" | "openai" | "google" | "xai" | "deepseek" | "mistral";
 
 /**
  * AgentX unified configuration
@@ -312,11 +306,14 @@ export interface ImageNamespace {
   /**
    * Update image
    */
-  update(imageId: string, updates: {
-    name?: string;
-    description?: string;
-    customData?: Record<string, unknown>;
-  }): Promise<ImageUpdateResponse>;
+  update(
+    imageId: string,
+    updates: {
+      name?: string;
+      description?: string;
+      customData?: Record<string, unknown>;
+    }
+  ): Promise<ImageUpdateResponse>;
 
   /**
    * Delete image

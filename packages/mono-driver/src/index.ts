@@ -47,12 +47,7 @@ export type {
 } from "./types";
 
 // Converters (for advanced usage)
-export {
-  toVercelMessage,
-  toVercelMessages,
-  toStopReason,
-  createEvent,
-} from "./converters";
+export { toVercelMessage, toVercelMessages, toStopReason, createEvent } from "./converters";
 
 // Re-export Vercel AI SDK utilities for advanced usage
 export { stepCountIs } from "ai";

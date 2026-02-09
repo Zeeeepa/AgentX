@@ -69,11 +69,14 @@ export function createLocalImages(platform: AgentXPlatform): ImageNamespace {
       };
     },
 
-    async update(imageId: string, updates: {
-      name?: string;
-      description?: string;
-      customData?: Record<string, unknown>;
-    }): Promise<ImageUpdateResponse> {
+    async update(
+      imageId: string,
+      updates: {
+        name?: string;
+        description?: string;
+        customData?: Record<string, unknown>;
+      }
+    ): Promise<ImageUpdateResponse> {
       const { loadImage } = await import("@agentxjs/core/image");
       const { imageRepository, sessionRepository } = platform;
 
@@ -154,12 +157,18 @@ export function createRemoteImages(
       return { ...result, requestId: "" };
     },
 
-    async update(imageId: string, updates: {
-      name?: string;
-      description?: string;
-      customData?: Record<string, unknown>;
-    }): Promise<ImageUpdateResponse> {
-      const result = await rpcClient.call<ImageUpdateResponse>("image.update", { imageId, updates });
+    async update(
+      imageId: string,
+      updates: {
+        name?: string;
+        description?: string;
+        customData?: Record<string, unknown>;
+      }
+    ): Promise<ImageUpdateResponse> {
+      const result = await rpcClient.call<ImageUpdateResponse>("image.update", {
+        imageId,
+        updates,
+      });
       return { ...result, requestId: "" };
     },
 

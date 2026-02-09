@@ -99,32 +99,30 @@ interface MessageActionsProps {
   onSend: (e: React.MouseEvent, id: string) => void;
 }
 
-const MessageActions = memo(
-  ({ messageId, onRemove, onSend }: MessageActionsProps) => {
-    const handleRemove = useCallback(
-      (e: React.MouseEvent) => onRemove(e, messageId),
-      [onRemove, messageId]
-    );
-    const handleSend = useCallback(
-      (e: React.MouseEvent) => onSend(e, messageId),
-      [onSend, messageId]
-    );
-    return (
-      <QueueItemActions>
-        <QueueItemAction
-          aria-label="Remove from queue"
-          onClick={handleRemove}
-          title="Remove from queue"
-        >
-          <Trash2 size={12} />
-        </QueueItemAction>
-        <QueueItemAction aria-label="Send now" onClick={handleSend}>
-          <ArrowUp size={14} />
-        </QueueItemAction>
-      </QueueItemActions>
-    );
-  }
-);
+const MessageActions = memo(({ messageId, onRemove, onSend }: MessageActionsProps) => {
+  const handleRemove = useCallback(
+    (e: React.MouseEvent) => onRemove(e, messageId),
+    [onRemove, messageId]
+  );
+  const handleSend = useCallback(
+    (e: React.MouseEvent) => onSend(e, messageId),
+    [onSend, messageId]
+  );
+  return (
+    <QueueItemActions>
+      <QueueItemAction
+        aria-label="Remove from queue"
+        onClick={handleRemove}
+        title="Remove from queue"
+      >
+        <Trash2 size={12} />
+      </QueueItemAction>
+      <QueueItemAction aria-label="Send now" onClick={handleSend}>
+        <ArrowUp size={14} />
+      </QueueItemAction>
+    </QueueItemActions>
+  );
+});
 
 MessageActions.displayName = "MessageActions";
 
@@ -135,18 +133,13 @@ interface TodoItemProps {
 
 const TodoItem = memo(({ todo, onRemove }: TodoItemProps) => {
   const isCompleted = todo.status === "completed";
-  const handleRemove = useCallback(
-    () => onRemove(todo.id),
-    [onRemove, todo.id]
-  );
+  const handleRemove = useCallback(() => onRemove(todo.id), [onRemove, todo.id]);
 
   return (
     <QueueItem key={todo.id}>
       <div className="flex items-center gap-2">
         <QueueItemIndicator completed={isCompleted} />
-        <QueueItemContent completed={isCompleted}>
-          {todo.title}
-        </QueueItemContent>
+        <QueueItemContent completed={isCompleted}>{todo.title}</QueueItemContent>
         <QueueItemActions>
           <QueueItemAction aria-label="Remove todo" onClick={handleRemove}>
             <Trash2 size={12} />
@@ -154,9 +147,7 @@ const TodoItem = memo(({ todo, onRemove }: TodoItemProps) => {
         </QueueItemActions>
       </div>
       {todo.description && (
-        <QueueItemDescription completed={isCompleted}>
-          {todo.description}
-        </QueueItemDescription>
+        <QueueItemDescription completed={isCompleted}>{todo.description}</QueueItemDescription>
       )}
     </QueueItem>
   );
@@ -214,9 +205,7 @@ const Example = () => {
             <QueueList>
               {messages.map((message) => {
                 const summary = (() => {
-                  const textParts = message.parts.filter(
-                    (p) => p.type === "text"
-                  );
+                  const textParts = message.parts.filter((p) => p.type === "text");
                   const text = textParts
                     .map((p) => p.text)
                     .join(" ")
@@ -224,9 +213,7 @@ const Example = () => {
                   return text || "(queued message)";
                 })();
 
-                const hasFiles = message.parts.some(
-                  (p) => p.type === "file" && p.url
-                );
+                const hasFiles = message.parts.some((p) => p.type === "file" && p.url);
 
                 return (
                   <QueueItem key={message.id}>
@@ -244,10 +231,7 @@ const Example = () => {
                         {message.parts
                           .filter((p) => p.type === "file" && p.url)
                           .map((file) => {
-                            if (
-                              file.mediaType?.startsWith("image/") &&
-                              file.url
-                            ) {
+                            if (file.mediaType?.startsWith("image/") && file.url) {
                               return (
                                 <QueueItemImage
                                   alt={file.filename || "attachment"}
@@ -279,11 +263,7 @@ const Example = () => {
           <QueueSectionContent>
             <QueueList>
               {todos.map((todo) => (
-                <TodoItem
-                  key={todo.id}
-                  onRemove={handleRemoveTodo}
-                  todo={todo}
-                />
+                <TodoItem key={todo.id} onRemove={handleRemoveTodo} todo={todo} />
               ))}
             </QueueList>
           </QueueSectionContent>

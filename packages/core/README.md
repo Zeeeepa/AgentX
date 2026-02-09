@@ -31,12 +31,17 @@ An **Image** is a persistent agent configuration: system prompt, MCP server defi
 
 ```typescript
 // Create an image (configuration) inside the container
-const image = await createImage({
-  containerId: "my-app",
-  name: "CodeReviewer",
-  systemPrompt: "You are a code review assistant.",
-  mcpServers: { /* optional tool servers */ },
-}, ctx);
+const image = await createImage(
+  {
+    containerId: "my-app",
+    name: "CodeReviewer",
+    systemPrompt: "You are a code review assistant.",
+    mcpServers: {
+      /* optional tool servers */
+    },
+  },
+  ctx
+);
 ```
 
 ### Session
@@ -74,11 +79,11 @@ A **Platform** provides the infrastructure: repositories for data storage, an ev
 
 ```typescript
 interface AgentXPlatform {
-  containerRepository: ContainerRepository;  // CRUD for containers
-  imageRepository: ImageRepository;          // CRUD for images + metadata
-  sessionRepository: SessionRepository;      // CRUD for sessions + messages
-  eventBus: EventBus;                        // pub/sub for stream events
-  bashProvider?: BashProvider;               // optional shell execution
+  containerRepository: ContainerRepository; // CRUD for containers
+  imageRepository: ImageRepository; // CRUD for images + metadata
+  sessionRepository: SessionRepository; // CRUD for sessions + messages
+  eventBus: EventBus; // pub/sub for stream events
+  bashProvider?: BashProvider; // optional shell execution
 }
 ```
 
@@ -109,6 +114,7 @@ MealyMachine  ── pure (state, event) → [newState, outputs]
 **Key design**: only raw `StreamEvent`s enter the MealyMachine. All message, state, and turn events are **derived** — never injected from outside. Processors can chain: outputs from one processor feed into others (e.g., TurnTracker reads `message_start` / `message_stop` from the stream layer).
 
 The Runtime's **Presenter** handles the outputs:
+
 - **Stream events**: emitted directly to EventBus (for real-time UI streaming)
 - **Message events**: emitted to EventBus + persisted to SessionRepository
 - **State/Turn events**: emitted to EventBus
@@ -208,31 +214,31 @@ interface DriverConfig<TOptions = Record<string, unknown>> {
   apiKey: string;
   baseUrl?: string;
   model?: string;
-  timeout?: number;                                  // default: 600000 (10 min)
+  timeout?: number; // default: 600000 (10 min)
   agentId: string;
   systemPrompt?: string;
   cwd?: string;
-  mcpServers?: Record<string, McpServerConfig>;      // MCP tool servers
-  tools?: ToolDefinition[];                          // inline tools
-  session?: Session;                                 // conversation history
+  mcpServers?: Record<string, McpServerConfig>; // MCP tool servers
+  tools?: ToolDefinition[]; // inline tools
+  session?: Session; // conversation history
   resumeSessionId?: string;
   onSessionIdCaptured?: (sessionId: string) => void;
-  options?: TOptions;                                // driver-specific options
+  options?: TOptions; // driver-specific options
 }
 ```
 
 **DriverStreamEvent** — the events your driver yields:
 
-| Event | Data | When |
-|-------|------|------|
-| `message_start` | `{ messageId, model }` | LLM starts responding |
-| `text_delta` | `{ text }` | Incremental text chunk |
-| `tool_use_start` | `{ toolCallId, toolName }` | LLM wants to call a tool |
-| `input_json_delta` | `{ partialJson }` | Incremental tool input |
-| `tool_use_stop` | `{ toolCallId, toolName, input }` | Tool call complete |
-| `tool_result` | `{ toolCallId, result, isError? }` | Tool execution result |
-| `message_stop` | `{ stopReason }` | LLM finished responding |
-| `error` | `{ message, errorCode? }` | Error occurred |
+| Event              | Data                               | When                     |
+| ------------------ | ---------------------------------- | ------------------------ |
+| `message_start`    | `{ messageId, model }`             | LLM starts responding    |
+| `text_delta`       | `{ text }`                         | Incremental text chunk   |
+| `tool_use_start`   | `{ toolCallId, toolName }`         | LLM wants to call a tool |
+| `input_json_delta` | `{ partialJson }`                  | Incremental tool input   |
+| `tool_use_stop`    | `{ toolCallId, toolName, input }`  | Tool call complete       |
+| `tool_result`      | `{ toolCallId, result, isError? }` | Tool execution result    |
+| `message_stop`     | `{ stopReason }`                   | LLM finished responding  |
+| `error`            | `{ message, errorCode? }`          | Error occurred           |
 
 **McpServerConfig** — two transports for connecting external tool servers:
 
@@ -286,8 +292,8 @@ interface EventBus {
   emit(event: BusEvent): void;
   on<T extends string>(type: T, handler: BusEventHandler): Unsubscribe;
   onAny(handler: BusEventHandler): Unsubscribe;
-  asProducer(): EventProducer;   // write-only view
-  asConsumer(): EventConsumer;   // read-only view
+  asProducer(): EventProducer; // write-only view
+  asConsumer(): EventConsumer; // read-only view
 }
 ```
 
@@ -313,7 +319,11 @@ interface BashProvider {
   execute(command: string, options?: BashOptions): Promise<BashResult>;
 }
 
-interface BashResult { stdout: string; stderr: string; exitCode: number }
+interface BashResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+}
 
 function createBashTool(provider: BashProvider): ToolDefinition;
 ```
@@ -322,11 +332,11 @@ function createBashTool(provider: BashProvider): ToolDefinition;
 
 This package has no runtime configuration. It provides interfaces configured through implementation packages:
 
-| Concern | Configured via |
-|---------|---------------|
-| Persistence | `@agentxjs/node-platform` (`dataPath`) |
-| Driver | `@agentxjs/mono-driver` or `@agentxjs/claude-driver` (`apiKey`, `provider`, `model`) |
-| Event Bus | Created by platform (`new EventBusImpl()`) |
-| Bash | Created by platform (`NodeBashProvider`) |
+| Concern     | Configured via                                                                       |
+| ----------- | ------------------------------------------------------------------------------------ |
+| Persistence | `@agentxjs/node-platform` (`dataPath`)                                               |
+| Driver      | `@agentxjs/mono-driver` or `@agentxjs/claude-driver` (`apiKey`, `provider`, `model`) |
+| Event Bus   | Created by platform (`new EventBusImpl()`)                                           |
+| Bash        | Created by platform (`NodeBashProvider`)                                             |
 
 **Dependencies**: `commonxjs`, `rxjs`, `jsonrpc-lite`

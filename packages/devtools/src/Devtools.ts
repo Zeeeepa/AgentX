@@ -168,7 +168,8 @@ export class Devtools {
       baseUrl: this.config.baseUrl,
       agentId,
       model: this.config.model,
-      systemPrompt: options.systemPrompt || this.config.systemPrompt || "You are a helpful assistant.",
+      systemPrompt:
+        options.systemPrompt || this.config.systemPrompt || "You are a helpful assistant.",
       cwd: options.cwd || this.config.cwd || process.cwd(),
     };
 
@@ -392,16 +393,8 @@ export interface VcrCreateDriverConfig {
  * ```
  */
 export function createVcrCreateDriver(config: VcrCreateDriverConfig): CreateDriver {
-  const {
-    fixturesDir,
-    getFixtureName,
-    apiKey,
-    baseUrl,
-    model,
-    onPlayback,
-    onRecording,
-    onSaved,
-  } = config;
+  const { fixturesDir, getFixtureName, apiKey, baseUrl, model, onPlayback, onRecording, onSaved } =
+    config;
 
   // Real driver factory (must be provided or pre-loaded)
   const realCreateDriver: CreateDriver | null = config.createRealDriver || null;

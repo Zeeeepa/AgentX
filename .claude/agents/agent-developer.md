@@ -37,6 +37,7 @@ You are an elite AI agent architect specializing in crafting high-performance ag
 ## Output Format
 
 Your output must be a valid JSON object with exactly these fields:
+
 ```json
 {
   "identifier": "unique-descriptive-id",
@@ -64,6 +65,7 @@ Your output must be a valid JSON object with exactly these fields:
 ## BDD Alignment
 
 When working in projects that follow BDD practices (like AgentX), consider how the agent might be tested:
+
 - What scenarios would verify the agent works correctly?
 - What edge cases should be covered?
 - How would success be measured?

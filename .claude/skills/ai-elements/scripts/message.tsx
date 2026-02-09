@@ -20,12 +20,7 @@ import {
   MessageResponse,
   MessageToolbar,
 } from "@/components/ai-elements/message";
-import {
-  CopyIcon,
-  RefreshCcwIcon,
-  ThumbsDownIcon,
-  ThumbsUpIcon,
-} from "lucide-react";
+import { CopyIcon, RefreshCcwIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react";
 import { nanoid } from "nanoid";
 import { memo, useCallback, useState } from "react";
 
@@ -182,26 +177,14 @@ interface LikeActionProps {
   onToggle: (key: string) => void;
 }
 
-const LikeAction = memo(
-  ({ messageKey, isLiked, onToggle }: LikeActionProps) => {
-    const handleClick = useCallback(
-      () => onToggle(messageKey),
-      [messageKey, onToggle]
-    );
-    return (
-      <MessageAction
-        label="Like"
-        onClick={handleClick}
-        tooltip="Like this response"
-      >
-        <ThumbsUpIcon
-          className="size-4"
-          fill={isLiked ? "currentColor" : "none"}
-        />
-      </MessageAction>
-    );
-  }
-);
+const LikeAction = memo(({ messageKey, isLiked, onToggle }: LikeActionProps) => {
+  const handleClick = useCallback(() => onToggle(messageKey), [messageKey, onToggle]);
+  return (
+    <MessageAction label="Like" onClick={handleClick} tooltip="Like this response">
+      <ThumbsUpIcon className="size-4" fill={isLiked ? "currentColor" : "none"} />
+    </MessageAction>
+  );
+});
 
 LikeAction.displayName = "LikeAction";
 
@@ -211,26 +194,14 @@ interface DislikeActionProps {
   onToggle: (key: string) => void;
 }
 
-const DislikeAction = memo(
-  ({ messageKey, isDisliked, onToggle }: DislikeActionProps) => {
-    const handleClick = useCallback(
-      () => onToggle(messageKey),
-      [messageKey, onToggle]
-    );
-    return (
-      <MessageAction
-        label="Dislike"
-        onClick={handleClick}
-        tooltip="Dislike this response"
-      >
-        <ThumbsDownIcon
-          className="size-4"
-          fill={isDisliked ? "currentColor" : "none"}
-        />
-      </MessageAction>
-    );
-  }
-);
+const DislikeAction = memo(({ messageKey, isDisliked, onToggle }: DislikeActionProps) => {
+  const handleClick = useCallback(() => onToggle(messageKey), [messageKey, onToggle]);
+  return (
+    <MessageAction label="Dislike" onClick={handleClick} tooltip="Dislike this response">
+      <ThumbsDownIcon className="size-4" fill={isDisliked ? "currentColor" : "none"} />
+    </MessageAction>
+  );
+});
 
 DislikeAction.displayName = "DislikeAction";
 
@@ -241,11 +212,7 @@ interface CopyActionProps {
 const CopyAction = memo(({ content }: CopyActionProps) => {
   const handleClick = useCallback(() => handleCopy(content), [content]);
   return (
-    <MessageAction
-      label="Copy"
-      onClick={handleClick}
-      tooltip="Copy to clipboard"
-    >
+    <MessageAction label="Copy" onClick={handleClick} tooltip="Copy to clipboard">
       <CopyIcon className="size-4" />
     </MessageAction>
   );
@@ -304,11 +271,7 @@ const Example = () => {
                       messageKey={message.key}
                       onToggle={handleToggleDislike}
                     />
-                    <CopyAction
-                      content={
-                        message.versions?.find((v) => v.id)?.content || ""
-                      }
-                    />
+                    <CopyAction content={message.versions?.find((v) => v.id)?.content || ""} />
                   </MessageActions>
                 </MessageToolbar>
               )}
@@ -334,11 +297,7 @@ const Example = () => {
               </MessageContent>
               {message.from === "assistant" && message.versions && (
                 <MessageActions>
-                  <MessageAction
-                    label="Retry"
-                    onClick={handleRetry}
-                    tooltip="Regenerate response"
-                  >
+                  <MessageAction label="Retry" onClick={handleRetry} tooltip="Regenerate response">
                     <RefreshCcwIcon className="size-4" />
                   </MessageAction>
                   <LikeAction

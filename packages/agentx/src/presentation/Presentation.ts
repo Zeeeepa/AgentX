@@ -9,11 +9,7 @@ import type { AgentX } from "../types";
 import type { Unsubscribe, BusEvent } from "@agentxjs/core/event";
 import type { PresentationState, Conversation } from "./types";
 import { initialPresentationState } from "./types";
-import {
-  presentationReducer,
-  addUserConversation,
-  createInitialState,
-} from "./reducer";
+import { presentationReducer, addUserConversation, createInitialState } from "./reducer";
 
 /**
  * Presentation update handler
@@ -51,7 +47,12 @@ export class Presentation {
   private errorHandlers: Set<PresentationErrorHandler> = new Set();
   private eventUnsubscribe: Unsubscribe | null = null;
 
-  constructor(agentx: AgentX, agentId: string, options?: PresentationOptions, initialConversations?: Conversation[]) {
+  constructor(
+    agentx: AgentX,
+    agentId: string,
+    options?: PresentationOptions,
+    initialConversations?: Conversation[]
+  ) {
     this.agentx = agentx;
     this.agentId = agentId;
     this.state = initialConversations?.length

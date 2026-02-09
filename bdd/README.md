@@ -17,10 +17,10 @@ bdd/
 
 Each project has its own journeys:
 
-| Project | Path | Personas |
-|---------|------|----------|
-| portagent | `apps/portagent/bdd/` | contributor, user |
-| agentx SDK | `packages/agentx/bdd/` | developer |
+| Project    | Path                   | Personas          |
+| ---------- | ---------------------- | ----------------- |
+| portagent  | `apps/portagent/bdd/`  | contributor, user |
+| agentx SDK | `packages/agentx/bdd/` | developer         |
 
 ## Running Tests
 

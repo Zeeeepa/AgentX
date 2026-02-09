@@ -50,8 +50,8 @@ const httpServer = createHttpServer();
 const server = await createServer({
   platform: nodePlatform({ dataPath: "./data" }),
   createDriver: wrappedCreateDriver,
-  server: httpServer,     // attach here
-  wsPath: "/ws",          // WebSocket upgrade path (default: "/ws")
+  server: httpServer, // attach here
+  wsPath: "/ws", // WebSocket upgrade path (default: "/ws")
 });
 
 // The HTTP server handles listen()
@@ -74,9 +74,9 @@ Creates and returns an AgentX server instance.
 
 ```typescript
 interface AgentXServer {
-  listen(port?: number, host?: string): Promise<void>;  // standalone only
+  listen(port?: number, host?: string): Promise<void>; // standalone only
   close(): Promise<void>;
-  dispose(): Promise<void>;                              // full cleanup
+  dispose(): Promise<void>; // full cleanup
 }
 ```
 
@@ -96,23 +96,23 @@ import { CommandHandler } from "@agentxjs/server";
 interface ServerConfig {
   platform: AgentXPlatform | DeferredPlatformConfig;
   createDriver: CreateDriver;
-  port?: number;                    // default: 5200
-  host?: string;                    // default: "0.0.0.0"
-  server?: MinimalHTTPServer;       // attach to existing server
-  wsPath?: string;                  // default: "/ws" (attached mode)
+  port?: number; // default: 5200
+  host?: string; // default: "0.0.0.0"
+  server?: MinimalHTTPServer; // attach to existing server
+  wsPath?: string; // default: "/ws" (attached mode)
   debug?: boolean;
 }
 ```
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `platform` | `AgentXPlatform \| DeferredPlatformConfig` | -- | Platform with repositories and event bus |
-| `createDriver` | `CreateDriver` | -- | Factory function that creates a Driver per agent |
-| `port` | `number` | `5200` | Standalone listen port |
-| `host` | `string` | `"0.0.0.0"` | Standalone bind host |
-| `server` | `MinimalHTTPServer` | -- | Existing HTTP server to attach to |
-| `wsPath` | `string` | `"/ws"` | WebSocket path in attached mode |
-| `debug` | `boolean` | `false` | Enable debug logging |
+| Field          | Type                                       | Default     | Description                                      |
+| -------------- | ------------------------------------------ | ----------- | ------------------------------------------------ |
+| `platform`     | `AgentXPlatform \| DeferredPlatformConfig` | --          | Platform with repositories and event bus         |
+| `createDriver` | `CreateDriver`                             | --          | Factory function that creates a Driver per agent |
+| `port`         | `number`                                   | `5200`      | Standalone listen port                           |
+| `host`         | `string`                                   | `"0.0.0.0"` | Standalone bind host                             |
+| `server`       | `MinimalHTTPServer`                        | --          | Existing HTTP server to attach to                |
+| `wsPath`       | `string`                                   | `"/ws"`     | WebSocket path in attached mode                  |
+| `debug`        | `boolean`                                  | `false`     | Enable debug logging                             |
 
 ### Heartbeat
 
@@ -126,12 +126,12 @@ WebSocket connections are automatically monitored with a ping/pong heartbeat (30
 
 ### Environment Variables (CLI)
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `ANTHROPIC_API_KEY` | Yes | -- | Claude API key |
-| `ANTHROPIC_BASE_URL` | No | -- | Custom API endpoint |
-| `PORT` | No | `5200` | Server port |
-| `HOST` | No | `0.0.0.0` | Server host |
-| `DATA_PATH` | No | `./data` | Data storage directory |
-| `LOG_DIR` | No | `<DATA_PATH>/logs` | Log file directory |
-| `LOG_LEVEL` | No | `info` | `debug` / `info` / `warn` / `error` |
+| Variable             | Required | Default            | Description                         |
+| -------------------- | -------- | ------------------ | ----------------------------------- |
+| `ANTHROPIC_API_KEY`  | Yes      | --                 | Claude API key                      |
+| `ANTHROPIC_BASE_URL` | No       | --                 | Custom API endpoint                 |
+| `PORT`               | No       | `5200`             | Server port                         |
+| `HOST`               | No       | `0.0.0.0`          | Server host                         |
+| `DATA_PATH`          | No       | `./data`           | Data storage directory              |
+| `LOG_DIR`            | No       | `<DATA_PATH>/logs` | Log file directory                  |
+| `LOG_LEVEL`          | No       | `info`             | `debug` / `info` / `warn` / `error` |

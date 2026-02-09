@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Source,
-  Sources,
-  SourcesContent,
-  SourcesTrigger,
-} from "@/components/ai-elements/sources";
+import { Source, Sources, SourcesContent, SourcesTrigger } from "@/components/ai-elements/sources";
 import { ChevronDownIcon, ExternalLinkIcon } from "lucide-react";
 
 const sources = [

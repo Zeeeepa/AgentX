@@ -21,9 +21,24 @@ import type {
   Subscription,
   AgentLifecycle,
 } from "./types";
-import type { UserContentPart, UserMessage, AgentEngine, StreamEvent, AgentOutput, AgentPresenter, AgentSource, Message } from "../agent/types";
+import type {
+  UserContentPart,
+  UserMessage,
+  AgentEngine,
+  StreamEvent,
+  AgentOutput,
+  AgentPresenter,
+  AgentSource,
+  Message,
+} from "../agent/types";
 import type { BusEvent } from "../event/types";
-import type { CreateDriver, Driver, DriverConfig, DriverStreamEvent, ToolDefinition } from "../driver/types";
+import type {
+  CreateDriver,
+  Driver,
+  DriverConfig,
+  DriverStreamEvent,
+  ToolDefinition,
+} from "../driver/types";
 import { createSession } from "../session/Session";
 import { createBashTool } from "../bash/tool";
 import { createAgent as createAgentEngine } from "../agent/createAgent";
@@ -427,12 +442,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
     state.driver.interrupt();
 
     // Emit interrupt event (for external subscribers)
-    this.emitEvent(
-      state,
-      "interrupt",
-      { agentId },
-      requestId ?? this.generateRequestId()
-    );
+    this.emitEvent(state, "interrupt", { agentId }, requestId ?? this.generateRequestId());
 
     logger.debug("Interrupt sent", { agentId, requestId });
   }
@@ -502,11 +512,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
   /**
    * Handle a single DriverStreamEvent
    */
-  private handleDriverEvent(
-    state: AgentState,
-    event: DriverStreamEvent,
-    requestId: string
-  ): void {
+  private handleDriverEvent(state: AgentState, event: DriverStreamEvent, requestId: string): void {
     // 1. Emit raw stream event to EventBus (for Presentation and other subscribers)
     this.emitEvent(state, event.type, event.data, requestId);
 
@@ -519,12 +525,7 @@ export class AgentXRuntimeImpl implements AgentXRuntime {
   /**
    * Emit an event to the EventBus
    */
-  private emitEvent(
-    state: AgentState,
-    type: string,
-    data: unknown,
-    requestId: string
-  ): void {
+  private emitEvent(state: AgentState, type: string, data: unknown, requestId: string): void {
     this.platform.eventBus.emit({
       type,
       timestamp: Date.now(),
@@ -591,9 +592,15 @@ function toStreamEvent(event: DriverStreamEvent): StreamEvent {
 function categorizeAgentOutput(type: string): string {
   // Stream layer — already emitted by handleDriverEvent
   const streamTypes = [
-    "message_start", "message_delta", "message_stop",
-    "text_delta", "tool_use_start", "input_json_delta",
-    "tool_use_stop", "tool_result", "error_received",
+    "message_start",
+    "message_delta",
+    "message_stop",
+    "text_delta",
+    "tool_use_start",
+    "input_json_delta",
+    "tool_use_stop",
+    "tool_result",
+    "error_received",
   ];
   if (streamTypes.includes(type)) return "stream";
 
@@ -613,6 +620,9 @@ function categorizeAgentOutput(type: string): string {
  * @param platform - AgentXPlatform with repositories and event bus
  * @param createDriver - Factory function for creating Driver instances per Agent
  */
-export function createAgentXRuntime(platform: AgentXPlatform, createDriver: CreateDriver): AgentXRuntime {
+export function createAgentXRuntime(
+  platform: AgentXPlatform,
+  createDriver: CreateDriver
+): AgentXRuntime {
   return new AgentXRuntimeImpl(platform, createDriver);
 }

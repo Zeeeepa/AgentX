@@ -65,9 +65,7 @@ export function createLocalAgents(runtime: AgentXRuntime): AgentNamespace {
     },
 
     async list(containerId?: string): Promise<AgentListResponse> {
-      const agents = containerId
-        ? runtime.getAgentsByContainer(containerId)
-        : runtime.getAgents();
+      const agents = containerId ? runtime.getAgentsByContainer(containerId) : runtime.getAgents();
 
       return {
         agents: agents.map((a) => ({

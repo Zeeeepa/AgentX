@@ -233,10 +233,7 @@ function handleTextDelta(
   return [
     {
       ...state,
-      pendingContents: [
-        ...state.pendingContents,
-        { type: "text", textDeltas: [data.text] },
-      ],
+      pendingContents: [...state.pendingContents, { type: "text", textDeltas: [data.text] }],
     },
     [],
   ];
@@ -278,7 +275,10 @@ function handleInputJsonDelta(
   const { data } = event as InputJsonDeltaEvent;
 
   // Find the last tool_use content in the array
-  const lastToolIndex = findLastIndex(state.pendingContents, (c) => c.type === "tool_use" && !c.assembled);
+  const lastToolIndex = findLastIndex(
+    state.pendingContents,
+    (c) => c.type === "tool_use" && !c.assembled
+  );
   if (lastToolIndex === -1) {
     return [state, []];
   }
@@ -305,7 +305,10 @@ function handleToolUseStop(
   _event: StreamEvent
 ): [MessageAssemblerState, MessageAssemblerOutput[]] {
   // Find the last unassembled tool_use content
-  const lastToolIndex = findLastIndex(state.pendingContents, (c) => c.type === "tool_use" && !c.assembled);
+  const lastToolIndex = findLastIndex(
+    state.pendingContents,
+    (c) => c.type === "tool_use" && !c.assembled
+  );
   if (lastToolIndex === -1) {
     return [state, []];
   }

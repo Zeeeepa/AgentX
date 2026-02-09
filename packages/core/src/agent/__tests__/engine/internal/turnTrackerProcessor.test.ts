@@ -71,19 +71,13 @@ describe("turnTrackerProcessor", () => {
     });
 
     it("should generate unique turn IDs", () => {
-      const [state1, outputs1] = turnTrackerProcessor(
-        state,
-        createMessageStartEvent("msg_1")
-      );
+      const [state1, outputs1] = turnTrackerProcessor(state, createMessageStartEvent("msg_1"));
 
       // Complete the turn
       const [state2] = turnTrackerProcessor(state1, createMessageStopEvent("end_turn"));
 
       // Start new turn
-      const [state3, outputs3] = turnTrackerProcessor(
-        state2,
-        createMessageStartEvent("msg_2")
-      );
+      const [state3, outputs3] = turnTrackerProcessor(state2, createMessageStartEvent("msg_2"));
 
       expect(outputs1[0].data.turnId).not.toBe(outputs3[0].data.turnId);
     });
@@ -237,10 +231,7 @@ describe("turnTrackerProcessor", () => {
       let currentState = createInitialTurnTrackerState();
 
       // message_start at time 1000
-      const [s1, o1] = turnTrackerProcessor(
-        currentState,
-        createMessageStartEvent("msg_1", 1000)
-      );
+      const [s1, o1] = turnTrackerProcessor(currentState, createMessageStartEvent("msg_1", 1000));
       currentState = s1;
       allOutputs.push(...o1);
 
@@ -268,10 +259,7 @@ describe("turnTrackerProcessor", () => {
       let currentState = createInitialTurnTrackerState();
 
       // message_start begins the turn
-      const [s1, o1] = turnTrackerProcessor(
-        currentState,
-        createMessageStartEvent("msg_1", 1000)
-      );
+      const [s1, o1] = turnTrackerProcessor(currentState, createMessageStartEvent("msg_1", 1000));
       currentState = s1;
       allOutputs.push(...o1);
 
@@ -305,10 +293,7 @@ describe("turnTrackerProcessor", () => {
       const allTurnIds: string[] = [];
 
       // First turn
-      const [s1, o1] = turnTrackerProcessor(
-        currentState,
-        createMessageStartEvent("msg_1", 1000)
-      );
+      const [s1, o1] = turnTrackerProcessor(currentState, createMessageStartEvent("msg_1", 1000));
       currentState = s1;
       allTurnIds.push(o1[0].data.turnId);
 
@@ -316,10 +301,7 @@ describe("turnTrackerProcessor", () => {
       currentState = s2;
 
       // Second turn
-      const [s3, o3] = turnTrackerProcessor(
-        currentState,
-        createMessageStartEvent("msg_2", 2000)
-      );
+      const [s3, o3] = turnTrackerProcessor(currentState, createMessageStartEvent("msg_2", 2000));
       currentState = s3;
       allTurnIds.push(o3[0].data.turnId);
 
@@ -327,10 +309,7 @@ describe("turnTrackerProcessor", () => {
       currentState = s4;
 
       // Third turn
-      const [s5, o5] = turnTrackerProcessor(
-        currentState,
-        createMessageStartEvent("msg_3", 3000)
-      );
+      const [s5, o5] = turnTrackerProcessor(currentState, createMessageStartEvent("msg_3", 3000));
       currentState = s5;
       allTurnIds.push(o5[0].data.turnId);
 

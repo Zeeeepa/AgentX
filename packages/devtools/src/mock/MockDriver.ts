@@ -22,12 +22,7 @@
  * ```
  */
 
-import type {
-  Driver,
-  DriverConfig,
-  DriverState,
-  DriverStreamEvent,
-} from "@agentxjs/core/driver";
+import type { Driver, DriverConfig, DriverState, DriverStreamEvent } from "@agentxjs/core/driver";
 import type { UserMessage } from "@agentxjs/core/agent";
 import type { Fixture, FixtureEvent, MockDriverOptions } from "../types";
 import { BUILTIN_FIXTURES } from "../../fixtures";
@@ -65,10 +60,7 @@ export class MockDriver implements Driver {
    * @param options - MockDriverOptions or DriverConfig
    * @param mockOptions - MockDriverOptions if first param is DriverConfig
    */
-  constructor(
-    optionsOrConfig: MockDriverOptions | DriverConfig,
-    mockOptions?: MockDriverOptions
-  ) {
+  constructor(optionsOrConfig: MockDriverOptions | DriverConfig, mockOptions?: MockDriverOptions) {
     // Detect which constructor form is being used
     if (mockOptions !== undefined || "apiKey" in optionsOrConfig) {
       // Factory mode: (DriverConfig, MockDriverOptions)
@@ -363,7 +355,13 @@ export class MockDriver implements Driver {
           type: "message_stop",
           timestamp,
           data: {
-            stopReason: (data.stopReason as "end_turn" | "tool_use" | "max_tokens" | "stop_sequence" | "other") || "end_turn",
+            stopReason:
+              (data.stopReason as
+                | "end_turn"
+                | "tool_use"
+                | "max_tokens"
+                | "stop_sequence"
+                | "other") || "end_turn",
           },
         };
 
@@ -400,6 +398,8 @@ export class MockDriver implements Driver {
  * @param mockOptions - Options for all created drivers
  * @returns CreateDriver function
  */
-export function createMockDriver(mockOptions: MockDriverOptions = {}): (config: DriverConfig) => Driver {
+export function createMockDriver(
+  mockOptions: MockDriverOptions = {}
+): (config: DriverConfig) => Driver {
   return (config: DriverConfig) => new MockDriver(config, mockOptions);
 }

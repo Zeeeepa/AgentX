@@ -35,11 +35,7 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createMCPClient } from "@ai-sdk/mcp";
 import type { MCPClient } from "@ai-sdk/mcp";
 import { Experimental_StdioMCPTransport } from "@ai-sdk/mcp/mcp-stdio";
-import type {
-  Driver,
-  DriverState,
-  DriverStreamEvent,
-} from "@agentxjs/core/driver";
+import type { Driver, DriverState, DriverStreamEvent } from "@agentxjs/core/driver";
 import type { UserMessage } from "@agentxjs/core/agent";
 import type { Session } from "@agentxjs/core/session";
 import { createLogger } from "commonxjs/logger";
@@ -365,9 +361,7 @@ export class MonoDriver implements Driver {
    * Config tools (bash etc.) take precedence over MCP tools with the same name.
    */
   private mergeTools(): ToolSet | undefined {
-    const configTools = this.config.tools?.length
-      ? toVercelTools(this.config.tools)
-      : {};
+    const configTools = this.config.tools?.length ? toVercelTools(this.config.tools) : {};
     const merged = { ...this.mcpTools, ...configTools };
     return Object.keys(merged).length > 0 ? merged : undefined;
   }
@@ -392,9 +386,7 @@ export class MonoDriver implements Driver {
         return createMistral({ apiKey, baseURL })(modelId);
       case "openai-compatible": {
         if (!this.compatibleConfig) {
-          throw new Error(
-            "openai-compatible provider requires compatibleConfig in options"
-          );
+          throw new Error("openai-compatible provider requires compatibleConfig in options");
         }
         const provider = createOpenAICompatible({
           name: this.compatibleConfig.name,

@@ -8,12 +8,13 @@
 
 ### 为什么选择 Cloudflare Containers
 
-| 方案 | Claude SDK 支持 | 文件系统 | 扩缩容 | 全球部署 |
-|------|----------------|----------|--------|----------|
-| Workers | ❌ 不支持 | ❌ 无 | ✅ 自动 | ✅ |
-| Containers | ✅ 支持 | ✅ 有 | ✅ Scale to Zero | ✅ |
+| 方案       | Claude SDK 支持 | 文件系统 | 扩缩容           | 全球部署 |
+| ---------- | --------------- | -------- | ---------------- | -------- |
+| Workers    | ❌ 不支持       | ❌ 无    | ✅ 自动          | ✅       |
+| Containers | ✅ 支持         | ✅ 有    | ✅ Scale to Zero | ✅       |
 
 Claude SDK (`@anthropic-ai/claude-code-sdk`) 依赖：
+
 - Node.js 运行时
 - 文件系统（workspace、临时文件）
 - 子进程（MCP servers）
@@ -24,13 +25,13 @@ Workers 无法满足这些需求，Containers 可以。
 
 基础：$5/月 (Workers Paid Plan)
 
-| 使用场景 | 预估成本 |
-|----------|---------|
-| 轻度使用 (10 req/天) | ~$5-10/月 |
-| 中度使用 (100 req/天) | ~$10-30/月 |
+| 使用场景               | 预估成本    |
+| ---------------------- | ----------- |
+| 轻度使用 (10 req/天)   | ~$5-10/月   |
+| 中度使用 (100 req/天)  | ~$10-30/月  |
 | 重度使用 (1000 req/天) | ~$30-100/月 |
 
-*Scale to Zero：容器睡眠时不计费*
+_Scale to Zero：容器睡眠时不计费_
 
 ---
 
@@ -61,14 +62,14 @@ Workers 无法满足这些需求，Containers 可以。
 
 ### 组件职责
 
-| 组件 | 职责 | 技术选型 |
-|------|------|----------|
-| **Browser** | UI + Presentation | `agentxjs` (RemoteClient) |
-| **Workers** | 路由 + 认证 + 静态资源 | Cloudflare Workers |
-| **Containers** | AgentX Runtime + Claude SDK | Docker + Node.js |
-| **D1** | 持久化 (Container/Image/Session) | SQLite |
-| **KV** | 缓存 + Session | Key-Value |
-| **R2** | Workspace 文件存储 | Object Storage |
+| 组件           | 职责                             | 技术选型                  |
+| -------------- | -------------------------------- | ------------------------- |
+| **Browser**    | UI + Presentation                | `agentxjs` (RemoteClient) |
+| **Workers**    | 路由 + 认证 + 静态资源           | Cloudflare Workers        |
+| **Containers** | AgentX Runtime + Claude SDK      | Docker + Node.js          |
+| **D1**         | 持久化 (Container/Image/Session) | SQLite                    |
+| **KV**         | 缓存 + Session                   | Key-Value                 |
+| **R2**         | Workspace 文件存储               | Object Storage            |
 
 ### 数据流
 
@@ -382,9 +383,7 @@ app.all("/api/*", async (c) => {
   const containerId = `user-${user.id}`;
 
   // Route to user's container
-  const container = c.env.CONTAINER.get(
-    c.env.CONTAINER.idFromName(containerId)
-  );
+  const container = c.env.CONTAINER.get(c.env.CONTAINER.idFromName(containerId));
 
   // Forward with user context
   const request = new Request(c.req.raw, {
@@ -474,24 +473,24 @@ pnpm add agentxjs@1.9.1-dev
 
 ## 风险与缓解
 
-| 风险 | 影响 | 缓解措施 |
-|------|------|----------|
-| Container 冷启动慢 | 用户体验 | 预热策略、增加 sleepAfter |
-| Claude SDK 兼容性 | 功能受限 | 测试验证、降级方案 |
-| D1 性能 | 高并发场景 | KV 缓存、读写分离 |
-| Beta 阶段不稳定 | 服务中断 | 监控告警、快速回滚 |
+| 风险               | 影响       | 缓解措施                  |
+| ------------------ | ---------- | ------------------------- |
+| Container 冷启动慢 | 用户体验   | 预热策略、增加 sleepAfter |
+| Claude SDK 兼容性  | 功能受限   | 测试验证、降级方案        |
+| D1 性能            | 高并发场景 | KV 缓存、读写分离         |
+| Beta 阶段不稳定    | 服务中断   | 监控告警、快速回滚        |
 
 ---
 
 ## 里程碑
 
-| 阶段 | 目标 | 时间 |
-|------|------|------|
-| M1 | Dev 包发布 + 方案评审 | Week 0 |
-| M2 | 基础设施 + 最小可运行 | Week 1 |
-| M3 | 核心功能 + API 完整 | Week 2 |
-| M4 | 认证 + 多租户 | Week 3 |
-| M5 | 优化 + 生产就绪 | Week 4 |
+| 阶段 | 目标                  | 时间   |
+| ---- | --------------------- | ------ |
+| M1   | Dev 包发布 + 方案评审 | Week 0 |
+| M2   | 基础设施 + 最小可运行 | Week 1 |
+| M3   | 核心功能 + API 完整   | Week 2 |
+| M4   | 认证 + 多租户         | Week 3 |
+| M5   | 优化 + 生产就绪       | Week 4 |
 
 ---
 

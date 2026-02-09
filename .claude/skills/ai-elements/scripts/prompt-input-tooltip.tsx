@@ -25,14 +25,10 @@ const Example = () => (
         <PromptInputButton tooltip="Attach files">
           <PaperclipIcon size={16} />
         </PromptInputButton>
-        <PromptInputButton
-          tooltip={{ content: "Search the web", shortcut: "⌘K" }}
-        >
+        <PromptInputButton tooltip={{ content: "Search the web", shortcut: "⌘K" }}>
           <GlobeIcon size={16} />
         </PromptInputButton>
-        <PromptInputButton
-          tooltip={{ content: "Voice input", shortcut: "⌘M", side: "bottom" }}
-        >
+        <PromptInputButton tooltip={{ content: "Voice input", shortcut: "⌘M", side: "bottom" }}>
           <MicIcon size={16} />
         </PromptInputButton>
       </PromptInputTools>

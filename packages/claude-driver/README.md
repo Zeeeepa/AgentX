@@ -5,6 +5,7 @@ Claude-specific driver for AgentX with native Claude Code features. **For most c
 ## Overview
 
 Use claude-driver when you specifically need:
+
 - Claude Code SDK subprocess execution
 - Built-in permission management from Claude Code
 - Claude Code CLI integration
@@ -42,9 +43,9 @@ Factory function. Returns a `Driver` conforming to `@agentxjs/core/driver`.
 
 ```typescript
 class ClaudeDriver implements Driver {
-  readonly name: string;              // "ClaudeDriver"
-  readonly sessionId: string | null;  // captured from SDK after first message
-  readonly state: DriverState;        // "idle" | "active" | "disposed"
+  readonly name: string; // "ClaudeDriver"
+  readonly sessionId: string | null; // captured from SDK after first message
+  readonly state: DriverState; // "idle" | "active" | "disposed"
 
   initialize(): Promise<void>;
   receive(message: UserMessage): AsyncIterable<DriverStreamEvent>;
@@ -95,10 +96,10 @@ createClaudeDriver({
 
 ### ClaudeDriverOptions
 
-| Field | Type | Default | Description |
-|---|---|---|---|
+| Field            | Type     | Default                                        | Description                    |
+| ---------------- | -------- | ---------------------------------------------- | ------------------------------ |
 | `claudeCodePath` | `string` | Auto-resolved from `@anthropic-ai/claude-code` | Path to Claude Code executable |
-| `maxTurns` | `number` | SDK default | Max agentic loop turns |
+| `maxTurns`       | `number` | SDK default                                    | Max agentic loop turns         |
 
 ### Session Resumption
 
@@ -108,7 +109,9 @@ let savedSessionId: string;
 const driver = createClaudeDriver({
   apiKey: "...",
   agentId: "my-agent",
-  onSessionIdCaptured: (id) => { savedSessionId = id; },
+  onSessionIdCaptured: (id) => {
+    savedSessionId = id;
+  },
 });
 
 // ... use driver, then dispose ...
@@ -123,7 +126,7 @@ const resumed = createClaudeDriver({
 
 ### Environment Variables
 
-| Variable | Description |
-|---|---|
-| `ANTHROPIC_API_KEY` | Claude API key (can also use `apiKey` config) |
+| Variable             | Description                                         |
+| -------------------- | --------------------------------------------------- |
+| `ANTHROPIC_API_KEY`  | Claude API key (can also use `apiKey` config)       |
 | `ANTHROPIC_BASE_URL` | Custom API endpoint (can also use `baseUrl` config) |

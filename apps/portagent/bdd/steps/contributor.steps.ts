@@ -6,24 +6,12 @@
  * - UI testing (@ui): accumulate steps → agentUiTester runs them all
  */
 
-import {
-  Given,
-  When,
-  Then,
-  Before,
-  After,
-  BeforeAll,
-  AfterAll,
-} from "@cucumber/cucumber";
+import { Given, When, Then, Before, After, BeforeAll, AfterAll } from "@cucumber/cucumber";
 import { strict as assert } from "node:assert";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  agentUiTester,
-  startDevServer,
-  stopDevServer,
-} from "@agentxjs/devtools/bdd";
+import { agentUiTester, startDevServer, stopDevServer } from "@agentxjs/devtools/bdd";
 import { openDatabase } from "commonxjs/sqlite";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -144,13 +132,16 @@ Given("a fresh installation", function () {
   uiInstructions.push("Starting from a fresh installation (database was just reset)");
 });
 
-Given("the system has admin {string} with password {string}", function (email: string, password: string) {
-  resetDatabase();
-  uiInstructions.push(
-    `First, set up admin account: navigate to ${BASE_URL}/setup, fill email "${email}" and password "${password}", click Setup, verify redirect to /`,
-    "Then log out (click Logout button or clear session)"
-  );
-});
+Given(
+  "the system has admin {string} with password {string}",
+  function (email: string, password: string) {
+    resetDatabase();
+    uiInstructions.push(
+      `First, set up admin account: navigate to ${BASE_URL}/setup, fill email "${email}" and password "${password}", click Setup, verify redirect to /`,
+      "Then log out (click Logout button or clear session)"
+    );
+  }
+);
 
 Given("I am not logged in", function () {
   uiInstructions.push("Ensure not logged in (clear cookies if needed)");
@@ -384,9 +375,13 @@ When("I click {string} on {string}", function (action: string, target: string) {
 // ============================================================================
 
 Then("I should see an AI response in conversation", function () {
-  uiInstructions.push("Wait for an AI/assistant response to appear in the conversation (may take a few seconds for streaming to complete)");
+  uiInstructions.push(
+    "Wait for an AI/assistant response to appear in the conversation (may take a few seconds for streaming to complete)"
+  );
 });
 
 Then("I should see the response appearing progressively", function () {
-  uiInstructions.push("Verify the AI response text appears progressively (streaming), not all at once");
+  uiInstructions.push(
+    "Verify the AI response text appears progressively (streaming), not all at once"
+  );
 });

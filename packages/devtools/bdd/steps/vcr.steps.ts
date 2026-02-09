@@ -18,7 +18,9 @@ let events: DriverStreamEvent[] = [];
 let recordingFixture: any = null;
 
 BeforeAll(function () {
-  console.log(`\n[VCR BDD] API Key: ${env.apiKey ? "set (" + env.apiKey.length + " chars)" : "NOT SET"}`);
+  console.log(
+    `\n[VCR BDD] API Key: ${env.apiKey ? "set (" + env.apiKey.length + " chars)" : "NOT SET"}`
+  );
   console.log(`[VCR BDD] Base URL: ${env.baseUrl || "NOT SET"}`);
   console.log(`[VCR BDD] Model: ${env.model}\n`);
 });
@@ -27,53 +29,49 @@ BeforeAll(function () {
 // Scenario 1: MonoDriver direct
 // ============================================================================
 
-Given(
-  "a MonoDriver configured with Deepractice API credentials",
-  function () {
-    assert.ok(env.apiKey, "DEEPRACTICE_API_KEY is not set");
-    assert.ok(env.baseUrl, "DEEPRACTICE_BASE_URL is not set");
-    events = [];
-  }
-);
+Given("a MonoDriver configured with Deepractice API credentials", function () {
+  assert.ok(env.apiKey, "DEEPRACTICE_API_KEY is not set");
+  assert.ok(env.baseUrl, "DEEPRACTICE_BASE_URL is not set");
+  events = [];
+});
 
-When(
-  "I send a simple message {string}",
-  { timeout: 60000 },
-  async function (text: string) {
-    const { createMonoDriver } = await import("@agentxjs/mono-driver");
+When("I send a simple message {string}", { timeout: 60000 }, async function (text: string) {
+  const { createMonoDriver } = await import("@agentxjs/mono-driver");
 
-    const driver = createMonoDriver({
-      apiKey: env.apiKey!,
-      baseUrl: env.baseUrl!,
-      model: env.model,
-      provider: "anthropic",
-      systemPrompt: "You are a helpful assistant. Reply very briefly.",
-      tools: {},
-    });
+  const driver = createMonoDriver({
+    apiKey: env.apiKey!,
+    baseUrl: env.baseUrl!,
+    model: env.model,
+    provider: "anthropic",
+    systemPrompt: "You are a helpful assistant. Reply very briefly.",
+    tools: {},
+  });
 
-    await driver.initialize({} as any);
+  await driver.initialize({} as any);
 
-    const userMessage: UserMessage = {
-      role: "user",
-      subtype: "user",
-      content: text,
-      timestamp: Date.now(),
-    };
+  const userMessage: UserMessage = {
+    role: "user",
+    subtype: "user",
+    content: text,
+    timestamp: Date.now(),
+  };
 
-    events = [];
-    try {
-      for await (const event of driver.receive(userMessage)) {
-        events.push(event);
-        console.log(`  [Event] ${event.type}`, event.type === "error" ? (event.data as any).message : "");
-      }
-    } catch (err) {
-      console.error("  [Driver Error]", err);
+  events = [];
+  try {
+    for await (const event of driver.receive(userMessage)) {
+      events.push(event);
+      console.log(
+        `  [Event] ${event.type}`,
+        event.type === "error" ? (event.data as any).message : ""
+      );
     }
-
-    console.log(`  [Total events] ${events.length}`);
-    await driver.dispose();
+  } catch (err) {
+    console.error("  [Driver Error]", err);
   }
-);
+
+  console.log(`  [Total events] ${events.length}`);
+  await driver.dispose();
+});
 
 Then("the driver should emit a message_start event", function () {
   const found = events.some((e) => e.type === "message_start");
@@ -103,15 +101,12 @@ Then("there should be no error events", function () {
 // Scenario 2: RecordingDriver
 // ============================================================================
 
-Given(
-  "a RecordingDriver wrapping a MonoDriver with Deepractice credentials",
-  function () {
-    assert.ok(env.apiKey, "DEEPRACTICE_API_KEY is not set");
-    assert.ok(env.baseUrl, "DEEPRACTICE_BASE_URL is not set");
-    events = [];
-    recordingFixture = null;
-  }
-);
+Given("a RecordingDriver wrapping a MonoDriver with Deepractice credentials", function () {
+  assert.ok(env.apiKey, "DEEPRACTICE_API_KEY is not set");
+  assert.ok(env.baseUrl, "DEEPRACTICE_BASE_URL is not set");
+  events = [];
+  recordingFixture = null;
+});
 
 // "When I send a simple message" is reused from Scenario 1,
 // but we need a different version that uses RecordingDriver
@@ -150,7 +145,10 @@ When(
     try {
       for await (const event of recorder.receive(userMessage)) {
         events.push(event);
-        console.log(`  [Recorded Event] ${event.type}`, event.type === "error" ? (event.data as any).message : "");
+        console.log(
+          `  [Recorded Event] ${event.type}`,
+          event.type === "error" ? (event.data as any).message : ""
+        );
       }
     } catch (err) {
       console.error("  [Recorder Error]", err);
@@ -165,19 +163,28 @@ When(
 Then("the recording should contain a message_start event", function () {
   assert.ok(recordingFixture, "No recording fixture");
   const found = recordingFixture.events.some((e: any) => e.type === "message_start");
-  assert.ok(found, `No message_start in recording. Events: [${recordingFixture.events.map((e: any) => e.type).join(", ")}]`);
+  assert.ok(
+    found,
+    `No message_start in recording. Events: [${recordingFixture.events.map((e: any) => e.type).join(", ")}]`
+  );
 });
 
 Then("the recording should contain at least one text_delta event", function () {
   assert.ok(recordingFixture, "No recording fixture");
   const found = recordingFixture.events.some((e: any) => e.type === "text_delta");
-  assert.ok(found, `No text_delta in recording. Events: [${recordingFixture.events.map((e: any) => e.type).join(", ")}]`);
+  assert.ok(
+    found,
+    `No text_delta in recording. Events: [${recordingFixture.events.map((e: any) => e.type).join(", ")}]`
+  );
 });
 
 Then("the recording should contain a message_stop event", function () {
   assert.ok(recordingFixture, "No recording fixture");
   const found = recordingFixture.events.some((e: any) => e.type === "message_stop");
-  assert.ok(found, `No message_stop in recording. Events: [${recordingFixture.events.map((e: any) => e.type).join(", ")}]`);
+  assert.ok(
+    found,
+    `No message_stop in recording. Events: [${recordingFixture.events.map((e: any) => e.type).join(", ")}]`
+  );
 });
 
 Then("the recorded fixture should be saveable to disk", function () {

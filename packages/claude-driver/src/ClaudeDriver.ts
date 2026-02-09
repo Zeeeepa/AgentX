@@ -218,29 +218,35 @@ export class ClaudeDriver implements Driver {
       let turnError: Error | null = null;
 
       // Setup callbacks to convert SDK events to DriverStreamEvent
-      this.setupTurnCallbacks(turnSubject, () => {
-        isComplete = true;
-      }, (error) => {
-        turnError = error;
-        isComplete = true;
-      });
+      this.setupTurnCallbacks(
+        turnSubject,
+        () => {
+          isComplete = true;
+        },
+        (error) => {
+          turnError = error;
+          isComplete = true;
+        }
+      );
 
       // Build and send SDK message
       const sessionId = this._sessionId || "default";
       const sdkMessage = buildSDKUserMessage(message, sessionId);
 
       logger.debug("Sending message to Claude", {
-        content: typeof message.content === "string"
-          ? message.content.substring(0, 80)
-          : "[structured]",
+        content:
+          typeof message.content === "string" ? message.content.substring(0, 80) : "[structured]",
         agentId: this.config.agentId,
       });
 
       this.queryLifecycle!.send(sdkMessage);
 
       // Yield events from Subject
-      yield* this.yieldFromSubject(turnSubject, () => isComplete, () => turnError);
-
+      yield* this.yieldFromSubject(
+        turnSubject,
+        () => isComplete,
+        () => turnError
+      );
     } finally {
       this._state = "idle";
       this.currentTurnSubject = null;

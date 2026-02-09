@@ -29,15 +29,13 @@ const ChainOfThoughtExample = () => (
         status="complete"
       >
         <ChainOfThoughtSearchResults>
-          {[
-            "https://www.x.com",
-            "https://www.instagram.com",
-            "https://www.github.com",
-          ].map((website) => (
-            <ChainOfThoughtSearchResult key={website}>
-              {new URL(website).hostname}
-            </ChainOfThoughtSearchResult>
-          ))}
+          {["https://www.x.com", "https://www.instagram.com", "https://www.github.com"].map(
+            (website) => (
+              <ChainOfThoughtSearchResult key={website}>
+                {new URL(website).hostname}
+              </ChainOfThoughtSearchResult>
+            )
+          )}
         </ChainOfThoughtSearchResults>
       </ChainOfThoughtStep>
 
@@ -60,19 +58,13 @@ const ChainOfThoughtExample = () => (
         status="complete"
       />
 
-      <ChainOfThoughtStep
-        icon={SearchIcon}
-        label="Searching for recent work..."
-        status="active"
-      >
+      <ChainOfThoughtStep icon={SearchIcon} label="Searching for recent work..." status="active">
         <ChainOfThoughtSearchResults>
-          {["https://www.github.com", "https://www.dribbble.com"].map(
-            (website) => (
-              <ChainOfThoughtSearchResult key={website}>
-                {new URL(website).hostname}
-              </ChainOfThoughtSearchResult>
-            )
-          )}
+          {["https://www.github.com", "https://www.dribbble.com"].map((website) => (
+            <ChainOfThoughtSearchResult key={website}>
+              {new URL(website).hostname}
+            </ChainOfThoughtSearchResult>
+          ))}
         </ChainOfThoughtSearchResults>
       </ChainOfThoughtStep>
     </ChainOfThoughtContent>

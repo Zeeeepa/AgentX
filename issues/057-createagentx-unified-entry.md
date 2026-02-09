@@ -69,7 +69,7 @@ interface AgentXConfig {
   apiKey?: string;
 
   /** LLM 提供商 */
-  provider?: MonoProvider;  // "anthropic" | "openai" | "google" | ...
+  provider?: MonoProvider; // "anthropic" | "openai" | "google" | ...
 
   /** Model ID */
   model?: string;
@@ -94,6 +94,7 @@ interface AgentXConfig {
 ```
 
 模式判断：
+
 - `serverUrl` 存在 → **远程模式**（RemoteClient，走 WebSocket）
 - `apiKey` 存在 → **本地模式**（LocalClient，内嵌 Runtime + MonoDriver）
 
@@ -134,6 +135,7 @@ Server 变成：**本地 AgentX + WebSocket 传输层**。
 ### 5. 远程模式 = Driver + Provider 的合体
 
 远程模式下，Server 端同时提供了：
+
 - Driver 能力（LLM 对话）→ 通过 `message.send` RPC
 - Provider 能力（持久化）→ 通过 `container.*`, `image.*`, `agent.*` RPC
 

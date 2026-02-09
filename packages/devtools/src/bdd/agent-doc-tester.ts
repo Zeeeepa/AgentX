@@ -110,9 +110,7 @@ export async function agentDocTester(
     // Send prompt and wait for completion
     await Promise.race([
       agentx.sessions.send(agentId, userPrompt),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout")), timeout)
-      ),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), timeout)),
     ]);
 
     output = output.trim();
@@ -124,7 +122,9 @@ export async function agentDocTester(
     if (agentx) {
       try {
         await agentx.shutdown();
-      } catch {}
+      } catch {
+        // ignore shutdown errors
+      }
     }
   }
 }

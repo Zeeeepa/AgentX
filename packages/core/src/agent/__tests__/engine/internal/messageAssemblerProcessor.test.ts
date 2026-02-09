@@ -109,7 +109,14 @@ describe("messageAssemblerProcessor", () => {
       // Setup: text then tool_use already in pendingContents
       state.pendingContents = [
         { type: "text", textDeltas: ["Before tool"] },
-        { type: "tool_use", toolId: "t1", toolName: "test", toolInputJson: "{}", assembled: true, parsedInput: {} },
+        {
+          type: "tool_use",
+          toolId: "t1",
+          toolName: "test",
+          toolInputJson: "{}",
+          assembled: true,
+          parsedInput: {},
+        },
       ];
 
       const event = createStreamEvent("text_delta", { text: "After tool" });
@@ -656,10 +663,7 @@ describe("messageAssemblerProcessor", () => {
       currentState = s4;
 
       // tool_use_stop
-      const [s5] = messageAssemblerProcessor(
-        currentState,
-        createStreamEvent("tool_use_stop", {})
-      );
+      const [s5] = messageAssemblerProcessor(currentState, createStreamEvent("tool_use_stop", {}));
       currentState = s5;
 
       // Text after tool
@@ -719,10 +723,7 @@ describe("messageAssemblerProcessor", () => {
         createStreamEvent("input_json_delta", { partialJson: '{"a":1}' })
       );
       currentState = s4;
-      const [s5] = messageAssemblerProcessor(
-        currentState,
-        createStreamEvent("tool_use_stop", {})
-      );
+      const [s5] = messageAssemblerProcessor(currentState, createStreamEvent("tool_use_stop", {}));
       currentState = s5;
 
       // Text 2
@@ -743,10 +744,7 @@ describe("messageAssemblerProcessor", () => {
         createStreamEvent("input_json_delta", { partialJson: '{"b":2}' })
       );
       currentState = s8;
-      const [s9] = messageAssemblerProcessor(
-        currentState,
-        createStreamEvent("tool_use_stop", {})
-      );
+      const [s9] = messageAssemblerProcessor(currentState, createStreamEvent("tool_use_stop", {}));
       currentState = s9;
 
       // message_stop

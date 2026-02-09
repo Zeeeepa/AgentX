@@ -21,9 +21,8 @@ export function toVercelMessage(message: Message): ModelMessage | null {
     case "user":
       return {
         role: "user",
-        content: typeof message.content === "string"
-          ? message.content
-          : extractText(message.content),
+        content:
+          typeof message.content === "string" ? message.content : extractText(message.content),
       };
 
     case "assistant": {
@@ -120,9 +119,7 @@ function extractText(content: unknown): string {
 /**
  * Map Vercel AI SDK v6 finish reason to AgentX StopReason
  */
-export function toStopReason(
-  finishReason: string | null | undefined
-): StopReason {
+export function toStopReason(finishReason: string | null | undefined): StopReason {
   switch (finishReason) {
     case "stop":
       return "end_turn";
@@ -169,7 +166,7 @@ export function toVercelTools(tools: ToolDefinition[]): ToolSet {
   for (const t of tools) {
     result[t.name] = tool({
       description: t.description,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       inputSchema: jsonSchema(t.parameters as any),
       execute: async (input) => t.execute(input as Record<string, unknown>),
     });

@@ -5,10 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const SKILL_PATH = resolve(
-  __dirname,
-  "../../../../.claude/skills/agent-browser/SKILL.md"
-);
+const SKILL_PATH = resolve(__dirname, "../../../../.claude/skills/agent-browser/SKILL.md");
 
 function loadSystemPrompt(headed = false): string {
   let skillContent = "";
@@ -49,15 +46,10 @@ export interface UiTesterOptions {
  *
  * BDD scripts must run under Node.js (not Bun) to avoid claude CLI auth bug.
  */
-export function agentUiTester(
-  prompt: string,
-  options: UiTesterOptions = {}
-): UiTestResult {
+export function agentUiTester(prompt: string, options: UiTesterOptions = {}): UiTestResult {
   const { model = "haiku", baseUrl, timeout = 300_000, headed = false } = options;
 
-  const fullPrompt = baseUrl
-    ? `Base URL: ${baseUrl}\n\n${prompt}`
-    : prompt;
+  const fullPrompt = baseUrl ? `Base URL: ${baseUrl}\n\n${prompt}` : prompt;
 
   const systemPrompt = loadSystemPrompt(headed);
 
@@ -67,17 +59,25 @@ export function agentUiTester(
   );
 
   try {
-    const output = execFileSync("claude", [
-      "-p", fullPrompt,
-      "--model", model,
-      "--append-system-prompt", systemPrompt,
-      "--allowedTools", "Bash(agent-browser:*)",
-    ], {
-      encoding: "utf-8",
-      timeout,
-      env: cleanEnv,
-      maxBuffer: 10 * 1024 * 1024,
-    }).trim();
+    const output = execFileSync(
+      "claude",
+      [
+        "-p",
+        fullPrompt,
+        "--model",
+        model,
+        "--append-system-prompt",
+        systemPrompt,
+        "--allowedTools",
+        "Bash(agent-browser:*)",
+      ],
+      {
+        encoding: "utf-8",
+        timeout,
+        env: cleanEnv,
+        maxBuffer: 10 * 1024 * 1024,
+      }
+    ).trim();
 
     const passed = /\*{0,2}PASS\*{0,2}\b/m.test(output);
     return { passed, output };

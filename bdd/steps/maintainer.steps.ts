@@ -12,7 +12,6 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "../..");
 
@@ -53,7 +52,10 @@ function allFeatureFiles(): string[] {
   const monoBdd = resolve(ROOT, "bdd/journeys");
   if (existsSync(monoBdd)) walk(monoBdd);
   // app/package bdd
-  for (const d of [...packageDirs().map((p) => `packages/${p}`), ...appDirs().map((a) => `apps/${a}`)]) {
+  for (const d of [
+    ...packageDirs().map((p) => `packages/${p}`),
+    ...appDirs().map((a) => `apps/${a}`),
+  ]) {
     const journeys = resolve(ROOT, d, "bdd/journeys");
     if (existsSync(journeys)) walk(journeys);
   }
@@ -69,20 +71,44 @@ let currentPackageDeps: Record<string, string> = {};
 // ============================================================================
 
 // --- Doc-only scenarios ---
-Given("a new contributor joins the project", function () { /* doc */ });
-When("they read the development guide", function () { /* doc */ });
-Then("they should never skip BDD and write code directly", function () { /* doc */ });
-Given("a contributor has a new feature to build", function () { /* doc */ });
-Given("the monorepo root {string} directory", function (_dir: string) { /* doc */ });
-Then("they are {string}", function (_desc: string) { /* doc */ });
-Given("a Living Documentation scenario", function () { /* doc */ });
-Given("a contributor wants to understand a feature", function () { /* doc */ });
-Then("they should read the .feature file, not the code", function () { /* doc */ });
-Then("the feature file documents the requirement", function () { /* doc */ });
-Then("the code is just implementation", function () { /* doc */ });
+Given("a new contributor joins the project", function () {
+  /* doc */
+});
+When("they read the development guide", function () {
+  /* doc */
+});
+Then("they should never skip BDD and write code directly", function () {
+  /* doc */
+});
+Given("a contributor has a new feature to build", function () {
+  /* doc */
+});
+Given("the monorepo root {string} directory", function (_dir: string) {
+  /* doc */
+});
+Then("they are {string}", function (_desc: string) {
+  /* doc */
+});
+Given("a Living Documentation scenario", function () {
+  /* doc */
+});
+Given("a contributor wants to understand a feature", function () {
+  /* doc */
+});
+Then("they should read the .feature file, not the code", function () {
+  /* doc */
+});
+Then("the feature file documents the requirement", function () {
+  /* doc */
+});
+Then("the code is just implementation", function () {
+  /* doc */
+});
 
 // --- Automatable: Each project has its own BDD folder ---
-Given("a project in the monorepo", function () { /* setup in Then */ });
+Given("a project in the monorepo", function () {
+  /* setup in Then */
+});
 
 Then("it should have its own {string} folder with:", function (folder: string, table: any) {
   const expectedItems = table.hashes().map((r: any) => r.item);
@@ -104,36 +130,53 @@ Then("it should have its own {string} folder with:", function (folder: string, t
 });
 
 // --- Doc-only: Living Documentation / Executable Specification tables ---
-Then("its feature files serve as Living Documentation:", function (_table: any) { /* doc */ });
-Then("its feature files serve as Executable Specifications:", function (_table: any) { /* doc */ });
-Given("a package or app {string} directory", function (_dir: string) { /* doc */ });
-Then("if it can be programmatically verified, it should be:", function (_table: any) { /* doc */ });
-Then("if it cannot be automated, it passes as documentation:", function (_table: any) { /* doc */ });
+Then("its feature files serve as Living Documentation:", function (_table: any) {
+  /* doc */
+});
+Then("its feature files serve as Executable Specifications:", function (_table: any) {
+  /* doc */
+});
+Given("a package or app {string} directory", function (_dir: string) {
+  /* doc */
+});
+Then("if it can be programmatically verified, it should be:", function (_table: any) {
+  /* doc */
+});
+Then("if it cannot be automated, it passes as documentation:", function (_table: any) {
+  /* doc */
+});
 
 // ============================================================================
 // 02 - Conventions
 // ============================================================================
 
-Given("a journey feature file", function () { /* used by multiple scenarios */ });
-
-// --- Automatable: Naming conventions (global) ---
-Then("the filename should use numbered prefix with hyphenated description:", function (_table: any) {
-  const features = allFeatureFiles();
-  const violations: string[] = [];
-  for (const f of features) {
-    const name = basename(f);
-    if (!/^\d{2}-[a-z0-9-]+\.feature$/.test(name)) {
-      violations.push(name);
-    }
-  }
-  assert.deepStrictEqual(
-    violations,
-    [],
-    `Feature files not following NN-description.feature pattern:\n${violations.join("\n")}`
-  );
+Given("a journey feature file", function () {
+  /* used by multiple scenarios */
 });
 
-Then("the number reflects the logical reading order, not priority", function () { /* doc */ });
+// --- Automatable: Naming conventions (global) ---
+Then(
+  "the filename should use numbered prefix with hyphenated description:",
+  function (_table: any) {
+    const features = allFeatureFiles();
+    const violations: string[] = [];
+    for (const f of features) {
+      const name = basename(f);
+      if (!/^\d{2}-[a-z0-9-]+\.feature$/.test(name)) {
+        violations.push(name);
+      }
+    }
+    assert.deepStrictEqual(
+      violations,
+      [],
+      `Feature files not following NN-description.feature pattern:\n${violations.join("\n")}`
+    );
+  }
+);
+
+Then("the number reflects the logical reading order, not priority", function () {
+  /* doc */
+});
 
 // --- Automatable: Tag checking ---
 Then("it must have {string} tag", function (tag: string) {
@@ -172,22 +215,40 @@ Then("it should have a role tag:", function (table: any) {
   );
 });
 
-Then("it may have {string} for unimplemented features", function (_tag: string) { /* doc */ });
-Then("it may have {string} for browser-tested scenarios", function (_tag: string) { /* doc */ });
+Then("it may have {string} for unimplemented features", function (_tag: string) {
+  /* doc */
+});
+Then("it may have {string} for browser-tested scenarios", function (_tag: string) {
+  /* doc */
+});
 
 // --- Doc-only ---
-Given("a journey scenario", function () { /* doc */ });
-Then("it should describe {string} the user achieves", function (_what: string) { /* doc */ });
-Then("not {string} it is technically implemented", function (_how: string) { /* doc */ });
-Given("any single journey feature file", function () { /* doc */ });
-When("I run it in isolation", function () { /* doc */ });
-Then("it should pass without depending on other journeys", function () { /* doc */ });
+Given("a journey scenario", function () {
+  /* doc */
+});
+Then("it should describe {string} the user achieves", function (_what: string) {
+  /* doc */
+});
+Then("not {string} it is technically implemented", function (_how: string) {
+  /* doc */
+});
+Given("any single journey feature file", function () {
+  /* doc */
+});
+When("I run it in isolation", function () {
+  /* doc */
+});
+Then("it should pass without depending on other journeys", function () {
+  /* doc */
+});
 
 // ============================================================================
 // 03 - Testing Infrastructure
 // ============================================================================
 
-Given("a project needs BDD testing", function () { /* doc */ });
+Given("a project needs BDD testing", function () {
+  /* doc */
+});
 
 // --- Automatable: Check devtools exports ---
 Then("it should import from {string}:", function (modulePath: string, table: any) {
@@ -201,32 +262,57 @@ Then("it should import from {string}:", function (modulePath: string, table: any
     const content = readFileSync(distIndex, "utf-8");
     const utilities = table.hashes().map((r: any) => r.utility);
     for (const util of utilities) {
-      assert.ok(
-        content.includes(util),
-        `Export "${util}" not found in devtools/bdd`
-      );
+      assert.ok(content.includes(util), `Export "${util}" not found in devtools/bdd`);
     }
   }
   // If not built yet, skip gracefully
 });
 
 // --- Doc-only ---
-Given("a contributor writes a @ui scenario", function () { /* doc */ });
-Then("steps should accumulate instructions in an array", function () { /* doc */ });
-Then("the After hook should call agentUiTester with all instructions", function () { /* doc */ });
-Then("agentUiTester uses Claude CLI + agent-browser to test", function () { /* doc */ });
-Then("it returns PASS or FAIL with a reason", function () { /* doc */ });
-Given("a contributor writes documentation", function () { /* doc */ });
-Then("agentDocTester should evaluate the doc from reader's experience:", function (_table: any) { /* doc */ });
-Then("it reads the file content and sends to Claude for review", function () { /* doc */ });
-Then("it returns PASS or FAIL based on whether requirements are met", function () { /* doc */ });
-Given("a journey that calls external APIs", function () { /* doc */ });
-Then("it must use {string} from devtools", function (_util: string) { /* doc */ });
-Then("VCR mode is controlled by VCR_MODE environment variable", function () { /* doc */ });
-Then("fixtures are stored in the project's {string}", function (_path: string) { /* doc */ });
+Given("a contributor writes a @ui scenario", function () {
+  /* doc */
+});
+Then("steps should accumulate instructions in an array", function () {
+  /* doc */
+});
+Then("the After hook should call agentUiTester with all instructions", function () {
+  /* doc */
+});
+Then("agentUiTester uses Claude CLI + agent-browser to test", function () {
+  /* doc */
+});
+Then("it returns PASS or FAIL with a reason", function () {
+  /* doc */
+});
+Given("a contributor writes documentation", function () {
+  /* doc */
+});
+Then("agentDocTester should evaluate the doc from reader's experience:", function (_table: any) {
+  /* doc */
+});
+Then("it reads the file content and sends to Claude for review", function () {
+  /* doc */
+});
+Then("it returns PASS or FAIL based on whether requirements are met", function () {
+  /* doc */
+});
+Given("a journey that calls external APIs", function () {
+  /* doc */
+});
+Then("it must use {string} from devtools", function (_util: string) {
+  /* doc */
+});
+Then("VCR mode is controlled by VCR_MODE environment variable", function () {
+  /* doc */
+});
+Then("fixtures are stored in the project's {string}", function (_path: string) {
+  /* doc */
+});
 
 // --- Automatable: BDD commands ---
-Given("a project with BDD tests", function () { /* setup in Then */ });
+Given("a project with BDD tests", function () {
+  /* setup in Then */
+});
 
 Then("these commands should work:", function (table: any) {
   // Check that scripts referenced by commands exist somewhere in the monorepo
@@ -268,23 +354,47 @@ Then("these commands should work:", function (table: any) {
 // 04 - AI Agent Workflow (all doc-only)
 // ============================================================================
 
-Given("an AI agent is working with a user", function () { /* doc */ });
-Given("a sub-agent is spawned for implementation", function () { /* doc */ });
-Then("it should use run_in_background: true", function () { /* doc */ });
-Given("an AI agent is in BDD-driven mode", function () { /* doc */ });
-Then("this reminds of the current workflow state across turns", function () { /* doc */ });
-Given("an AI agent is asked to work on a feature", function () { /* doc */ });
-Then("it must read the BDD directory before writing any code", function () { /* doc */ });
-Then("if no scenario exists for the request, write the feature first", function () { /* doc */ });
-Then("never write code without a corresponding feature", function () { /* doc */ });
+Given("an AI agent is working with a user", function () {
+  /* doc */
+});
+Given("a sub-agent is spawned for implementation", function () {
+  /* doc */
+});
+Then("it should use run_in_background: true", function () {
+  /* doc */
+});
+Given("an AI agent is in BDD-driven mode", function () {
+  /* doc */
+});
+Then("this reminds of the current workflow state across turns", function () {
+  /* doc */
+});
+Given("an AI agent is asked to work on a feature", function () {
+  /* doc */
+});
+Then("it must read the BDD directory before writing any code", function () {
+  /* doc */
+});
+Then("if no scenario exists for the request, write the feature first", function () {
+  /* doc */
+});
+Then("never write code without a corresponding feature", function () {
+  /* doc */
+});
 
 // ============================================================================
 // 05 - Environment and Commands
 // ============================================================================
 
-Given("a new contributor setting up the project", function () { /* doc */ });
-Given("a contributor needs to run AI features", function () { /* doc */ });
-Then("they should set:", function (_table: any) { /* doc — env vars are guidance */ });
+Given("a new contributor setting up the project", function () {
+  /* doc */
+});
+Given("a contributor needs to run AI features", function () {
+  /* doc */
+});
+Then("they should set:", function (_table: any) {
+  /* doc — env vars are guidance */
+});
 
 // --- Automatable: Bun as package manager ---
 Given("the project uses Bun", function () {
@@ -294,35 +404,50 @@ Given("the project uses Bun", function () {
   );
 });
 
-Then("all scripts should use {string} not {string} or {string}", function (
-  _yes: string,
-  _no1: string,
-  _no2: string
-) {
-  const rootPkg = readJson("package.json");
-  const scripts = rootPkg.scripts || {};
-  for (const [name, cmd] of Object.entries(scripts)) {
-    const cmdStr = cmd as string;
-    assert.ok(
-      !cmdStr.startsWith("npm ") && !cmdStr.startsWith("yarn "),
-      `Script "${name}" uses npm/yarn: ${cmdStr}`
-    );
+Then(
+  "all scripts should use {string} not {string} or {string}",
+  function (_yes: string, _no1: string, _no2: string) {
+    const rootPkg = readJson("package.json");
+    const scripts = rootPkg.scripts || {};
+    for (const [name, cmd] of Object.entries(scripts)) {
+      const cmdStr = cmd as string;
+      assert.ok(
+        !cmdStr.startsWith("npm ") && !cmdStr.startsWith("yarn "),
+        `Script "${name}" uses npm/yarn: ${cmdStr}`
+      );
+    }
   }
-});
+);
 
-Then("the minimum version is Bun {}", function (_version: string) { /* doc — runtime check */ });
-Then("Node.js minimum version is {}", function (_version: string) { /* doc */ });
+Then("the minimum version is Bun {}", function (_version: string) {
+  /* doc — runtime check */
+});
+Then("Node.js minimum version is {}", function (_version: string) {
+  /* doc */
+});
 
 // ============================================================================
 // 06 - Release and Publishing
 // ============================================================================
 
-Given("a maintainer has made changes to one or more packages", function () { /* doc */ });
-When("they run {string}", function (_cmd: string) { /* doc */ });
-Then("a .changeset\\/*.md file should be committed with the PR", function () { /* doc */ });
-Given("a changeset file is merged to main", function () { /* doc */ });
-Given("the Version PR is merged to main", function () { /* doc */ });
-Then("npm provenance is enabled \\(id-token: write)", function () { /* doc */ });
+Given("a maintainer has made changes to one or more packages", function () {
+  /* doc */
+});
+When("they run {string}", function (_cmd: string) {
+  /* doc */
+});
+Then("a .changeset\\/*.md file should be committed with the PR", function () {
+  /* doc */
+});
+Given("a changeset file is merged to main", function () {
+  /* doc */
+});
+Given("the Version PR is merged to main", function () {
+  /* doc */
+});
+Then("npm provenance is enabled \\(id-token: write)", function () {
+  /* doc */
+});
 
 // --- Automatable: Fixed versioning ---
 Given("the changeset config uses {string} mode", function (mode: string) {
@@ -350,7 +475,9 @@ Then("all these packages are versioned together:", function (table: any) {
   }
 });
 
-Then("bumping any one of them bumps all of them", function () { /* guaranteed by fixed mode */ });
+Then("bumping any one of them bumps all of them", function () {
+  /* guaranteed by fixed mode */
+});
 
 // --- Automatable: Public access ---
 Given("the changeset config has {string}: {string}", function (key: string, value: string) {
@@ -368,14 +495,18 @@ Then("all packages should be published as public npm packages", function () {
 });
 
 // --- Doc-only: CI steps ---
-Then("the changesets GitHub Action should:", function (_table: any) { /* doc */ });
+Then("the changesets GitHub Action should:", function (_table: any) {
+  /* doc */
+});
 
 // ============================================================================
 // 07 - Architecture
 // ============================================================================
 
 // --- Automatable: Workspace layout ---
-Given("the monorepo root", function () { /* setup in Then */ });
+Given("the monorepo root", function () {
+  /* setup in Then */
+});
 
 Then("workspaces are configured as:", function (table: any) {
   const rootPkg = readJson("package.json");
@@ -414,17 +545,17 @@ Then("it should have zero dependencies on other @agentxjs packages", function ()
   );
 });
 
-Then("it defines the fundamental types: Container, Image, Session, Driver, AgentXPlatform", function () {
-  // Check that core package source tree contains these type definitions
-  const coreSrc = resolve(ROOT, "packages/core/src");
-  const typeDirs = ["container", "image", "session", "driver", "platform"];
-  for (const dir of typeDirs) {
-    assert.ok(
-      existsSync(resolve(coreSrc, dir)),
-      `Core package missing module: src/${dir}/`
-    );
+Then(
+  "it defines the fundamental types: Container, Image, Session, Driver, AgentXPlatform",
+  function () {
+    // Check that core package source tree contains these type definitions
+    const coreSrc = resolve(ROOT, "packages/core/src");
+    const typeDirs = ["container", "image", "session", "driver", "platform"];
+    for (const dir of typeDirs) {
+      assert.ok(existsSync(resolve(coreSrc, dir)), `Core package missing module: src/${dir}/`);
+    }
   }
-});
+);
 
 // --- Automatable: No platform-specific imports in core ---
 Then("its source files should not import platform-specific modules:", function (table: any) {
@@ -482,10 +613,7 @@ Given("these packages:", function (table: any) {
         found = true;
         const deps = pkg.dependencies || {};
         if (expectedDep) {
-          assert.ok(
-            deps[expectedDep],
-            `${pkgName} should depend on ${expectedDep}`
-          );
+          assert.ok(deps[expectedDep], `${pkgName} should depend on ${expectedDep}`);
         }
         break;
       }
@@ -503,10 +631,7 @@ Then("no package in this layer should depend on the SDK layer", function () {
     const pkg = pkgJson(`packages/${d}`);
     if (layerPkgs.includes(pkg.name)) {
       const deps = pkg.dependencies || {};
-      assert.ok(
-        !deps["agentxjs"],
-        `${pkg.name} depends on SDK layer (agentxjs) — layer violation`
-      );
+      assert.ok(!deps["agentxjs"], `${pkg.name} depends on SDK layer (agentxjs) — layer violation`);
     }
   }
 });
@@ -515,17 +640,18 @@ Then("no package in this layer should depend on the SDK layer", function () {
 Then("it depends on:", function (table: any) {
   const expected = table.hashes().map((r: any) => r.package);
   for (const dep of expected) {
-    assert.ok(
-      currentPackageDeps[dep],
-      `${currentPackageName} should depend on ${dep}`
-    );
+    assert.ok(currentPackageDeps[dep], `${currentPackageName} should depend on ${dep}`);
   }
 });
 
-Then("it provides WebSocket server for remote agent connections", function () { /* doc */ });
+Then("it provides WebSocket server for remote agent connections", function () {
+  /* doc */
+});
 
 // --- Automatable: SDK ---
-Then("it provides a unified client API", function () { /* doc */ });
+Then("it provides a unified client API", function () {
+  /* doc */
+});
 
 // --- Automatable: Applications ---
 Given("these applications:", function (table: any) {
@@ -561,21 +687,23 @@ Given("the turbo pipeline", function () {
   assert.ok(existsSync(resolve(ROOT, "turbo.json")), "turbo.json not found");
 });
 
-Then("{string} task depends on {string} \\(dependencies built first)", function (
-  task: string,
-  dep: string
-) {
-  const turbo = readJson("turbo.json");
-  const taskConfig = turbo.tasks?.[task];
-  assert.ok(taskConfig, `Task "${task}" not found in turbo.json`);
-  const dependsOn = taskConfig.dependsOn || [];
-  assert.ok(
-    dependsOn.includes(dep),
-    `Task "${task}" does not depend on "${dep}". Actual: ${dependsOn.join(", ")}`
-  );
-});
+Then(
+  "{string} task depends on {string} \\(dependencies built first)",
+  function (task: string, dep: string) {
+    const turbo = readJson("turbo.json");
+    const taskConfig = turbo.tasks?.[task];
+    assert.ok(taskConfig, `Task "${task}" not found in turbo.json`);
+    const dependsOn = taskConfig.dependsOn || [];
+    assert.ok(
+      dependsOn.includes(dep),
+      `Task "${task}" does not depend on "${dep}". Actual: ${dependsOn.join(", ")}`
+    );
+  }
+);
 
-Then("the effective build order is:", function (_table: any) { /* doc — order is computed by turbo */ });
+Then("the effective build order is:", function (_table: any) {
+  /* doc — order is computed by turbo */
+});
 
 // --- Automatable: Shared tsconfig ---
 Given("the file {string}", function (file: string) {
@@ -614,31 +742,38 @@ Then("it enforces:", function (table: any) {
 // 08 - New Package
 // ============================================================================
 
-Given("a contributor wants to add a new package", function () { /* doc */ });
-Given("a new package named {string}", function (_name: string) { /* doc */ });
-Given("a new package is added", function () { /* doc */ });
-Given("a new package needs documentation", function () { /* doc */ });
-Given("a contributor wants to add a new application", function () { /* doc */ });
+Given("a contributor wants to add a new package", function () {
+  /* doc */
+});
+Given("a new package named {string}", function (_name: string) {
+  /* doc */
+});
+Given("a new package is added", function () {
+  /* doc */
+});
+Given("a new package needs documentation", function () {
+  /* doc */
+});
+Given("a contributor wants to add a new application", function () {
+  /* doc */
+});
 
 // --- Automatable: Existing packages follow the structure ---
-Then("they should create it under {string} with this structure:", function (
-  dir: string,
-  table: any
-) {
-  const expectedFiles = table.hashes().map((r: any) => r.path);
-  const dirs = dir === "packages/" ? packageDirs() : appDirs();
-  const base = dir === "packages/" ? "packages" : "apps";
+Then(
+  "they should create it under {string} with this structure:",
+  function (dir: string, table: any) {
+    const expectedFiles = table.hashes().map((r: any) => r.path);
+    const dirs = dir === "packages/" ? packageDirs() : appDirs();
+    const base = dir === "packages/" ? "packages" : "apps";
 
-  for (const d of dirs) {
-    for (const file of expectedFiles) {
-      const fullPath = resolve(ROOT, base, d, file);
-      assert.ok(
-        existsSync(fullPath),
-        `${base}/${d}/ missing required file: ${file}`
-      );
+    for (const d of dirs) {
+      for (const file of expectedFiles) {
+        const fullPath = resolve(ROOT, base, d, file);
+        assert.ok(existsSync(fullPath), `${base}/${d}/ missing required file: ${file}`);
+      }
     }
   }
-});
+);
 
 // --- Automatable: package.json conventions ---
 Then("its package.json should include:", function (table: any) {
@@ -666,16 +801,28 @@ Then("internal dependencies use {string} protocol", function (protocol: string) 
   }
 });
 
-Then("Turbo should automatically detect it via the workspace config", function () { /* doc */ });
-Then("{string} from root should include the new package", function (_cmd: string) { /* doc */ });
-Then("the package should appear in changesets fixed group if publishable", function () { /* doc */ });
+Then("Turbo should automatically detect it via the workspace config", function () {
+  /* doc */
+});
+Then("{string} from root should include the new package", function (_cmd: string) {
+  /* doc */
+});
+Then("the package should appear in changesets fixed group if publishable", function () {
+  /* doc */
+});
 
 // --- Doc-only: README template ---
-Then("the README should include:", function (_table: any) { /* doc */ });
+Then("the README should include:", function (_table: any) {
+  /* doc */
+});
 
 // --- Doc-only: App conventions ---
-Then("they should create it under {string} with:", function (_dir: string, _table: any) { /* doc */ });
-Then("the app should import from SDK layer, not core directly", function () { /* doc */ });
+Then("they should create it under {string} with:", function (_dir: string, _table: any) {
+  /* doc */
+});
+Then("the app should import from SDK layer, not core directly", function () {
+  /* doc */
+});
 
 // ============================================================================
 // Generic table handlers for doc-only scenarios
@@ -684,9 +831,21 @@ Then("the app should import from SDK layer, not core directly", function () { /*
 // "Then they should understand:" / "Then they should follow this workflow:"
 // / "Then the main agent should:" / "Then it should:" / "Then they should:"
 // / "Then it should end each response with:"
-Then("they should understand:", function (_table: any) { /* doc */ });
-Then("they should follow this workflow:", function (_table: any) { /* doc */ });
-Then("the main agent should:", function (_table: any) { /* doc */ });
-Then("it should:", function (_table: any) { /* doc */ });
-Then("they should:", function (_table: any) { /* doc */ });
-Then("it should end each response with:", function (_table: any) { /* doc */ });
+Then("they should understand:", function (_table: any) {
+  /* doc */
+});
+Then("they should follow this workflow:", function (_table: any) {
+  /* doc */
+});
+Then("the main agent should:", function (_table: any) {
+  /* doc */
+});
+Then("it should:", function (_table: any) {
+  /* doc */
+});
+Then("they should:", function (_table: any) {
+  /* doc */
+});
+Then("it should end each response with:", function (_table: any) {
+  /* doc */
+});

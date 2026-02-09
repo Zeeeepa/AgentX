@@ -77,11 +77,7 @@ async function setAllVersions(version: string): Promise<void> {
   }
 }
 
-async function publishPackage(
-  pkg: string,
-  version: string,
-  otp: string
-): Promise<boolean> {
+async function publishPackage(pkg: string, version: string, otp: string): Promise<boolean> {
   const pkgPath = getPackagePath(pkg);
   const pkgJson = readPackageJson(pkg);
 
@@ -114,9 +110,7 @@ async function publishPackage(
       console.log(`❌ OTP expired or invalid for ${pkgJson.name}`);
       return false;
     } else if (result.includes("already exists")) {
-      console.log(
-        `⚠️ ${pkgJson.name}@${version} already exists, skipping...`
-      );
+      console.log(`⚠️ ${pkgJson.name}@${version} already exists, skipping...`);
       return true;
     } else {
       console.log(`❌ Failed to publish ${pkgJson.name}`);
@@ -179,9 +173,7 @@ async function main() {
     } else {
       failCount++;
       if (i < PACKAGES.length - 1) {
-        console.log(
-          `\n⚠️ Stopping due to failure. Provide more OTPs to continue.`
-        );
+        console.log(`\n⚠️ Stopping due to failure. Provide more OTPs to continue.`);
         break;
       }
     }

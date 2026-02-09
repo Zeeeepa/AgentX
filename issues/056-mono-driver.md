@@ -47,12 +47,13 @@
 
 **核心思路**：Driver 持有 Session，需要历史时直接从 Session 读取。
 
-| Driver | Session 使用方式 |
-|--------|-----------------|
-| **MonoDriver** | 每次 `receive()` 从 Session 读取完整历史 |
-| **ClaudeDriver** | 忽略 Session，SDK 内部管理历史 |
+| Driver           | Session 使用方式                         |
+| ---------------- | ---------------------------------------- |
+| **MonoDriver**   | 每次 `receive()` 从 Session 读取完整历史 |
+| **ClaudeDriver** | 忽略 Session，SDK 内部管理历史           |
 
 **好处**：
+
 - Driver 只读不写，Session 负责存储
 - 消息存储仍由 Runtime 负责
 - 符合单一职责原则
@@ -97,7 +98,7 @@ const session = await this.getOrCreateSession(imageRecord.sessionId);
 
 const driverConfig: DriverConfig = {
   // ... 现有配置 ...
-  session,  // 注入 Session
+  session, // 注入 Session
 };
 
 const driver = this.provider.createDriver(driverConfig);
@@ -112,7 +113,7 @@ export interface MonoDriverOptions {
    * LLM Provider
    * @default 'anthropic'
    */
-  provider?: 'anthropic' | 'openai' | 'google' | 'mistral';
+  provider?: "anthropic" | "openai" | "google" | "mistral";
 
   /**
    * Model override (provider-specific)
@@ -152,6 +153,7 @@ packages/
 ```
 
 **独立包的好处**：
+
 - BDD 测试可以针对 MonoDriver 单独运行
 - `ai`, `@ai-sdk/*` 依赖不污染 core
 - 用户可选择性安装
@@ -161,16 +163,16 @@ packages/
 
 Vercel AI SDK 事件需要映射到 `DriverStreamEvent`：
 
-| Vercel AI SDK | DriverStreamEvent | 说明 |
-|---------------|-------------------|------|
-| stream start | `message_start` | messageId, model |
-| textStream | `text_delta` | 增量文本 |
-| toolCall start | `tool_use_start` | toolCallId, toolName |
-| toolCall args | `input_json_delta` | 增量 JSON |
-| toolCall end | `tool_use_stop` | 完整 input |
-| toolResult | `tool_result` | 执行结果 |
-| stream end | `message_stop` | stopReason |
-| error | `error` | 错误信息 |
+| Vercel AI SDK  | DriverStreamEvent  | 说明                 |
+| -------------- | ------------------ | -------------------- |
+| stream start   | `message_start`    | messageId, model     |
+| textStream     | `text_delta`       | 增量文本             |
+| toolCall start | `tool_use_start`   | toolCallId, toolName |
+| toolCall args  | `input_json_delta` | 增量 JSON            |
+| toolCall end   | `tool_use_stop`    | 完整 input           |
+| toolResult     | `tool_result`      | 执行结果             |
+| stream end     | `message_stop`     | stopReason           |
+| error          | `error`            | 错误信息             |
 
 ## 依赖
 
@@ -234,38 +236,38 @@ Vercel AI SDK 事件需要映射到 `DriverStreamEvent`：
 
 ## 环境兼容性
 
-| 环境 | MonoDriver | ClaudeDriver |
-|------|------------|--------------|
-| Node.js | ✅ | ✅ |
-| Bun | ✅ | ✅ |
-| Cloudflare Workers | ✅ | ❌ |
-| Cloudflare Containers | ✅ | ❌ (CPU 限制) |
-| Vercel Edge | ✅ | ❌ |
-| AWS Lambda | ✅ | ⚠️ 需要大内存 |
+| 环境                  | MonoDriver | ClaudeDriver  |
+| --------------------- | ---------- | ------------- |
+| Node.js               | ✅         | ✅            |
+| Bun                   | ✅         | ✅            |
+| Cloudflare Workers    | ✅         | ❌            |
+| Cloudflare Containers | ✅         | ❌ (CPU 限制) |
+| Vercel Edge           | ✅         | ❌            |
+| AWS Lambda            | ✅         | ⚠️ 需要大内存 |
 
 ## 配置示例
 
 ```typescript
 // 使用 MonoDriver (默认)
 const agentx = createAgentX({
-  driver: 'mono',
+  driver: "mono",
   driverConfig: {
-    provider: 'anthropic',
-    model: 'claude-sonnet-4-20250514',
+    provider: "anthropic",
+    model: "claude-sonnet-4-20250514",
   },
 });
 
 // 使用 Claude Code Driver (本地开发/完整能力)
 const agentx = createAgentX({
-  driver: 'claude-code',
+  driver: "claude-code",
   driverConfig: {
-    claudeCodePath: '/path/to/cli.js',
+    claudeCodePath: "/path/to/cli.js",
   },
 });
 
 // 动态选择
 const agentx = createAgentX({
-  driver: process.env.AGENTX_DRIVER || 'mono',
+  driver: process.env.AGENTX_DRIVER || "mono",
 });
 ```
 

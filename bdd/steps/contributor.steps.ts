@@ -76,7 +76,9 @@ function collectScripts(): Set<string> {
 // ============================================================================
 
 Given("I am a new contributor who just cloned the repo", function () {
-  docRequirements.push("Written for someone who just cloned the repo and knows nothing about the project");
+  docRequirements.push(
+    "Written for someone who just cloned the repo and knows nothing about the project"
+  );
 });
 
 When("I read CONTRIBUTING.md", function () {
@@ -85,7 +87,9 @@ When("I read CONTRIBUTING.md", function () {
 });
 
 Then("I should not need to read any other file to get started", function () {
-  docRequirements.push("Self-contained: a contributor can set up and start working without reading other files");
+  docRequirements.push(
+    "Self-contained: a contributor can set up and start working without reading other files"
+  );
 });
 
 // ============================================================================
@@ -148,10 +152,7 @@ Then("it should describe these directories that actually exist:", function (tabl
   for (const row of table.hashes()) {
     const dir = row.directory.replace(/\/$/, "");
     // Check CONTRIBUTING.md mentions it
-    assert.ok(
-      content.includes(dir),
-      `CONTRIBUTING.md does not mention directory "${dir}"`
-    );
+    assert.ok(content.includes(dir), `CONTRIBUTING.md does not mention directory "${dir}"`);
     // Check it actually exists
     if (row.exists === "yes") {
       assert.ok(

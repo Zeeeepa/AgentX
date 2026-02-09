@@ -39,13 +39,21 @@ interface AgentXClient {
     create(containerId: string): Promise<{ containerId: string }>;
   };
   images: {
-    create(params: { containerId: string; name?: string; systemPrompt?: string; customData?: Record<string, unknown> }): Promise<{
+    create(params: {
+      containerId: string;
+      name?: string;
+      systemPrompt?: string;
+      customData?: Record<string, unknown>;
+    }): Promise<{
       record: { imageId: string; sessionId: string };
     }>;
     list(containerId?: string): Promise<{
       records: ImageRecord[];
     }>;
-    update(imageId: string, updates: { name?: string; customData?: Record<string, unknown> }): Promise<{
+    update(
+      imageId: string,
+      updates: { name?: string; customData?: Record<string, unknown> }
+    ): Promise<{
       record: ImageRecord;
     }>;
     delete(imageId: string): Promise<{ requestId: string }>;
@@ -381,9 +389,7 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
         if (!activeSession.renamed) {
           const title = text.length > 30 ? text.slice(0, 30) + "..." : text;
           setSessions((prev) =>
-            prev.map((s) =>
-              s.imageId === activeSession.imageId ? { ...s, title } : s
-            )
+            prev.map((s) => (s.imageId === activeSession.imageId ? { ...s, title } : s))
           );
           // Sync to AgentX
           client?.images.update(activeSession.imageId, { name: title }).catch(() => {});
@@ -472,9 +478,7 @@ export function useAgentX({ userId }: UseAgentXOptions): UseAgentXReturn {
         });
 
         setSessions((prev) =>
-          prev.map((s) =>
-            s.imageId === imageId ? { ...s, title: newTitle, renamed: true } : s
-          )
+          prev.map((s) => (s.imageId === imageId ? { ...s, title: newTitle, renamed: true } : s))
         );
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));

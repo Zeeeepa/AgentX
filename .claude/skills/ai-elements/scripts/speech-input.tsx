@@ -13,16 +13,13 @@ const handleAudioRecorded = async (audioBlob: Blob): Promise<string> => {
   formData.append("file", audioBlob, "audio.webm");
   formData.append("model", "whisper-1");
 
-  const response = await fetch(
-    "https://api.openai.com/v1/audio/transcriptions",
-    {
-      body: formData,
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
-      },
-      method: "POST",
-    }
-  );
+  const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    body: formData,
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+    },
+    method: "POST",
+  });
 
   if (!response.ok) {
     throw new Error("Transcription failed");
@@ -73,9 +70,7 @@ const Example = () => {
           <p className="mt-2">{transcript}</p>
         </div>
       ) : (
-        <p className="text-muted-foreground text-sm">
-          Click the microphone to start speaking
-        </p>
+        <p className="text-muted-foreground text-sm">Click the microphone to start speaking</p>
       )}
     </div>
   );

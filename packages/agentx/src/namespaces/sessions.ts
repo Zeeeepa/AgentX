@@ -5,12 +5,7 @@
 import type { AgentXRuntime } from "@agentxjs/core/runtime";
 import type { UserContentPart, Message } from "@agentxjs/core/agent";
 import type { RpcClient } from "@agentxjs/core/network";
-import type {
-  SessionNamespace,
-  MessageSendResponse,
-  BaseResponse,
-  AgentInfo,
-} from "../types";
+import type { SessionNamespace, MessageSendResponse, BaseResponse, AgentInfo } from "../types";
 
 /**
  * Create local session namespace backed by embedded runtime

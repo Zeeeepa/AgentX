@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 "use client";
 
 import type { ComponentProps } from "react";
@@ -101,27 +102,11 @@ interface VoiceItemProps {
 }
 
 const VoiceItem = memo(
-  ({
-    voice,
-    playingVoice,
-    loadingVoice,
-    onSelect,
-    onPreview,
-  }: VoiceItemProps) => {
-    const handleSelect = useCallback(
-      () => onSelect(voice.id),
-      [onSelect, voice.id]
-    );
-    const handlePreview = useCallback(
-      () => onPreview(voice.id),
-      [onPreview, voice.id]
-    );
+  ({ voice, playingVoice, loadingVoice, onSelect, onPreview }: VoiceItemProps) => {
+    const handleSelect = useCallback(() => onSelect(voice.id), [onSelect, voice.id]);
+    const handlePreview = useCallback(() => onPreview(voice.id), [onPreview, voice.id]);
     return (
-      <VoiceSelectorItem
-        key={voice.id}
-        onSelect={handleSelect}
-        value={voice.id}
-      >
+      <VoiceSelectorItem key={voice.id} onSelect={handleSelect} value={voice.id}>
         <VoiceSelectorPreview
           loading={loadingVoice === voice.id}
           onPlay={handlePreview}
@@ -216,9 +201,7 @@ const Example = () => {
                 <VoiceSelectorGender value={selectedVoiceData.gender} />
               </>
             ) : (
-              <span className="flex-1 text-left text-sm">
-                Select a voice...
-              </span>
+              <span className="flex-1 text-left text-sm">Select a voice...</span>
             )}
           </Button>
         </VoiceSelectorTrigger>

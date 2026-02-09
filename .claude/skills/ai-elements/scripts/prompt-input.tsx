@@ -92,10 +92,7 @@ interface AttachmentItemProps {
 }
 
 const AttachmentItem = memo(({ attachment, onRemove }: AttachmentItemProps) => {
-  const handleRemove = useCallback(
-    () => onRemove(attachment.id),
-    [onRemove, attachment.id]
-  );
+  const handleRemove = useCallback(() => onRemove(attachment.id), [onRemove, attachment.id]);
   return (
     <Attachment data={attachment} key={attachment.id} onRemove={handleRemove}>
       <AttachmentPreview />
@@ -137,10 +134,7 @@ ModelItem.displayName = "ModelItem";
 const PromptInputAttachmentsDisplay = () => {
   const attachments = usePromptInputAttachments();
 
-  const handleRemove = useCallback(
-    (id: string) => attachments.remove(id),
-    [attachments]
-  );
+  const handleRemove = useCallback((id: string) => attachments.remove(id), [attachments]);
 
   if (attachments.files.length === 0) {
     return null;
@@ -149,11 +143,7 @@ const PromptInputAttachmentsDisplay = () => {
   return (
     <Attachments variant="inline">
       {attachments.files.map((attachment) => (
-        <AttachmentItem
-          attachment={attachment}
-          key={attachment.id}
-          onRemove={handleRemove}
-        />
+        <AttachmentItem attachment={attachment} key={attachment.id} onRemove={handleRemove} />
       ))}
     </Attachments>
   );
@@ -162,9 +152,7 @@ const PromptInputAttachmentsDisplay = () => {
 const Example = () => {
   const [model, setModel] = useState<string>(models[0].id);
   const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
-  const [status, setStatus] = useState<
-    "submitted" | "streaming" | "ready" | "error"
-  >("ready");
+  const [status, setStatus] = useState<"submitted" | "streaming" | "ready" | "error">("ready");
 
   const selectedModelData = models.find((m) => m.id === model);
 
@@ -183,7 +171,6 @@ const Example = () => {
 
     setStatus("submitted");
 
-    // eslint-disable-next-line no-console
     console.log("Submitting message:", message);
 
     setTimeout(() => {
@@ -215,21 +202,14 @@ const Example = () => {
                 <GlobeIcon size={16} />
                 <span>Search</span>
               </PromptInputButton>
-              <ModelSelector
-                onOpenChange={setModelSelectorOpen}
-                open={modelSelectorOpen}
-              >
+              <ModelSelector onOpenChange={setModelSelectorOpen} open={modelSelectorOpen}>
                 <ModelSelectorTrigger asChild>
                   <PromptInputButton>
                     {selectedModelData?.chefSlug && (
-                      <ModelSelectorLogo
-                        provider={selectedModelData.chefSlug}
-                      />
+                      <ModelSelectorLogo provider={selectedModelData.chefSlug} />
                     )}
                     {selectedModelData?.name && (
-                      <ModelSelectorName>
-                        {selectedModelData.name}
-                      </ModelSelectorName>
+                      <ModelSelectorName>{selectedModelData.name}</ModelSelectorName>
                     )}
                   </PromptInputButton>
                 </ModelSelectorTrigger>

@@ -46,10 +46,7 @@ interface AttachmentItemProps {
 }
 
 const AttachmentItem = memo(({ attachment, onRemove }: AttachmentItemProps) => {
-  const handleRemove = useCallback(
-    () => onRemove(attachment.id),
-    [onRemove, attachment.id]
-  );
+  const handleRemove = useCallback(() => onRemove(attachment.id), [onRemove, attachment.id]);
   return (
     <Attachment data={attachment} onRemove={handleRemove}>
       <AttachmentPreview />
@@ -71,11 +68,7 @@ const Example = () => {
     <div className="flex items-center justify-center p-8">
       <Attachments variant="grid">
         {attachments.map((attachment) => (
-          <AttachmentItem
-            attachment={attachment}
-            key={attachment.id}
-            onRemove={handleRemove}
-          />
+          <AttachmentItem attachment={attachment} key={attachment.id} onRemove={handleRemove} />
         ))}
       </Attachments>
     </div>

@@ -87,10 +87,7 @@ interface ErrorData {
  * - Message events: tool_result_message
  * - Error events: error
  */
-export function presentationReducer(
-  state: PresentationState,
-  event: BusEvent
-): PresentationState {
+export function presentationReducer(state: PresentationState, event: BusEvent): PresentationState {
   switch (event.type) {
     // Stream layer — real-time display
     case "message_start":
@@ -127,17 +124,11 @@ export function presentationReducer(
 // Handlers
 // ============================================================================
 
-function handleMessageStart(
-  state: PresentationState,
-  _data: MessageStartData
-): PresentationState {
+function handleMessageStart(state: PresentationState, _data: MessageStartData): PresentationState {
   // If streaming already exists (e.g. tool_use turn not yet flushed), flush it first
   let conversations = state.conversations;
   if (state.streaming && state.streaming.blocks.length > 0) {
-    conversations = [
-      ...conversations,
-      { ...state.streaming, isStreaming: false },
-    ];
+    conversations = [...conversations, { ...state.streaming, isStreaming: false }];
   }
 
   const streaming: AssistantConversation = {
@@ -154,10 +145,7 @@ function handleMessageStart(
   };
 }
 
-function handleTextDelta(
-  state: PresentationState,
-  data: TextDeltaData
-): PresentationState {
+function handleTextDelta(state: PresentationState, data: TextDeltaData): PresentationState {
   if (!state.streaming) {
     return state;
   }
@@ -187,10 +175,7 @@ function handleTextDelta(
   };
 }
 
-function handleToolUseStart(
-  state: PresentationState,
-  data: ToolUseStartData
-): PresentationState {
+function handleToolUseStart(state: PresentationState, data: ToolUseStartData): PresentationState {
   if (!state.streaming) {
     return state;
   }
@@ -219,10 +204,7 @@ function handleToolUseStart(
  * Fills in the complete toolInput for the matching pending tool block.
  * The stream event carries the fully assembled input.
  */
-function handleToolUseStop(
-  state: PresentationState,
-  data: ToolUseStopData
-): PresentationState {
+function handleToolUseStop(state: PresentationState, data: ToolUseStopData): PresentationState {
   if (!state.streaming) {
     return state;
   }
@@ -247,10 +229,7 @@ function handleToolUseStop(
   };
 }
 
-function handleMessageDelta(
-  state: PresentationState,
-  data: MessageDeltaData
-): PresentationState {
+function handleMessageDelta(state: PresentationState, data: MessageDeltaData): PresentationState {
   if (!state.streaming || !data.usage) {
     return state;
   }
@@ -270,10 +249,7 @@ function handleMessageDelta(
   };
 }
 
-function handleMessageStop(
-  state: PresentationState,
-  data: MessageStopData
-): PresentationState {
+function handleMessageStop(state: PresentationState, data: MessageStopData): PresentationState {
   if (!state.streaming) {
     return state;
   }
@@ -342,10 +318,7 @@ function handleToolResultMessage(
   };
 }
 
-function handleError(
-  state: PresentationState,
-  data: ErrorData
-): PresentationState {
+function handleError(state: PresentationState, data: ErrorData): PresentationState {
   return {
     ...state,
     conversations: [
@@ -364,10 +337,7 @@ function handleError(
 // Helper: Add user conversation
 // ============================================================================
 
-export function addUserConversation(
-  state: PresentationState,
-  content: string
-): PresentationState {
+export function addUserConversation(state: PresentationState, content: string): PresentationState {
   return {
     ...state,
     conversations: [

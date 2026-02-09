@@ -140,7 +140,11 @@ export class ImageImpl implements Image {
   /**
    * Update image metadata
    */
-  async update(updates: { name?: string; description?: string; customData?: Record<string, unknown> }): Promise<Image> {
+  async update(updates: {
+    name?: string;
+    description?: string;
+    customData?: Record<string, unknown>;
+  }): Promise<Image> {
     const now = Date.now();
     const updatedRecord: ImageRecord = {
       ...this.record,

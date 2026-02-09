@@ -93,19 +93,13 @@ const Example = () => {
           <CodeBlockFilename>{filename}</CodeBlockFilename>
         </CodeBlockTitle>
         <CodeBlockActions>
-          <CodeBlockLanguageSelector
-            onValueChange={handleLanguageChange}
-            value={language}
-          >
+          <CodeBlockLanguageSelector onValueChange={handleLanguageChange} value={language}>
             <CodeBlockLanguageSelectorTrigger>
               <CodeBlockLanguageSelectorValue />
             </CodeBlockLanguageSelectorTrigger>
             <CodeBlockLanguageSelectorContent>
               {languages.map((lang) => (
-                <CodeBlockLanguageSelectorItem
-                  key={lang.value}
-                  value={lang.value}
-                >
+                <CodeBlockLanguageSelectorItem key={lang.value} value={lang.value}>
                   {lang.label}
                 </CodeBlockLanguageSelectorItem>
               ))}

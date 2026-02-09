@@ -12,17 +12,17 @@ Before writing ANY code, read `bdd/journeys/`. Details: `bdd/journeys/maintainer
 
 ## Quick Reference
 
-| What | Where |
-|------|-------|
-| BDD workflow | `bdd/journeys/maintainer/01-bdd-workflow.feature` |
-| Naming & tagging | `bdd/journeys/maintainer/02-conventions.feature` |
-| Testing tools | `bdd/journeys/maintainer/03-testing.feature` |
-| AI agent workflow | `bdd/journeys/maintainer/04-ai-workflow.feature` |
-| Environment & commands | `bdd/journeys/maintainer/05-environment.feature` |
-| Release & publishing | `bdd/journeys/maintainer/06-release.feature` |
-| Monorepo architecture | `bdd/journeys/maintainer/07-architecture.feature` |
-| Adding new packages | `bdd/journeys/maintainer/08-new-package.feature` |
-| Package READMEs | `bdd/journeys/contributor/01-package-readmes.feature` |
+| What                   | Where                                                 |
+| ---------------------- | ----------------------------------------------------- |
+| BDD workflow           | `bdd/journeys/maintainer/01-bdd-workflow.feature`     |
+| Naming & tagging       | `bdd/journeys/maintainer/02-conventions.feature`      |
+| Testing tools          | `bdd/journeys/maintainer/03-testing.feature`          |
+| AI agent workflow      | `bdd/journeys/maintainer/04-ai-workflow.feature`      |
+| Environment & commands | `bdd/journeys/maintainer/05-environment.feature`      |
+| Release & publishing   | `bdd/journeys/maintainer/06-release.feature`          |
+| Monorepo architecture  | `bdd/journeys/maintainer/07-architecture.feature`     |
+| Adding new packages    | `bdd/journeys/maintainer/08-new-package.feature`      |
+| Package READMEs        | `bdd/journeys/contributor/01-package-readmes.feature` |
 
 ## Commands
 

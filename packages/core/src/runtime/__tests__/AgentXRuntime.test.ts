@@ -88,8 +88,7 @@ function createMockSessionRepository() {
     clearMessages: async () => {},
 
     // Helper for test assertions
-    _getMessages: (sessionId: string) =>
-      sessions.get(sessionId)?.messages ?? [],
+    _getMessages: (sessionId: string) => sessions.get(sessionId)?.messages ?? [],
   };
 }
 
@@ -213,7 +212,9 @@ describe("AgentXRuntime - AgentEngine Pipeline", () => {
       const assistantEvent = events.find((e) => e.type === "assistant_message");
       const content = (assistantEvent?.data as { content: unknown[] })?.content;
       expect(content).toBeDefined();
-      const toolCallPart = content?.find((p: unknown) => (p as { type: string }).type === "tool-call");
+      const toolCallPart = content?.find(
+        (p: unknown) => (p as { type: string }).type === "tool-call"
+      );
       expect(toolCallPart).toBeDefined();
     });
   });
@@ -310,7 +311,10 @@ describe("AgentXRuntime - AgentEngine Pipeline", () => {
       // Verify at least one assistant message has a tool-call part
       const hasToolCall = assistantMessages.some((m) => {
         const content = (m as { content: unknown }).content;
-        return Array.isArray(content) && content.some((p: unknown) => (p as { type: string }).type === "tool-call");
+        return (
+          Array.isArray(content) &&
+          content.some((p: unknown) => (p as { type: string }).type === "tool-call")
+        );
       });
       expect(hasToolCall).toBe(true);
       expect(toolResultMessages.length).toBe(1);

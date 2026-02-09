@@ -62,8 +62,7 @@ Given(
       createRealDriver: createMonoDriver as any,
       onPlayback: (name) => console.log(`[Journey VCR] Playback: ${name}`),
       onRecording: (name) => console.log(`[Journey VCR] Recording: ${name}`),
-      onSaved: (name, count) =>
-        console.log(`[Journey VCR] Saved: ${name} (${count} events)`),
+      onSaved: (name, count) => console.log(`[Journey VCR] Saved: ${name} (${count} events)`),
     });
 
     this.localAgentX = await createAgentX({
@@ -78,22 +77,14 @@ Given(
 // Phase 2: Create agent
 // ============================================================================
 
-When(
-  "I create a container {string}",
-  async function (this: AgentXWorld, containerId: string) {
-    const result = await this.localAgentX!.containers.create(containerId);
-    getState(this).containerId = result.containerId;
-  }
-);
+When("I create a container {string}", async function (this: AgentXWorld, containerId: string) {
+  const result = await this.localAgentX!.containers.create(containerId);
+  getState(this).containerId = result.containerId;
+});
 
 When(
   "I create an image {string} in {string} with prompt {string}",
-  async function (
-    this: AgentXWorld,
-    name: string,
-    containerId: string,
-    systemPrompt: string
-  ) {
+  async function (this: AgentXWorld, name: string, containerId: string, systemPrompt: string) {
     const result = await this.localAgentX!.images.create({
       containerId,
       name,
@@ -156,17 +147,13 @@ When(
   }
 );
 
-When(
-  "I run the image as an agent",
-  { timeout: 30000 },
-  async function (this: AgentXWorld) {
-    const state = getState(this);
-    const result = await this.localAgentX!.agents.create({
-      imageId: state.imageId!,
-    });
-    state.agentId = result.agentId;
-  }
-);
+When("I run the image as an agent", { timeout: 30000 }, async function (this: AgentXWorld) {
+  const state = getState(this);
+  const result = await this.localAgentX!.agents.create({
+    imageId: state.imageId!,
+  });
+  state.agentId = result.agentId;
+});
 
 // ============================================================================
 // Phase 3: Chat
@@ -193,39 +180,27 @@ When(
   }
 );
 
-Then(
-  "I should receive a non-empty reply",
-  function (this: AgentXWorld) {
-    const state = getState(this);
-    assert.ok(
-      state.lastReplyText && state.lastReplyText.length > 0,
-      "Should receive a non-empty reply from the agent"
-    );
-  }
-);
+Then("I should receive a non-empty reply", function (this: AgentXWorld) {
+  const state = getState(this);
+  assert.ok(
+    state.lastReplyText && state.lastReplyText.length > 0,
+    "Should receive a non-empty reply from the agent"
+  );
+});
 
-Then(
-  "the reply should contain {string}",
-  function (this: AgentXWorld, expected: string) {
-    const state = getState(this);
-    assert.ok(
-      state.lastReplyText && state.lastReplyText.includes(expected),
-      `Reply should contain "${expected}", got: "${state.lastReplyText}"`
-    );
-  }
-);
+Then("the reply should contain {string}", function (this: AgentXWorld, expected: string) {
+  const state = getState(this);
+  assert.ok(
+    state.lastReplyText && state.lastReplyText.includes(expected),
+    `Reply should contain "${expected}", got: "${state.lastReplyText}"`
+  );
+});
 
-Then(
-  "the reply should contain a Chinese character",
-  function (this: AgentXWorld) {
-    const state = getState(this);
-    const hasChinese = /[\u4e00-\u9fff]/.test(state.lastReplyText || "");
-    assert.ok(
-      hasChinese,
-      `Reply should contain Chinese characters, got: "${state.lastReplyText}"`
-    );
-  }
-);
+Then("the reply should contain a Chinese character", function (this: AgentXWorld) {
+  const state = getState(this);
+  const hasChinese = /[\u4e00-\u9fff]/.test(state.lastReplyText || "");
+  assert.ok(hasChinese, `Reply should contain Chinese characters, got: "${state.lastReplyText}"`);
+});
 
 // ============================================================================
 // Phase: Presentation
@@ -291,14 +266,11 @@ Then(
 // Phase: Session Messages
 // ============================================================================
 
-When(
-  "I check the session messages",
-  async function (this: AgentXWorld) {
-    const state = getState(this);
-    const messages = await this.localAgentX!.sessions.getMessages(state.agentId!);
-    (state as any).sessionMessages = messages;
-  }
-);
+When("I check the session messages", async function (this: AgentXWorld) {
+  const state = getState(this);
+  const messages = await this.localAgentX!.sessions.getMessages(state.agentId!);
+  (state as any).sessionMessages = messages;
+});
 
 Then(
   /^the session should contain an? "([^"]*)" message$/,
@@ -339,62 +311,62 @@ When(
           setTimeout(checkDone, 200);
         }
       };
-      state.presentation!.send(text).then(() => {
-        // After send resolves, poll until status returns to idle
-        setTimeout(checkDone, 500);
-      }).catch((err) => {
-        clearTimeout(timeout);
-        reject(err);
-      });
+      state
+        .presentation!.send(text)
+        .then(() => {
+          // After send resolves, poll until status returns to idle
+          setTimeout(checkDone, 500);
+        })
+        .catch((err) => {
+          clearTimeout(timeout);
+          reject(err);
+        });
     });
   }
 );
 
-Then(
-  "the presentation should have a completed tool block",
-  function (this: AgentXWorld) {
-    const state = getState(this);
-    const ps = state.presentation!.getState();
+Then("the presentation should have a completed tool block", function (this: AgentXWorld) {
+  const state = getState(this);
+  const ps = state.presentation!.getState();
 
-    let found = false;
-    for (const conv of ps.conversations) {
-      if (conv.role === "assistant" && "blocks" in conv) {
-        for (const block of conv.blocks) {
-          if (block.type === "tool" && block.status === "completed") {
-            found = true;
-            break;
-          }
-        }
-      }
-      if (found) break;
-    }
-
-    assert.ok(found, `Expected a completed tool block in conversations, got: ${JSON.stringify(ps.conversations.map(c => c.role))}`);
-  }
-);
-
-Then(
-  "the tool block toolInput should not be empty",
-  function (this: AgentXWorld) {
-    const state = getState(this);
-    const ps = state.presentation!.getState();
-
-    for (const conv of ps.conversations) {
-      if (conv.role === "assistant" && "blocks" in conv) {
-        for (const block of conv.blocks) {
-          if (block.type === "tool" && block.status === "completed") {
-            assert.ok(
-              Object.keys(block.toolInput).length > 0,
-              `Tool block toolInput should not be empty, got: ${JSON.stringify(block.toolInput)}`
-            );
-            return;
-          }
+  let found = false;
+  for (const conv of ps.conversations) {
+    if (conv.role === "assistant" && "blocks" in conv) {
+      for (const block of conv.blocks) {
+        if (block.type === "tool" && block.status === "completed") {
+          found = true;
+          break;
         }
       }
     }
-    assert.fail("No completed tool block found");
+    if (found) break;
   }
-);
+
+  assert.ok(
+    found,
+    `Expected a completed tool block in conversations, got: ${JSON.stringify(ps.conversations.map((c) => c.role))}`
+  );
+});
+
+Then("the tool block toolInput should not be empty", function (this: AgentXWorld) {
+  const state = getState(this);
+  const ps = state.presentation!.getState();
+
+  for (const conv of ps.conversations) {
+    if (conv.role === "assistant" && "blocks" in conv) {
+      for (const block of conv.blocks) {
+        if (block.type === "tool" && block.status === "completed") {
+          assert.ok(
+            Object.keys(block.toolInput).length > 0,
+            `Tool block toolInput should not be empty, got: ${JSON.stringify(block.toolInput)}`
+          );
+          return;
+        }
+      }
+    }
+  }
+  assert.fail("No completed tool block found");
+});
 
 Then(
   "the tool block toolResult should contain {string}",
@@ -443,30 +415,27 @@ Then(
   }
 );
 
-Then(
-  "each tool block should have non-empty toolInput",
-  function (this: AgentXWorld) {
-    const state = getState(this);
-    const ps = state.presentation!.getState();
+Then("each tool block should have non-empty toolInput", function (this: AgentXWorld) {
+  const state = getState(this);
+  const ps = state.presentation!.getState();
 
-    let checked = 0;
-    for (const conv of ps.conversations) {
-      if (conv.role === "assistant" && "blocks" in conv) {
-        for (const block of conv.blocks) {
-          if (block.type === "tool") {
-            assert.ok(
-              Object.keys(block.toolInput).length > 0,
-              `Tool block "${block.toolName}" has empty toolInput`
-            );
-            checked++;
-          }
+  let checked = 0;
+  for (const conv of ps.conversations) {
+    if (conv.role === "assistant" && "blocks" in conv) {
+      for (const block of conv.blocks) {
+        if (block.type === "tool") {
+          assert.ok(
+            Object.keys(block.toolInput).length > 0,
+            `Tool block "${block.toolName}" has empty toolInput`
+          );
+          checked++;
         }
       }
     }
-
-    assert.ok(checked > 0, "No tool blocks found to check");
   }
-);
+
+  assert.ok(checked > 0, "No tool blocks found to check");
+});
 
 // ============================================================================
 // Phase: Image Custom Data
@@ -509,43 +478,34 @@ When(
   }
 );
 
-When(
-  "I update the image customData:",
-  async function (this: AgentXWorld, table: DataTable) {
-    const state = getState(this);
-    const customData: Record<string, unknown> = {};
-    for (const row of table.hashes()) {
-      let value: unknown = row.value;
-      if (value === "true") value = true;
-      else if (value === "false") value = false;
-      else if (!isNaN(Number(value))) value = Number(value);
-      customData[row.key] = value;
-    }
-
-    const result = await this.localAgentX!.images.update(state.imageId!, {
-      customData,
-    });
-    state.imageId = result.record.imageId;
+When("I update the image customData:", async function (this: AgentXWorld, table: DataTable) {
+  const state = getState(this);
+  const customData: Record<string, unknown> = {};
+  for (const row of table.hashes()) {
+    let value: unknown = row.value;
+    if (value === "true") value = true;
+    else if (value === "false") value = false;
+    else if (!isNaN(Number(value))) value = Number(value);
+    customData[row.key] = value;
   }
-);
 
-When(
-  "I reload the image by id",
-  async function (this: AgentXWorld) {
-    const state = getState(this);
-    const result = await this.localAgentX!.images.get(state.imageId!);
-    assert.ok(result.record, "Image should exist after reload");
-  }
-);
+  const result = await this.localAgentX!.images.update(state.imageId!, {
+    customData,
+  });
+  state.imageId = result.record.imageId;
+});
 
-When(
-  "I list images in {string}",
-  async function (this: AgentXWorld, containerId: string) {
-    const state = getState(this);
-    const result = await this.localAgentX!.images.list(containerId);
-    (state as any).imageList = result.records;
-  }
-);
+When("I reload the image by id", async function (this: AgentXWorld) {
+  const state = getState(this);
+  const result = await this.localAgentX!.images.get(state.imageId!);
+  assert.ok(result.record, "Image should exist after reload");
+});
+
+When("I list images in {string}", async function (this: AgentXWorld, containerId: string) {
+  const state = getState(this);
+  const result = await this.localAgentX!.images.list(containerId);
+  (state as any).imageList = result.records;
+});
 
 Then(
   "the image customData {string} should be {string}",
@@ -562,16 +522,13 @@ Then(
   }
 );
 
-Then(
-  "the image should have no customData",
-  async function (this: AgentXWorld) {
-    const state = getState(this);
-    const result = await this.localAgentX!.images.get(state.imageId!);
-    assert.ok(result.record, "Image should exist");
-    const cd = result.record!.customData;
-    assert.ok(!cd || Object.keys(cd).length === 0, "Image should have no customData");
-  }
-);
+Then("the image should have no customData", async function (this: AgentXWorld) {
+  const state = getState(this);
+  const result = await this.localAgentX!.images.get(state.imageId!);
+  assert.ok(result.record, "Image should exist");
+  const cd = result.record!.customData;
+  assert.ok(!cd || Object.keys(cd).length === 0, "Image should have no customData");
+});
 
 Then(
   "the image list should contain {string} with customData {string} = {string}",
@@ -622,14 +579,11 @@ When("I destroy the agent", async function (this: AgentXWorld) {
   await this.localAgentX!.agents.destroy(state.agentId!);
 });
 
-Then(
-  "the agent should no longer exist",
-  async function (this: AgentXWorld) {
-    const state = getState(this);
-    const result = await this.localAgentX!.agents.get(state.agentId!);
-    assert.ok(!result.exists, "Agent should no longer exist");
-  }
-);
+Then("the agent should no longer exist", async function (this: AgentXWorld) {
+  const state = getState(this);
+  const result = await this.localAgentX!.agents.get(state.agentId!);
+  assert.ok(!result.exists, "Agent should no longer exist");
+});
 
 // ============================================================================
 // Phase 5: Log Level
@@ -684,55 +638,46 @@ When(
   }
 );
 
-Then(
-  "console output should contain no AgentX logs",
-  function () {
-    stopConsoleCapture();
+Then("console output should contain no AgentX logs", function () {
+  stopConsoleCapture();
 
-    // Filter for AgentX runtime log patterns (INFO/DEBUG/WARN/ERROR with component names)
-    const agentxLogs = capturedLogs.filter(
-      (line) =>
-        /\b(INFO|DEBUG|WARN|ERROR)\b/.test(line) &&
-        /\[.*\/(Persistence|AgentXRuntime|LocalClient|Container|Image|MonoDriver|Driver)\]/.test(line)
-    );
+  // Filter for AgentX runtime log patterns (INFO/DEBUG/WARN/ERROR with component names)
+  const agentxLogs = capturedLogs.filter(
+    (line) =>
+      /\b(INFO|DEBUG|WARN|ERROR)\b/.test(line) &&
+      /\[.*\/(Persistence|AgentXRuntime|LocalClient|Container|Image|MonoDriver|Driver)\]/.test(line)
+  );
 
-    assert.equal(
-      agentxLogs.length,
-      0,
-      `Expected no AgentX logs but found:\n${agentxLogs.join("\n")}`
-    );
-  }
-);
+  assert.equal(
+    agentxLogs.length,
+    0,
+    `Expected no AgentX logs but found:\n${agentxLogs.join("\n")}`
+  );
+});
 
-Then(
-  "console output should contain {string}",
-  function (expected: string) {
-    stopConsoleCapture();
+Then("console output should contain {string}", function (expected: string) {
+  stopConsoleCapture();
 
-    const hasMatch = capturedLogs.some((line) => line.includes(expected));
-    assert.ok(
-      hasMatch,
-      `Expected console output to contain "${expected}" but captured ${capturedLogs.length} lines:\n${capturedLogs.slice(0, 20).join("\n")}`
-    );
-  }
-);
+  const hasMatch = capturedLogs.some((line) => line.includes(expected));
+  assert.ok(
+    hasMatch,
+    `Expected console output to contain "${expected}" but captured ${capturedLogs.length} lines:\n${capturedLogs.slice(0, 20).join("\n")}`
+  );
+});
 
 // ============================================================================
 // Token Usage Steps (Feature 13)
 // ============================================================================
 
-Then(
-  "the presentation should have completed conversations",
-  function (this: AgentXWorld) {
-    const state = getState(this);
-    const ps = state.presentation!.getState();
-    const assistantConvs = ps.conversations.filter((c) => c.role === "assistant");
-    assert.ok(
-      assistantConvs.length > 0,
-      `Expected at least 1 assistant conversation, got ${assistantConvs.length}`
-    );
-  }
-);
+Then("the presentation should have completed conversations", function (this: AgentXWorld) {
+  const state = getState(this);
+  const ps = state.presentation!.getState();
+  const assistantConvs = ps.conversations.filter((c) => c.role === "assistant");
+  assert.ok(
+    assistantConvs.length > 0,
+    `Expected at least 1 assistant conversation, got ${assistantConvs.length}`
+  );
+});
 
 Then(
   "the last assistant conversation should have usage with inputTokens > {int}",
@@ -743,7 +688,10 @@ Then(
     assert.ok(assistantConvs.length > 0, "No assistant conversations found");
 
     const last = assistantConvs[assistantConvs.length - 1] as { usage?: { inputTokens: number } };
-    assert.ok(last.usage, `Last assistant conversation has no usage data. Conversations: ${JSON.stringify(ps.conversations.map(c => c.role))}`);
+    assert.ok(
+      last.usage,
+      `Last assistant conversation has no usage data. Conversations: ${JSON.stringify(ps.conversations.map((c) => c.role))}`
+    );
     assert.ok(
       last.usage.inputTokens > minTokens,
       `Expected inputTokens > ${minTokens}, got ${last.usage.inputTokens}`

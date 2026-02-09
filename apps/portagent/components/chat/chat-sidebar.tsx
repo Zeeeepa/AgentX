@@ -95,7 +95,9 @@ export function ChatSidebar({
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
           <BotIcon className="size-5 shrink-0 text-primary group-data-[collapsible=icon]:hidden" />
-          <span className="font-semibold text-base truncate group-data-[collapsible=icon]:hidden">Portagent</span>
+          <span className="font-semibold text-base truncate group-data-[collapsible=icon]:hidden">
+            Portagent
+          </span>
           <SidebarTrigger className="ml-auto shrink-0 group-data-[collapsible=icon]:ml-0" />
         </div>
       </SidebarHeader>
@@ -165,9 +167,7 @@ export function ChatSidebar({
                           </div>
                         )}
                         {!isEditing && preview && (
-                          <span className="truncate text-xs text-muted-foreground">
-                            {preview}
-                          </span>
+                          <span className="truncate text-xs text-muted-foreground">{preview}</span>
                         )}
                       </div>
                     </SidebarMenuButton>

@@ -63,25 +63,15 @@ const exampleLogs = [
 const Example = () => {
   const [_fullscreen, setFullscreen] = useState(false);
 
-  const handleToggleFullscreen = useCallback(
-    () => setFullscreen((prev) => !prev),
-    []
-  );
+  const handleToggleFullscreen = useCallback(() => setFullscreen((prev) => !prev), []);
 
   return (
-    <WebPreview
-      defaultUrl="/"
-      onUrlChange={handleUrlChange}
-      style={{ height: "400px" }}
-    >
+    <WebPreview defaultUrl="/" onUrlChange={handleUrlChange} style={{ height: "400px" }}>
       <WebPreviewNavigation>
         <WebPreviewNavigationButton onClick={handleGoBack} tooltip="Go back">
           <ArrowLeftIcon className="size-4" />
         </WebPreviewNavigationButton>
-        <WebPreviewNavigationButton
-          onClick={handleGoForward}
-          tooltip="Go forward"
-        >
+        <WebPreviewNavigationButton onClick={handleGoForward} tooltip="Go forward">
           <ArrowRightIcon className="size-4" />
         </WebPreviewNavigationButton>
         <WebPreviewNavigationButton onClick={handleReload} tooltip="Reload">
@@ -91,16 +81,10 @@ const Example = () => {
         <WebPreviewNavigationButton onClick={handleSelect} tooltip="Select">
           <MousePointerClickIcon className="size-4" />
         </WebPreviewNavigationButton>
-        <WebPreviewNavigationButton
-          onClick={handleOpenInNewTab}
-          tooltip="Open in new tab"
-        >
+        <WebPreviewNavigationButton onClick={handleOpenInNewTab} tooltip="Open in new tab">
           <ExternalLinkIcon className="size-4" />
         </WebPreviewNavigationButton>
-        <WebPreviewNavigationButton
-          onClick={handleToggleFullscreen}
-          tooltip="Maximize"
-        >
+        <WebPreviewNavigationButton onClick={handleToggleFullscreen} tooltip="Maximize">
           <Maximize2Icon className="size-4" />
         </WebPreviewNavigationButton>
       </WebPreviewNavigation>

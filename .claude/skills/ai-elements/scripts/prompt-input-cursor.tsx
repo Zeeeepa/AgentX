@@ -52,14 +52,7 @@ import {
   usePromptInputReferencedSources,
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
-import {
-  AtSignIcon,
-  CheckIcon,
-  FilesIcon,
-  GlobeIcon,
-  ImageIcon,
-  RulerIcon,
-} from "lucide-react";
+import { AtSignIcon, CheckIcon, FilesIcon, GlobeIcon, ImageIcon, RulerIcon } from "lucide-react";
 import { memo, useCallback, useState } from "react";
 
 const models = [
@@ -109,10 +102,7 @@ interface AttachmentItemProps {
 }
 
 const AttachmentItem = memo(({ attachment, onRemove }: AttachmentItemProps) => {
-  const handleRemove = useCallback(
-    () => onRemove(attachment.id),
-    [onRemove, attachment.id]
-  );
+  const handleRemove = useCallback(() => onRemove(attachment.id), [onRemove, attachment.id]);
   return (
     <Attachment data={attachment} key={attachment.id} onRemove={handleRemove}>
       <AttachmentPreview />
@@ -129,10 +119,7 @@ interface SourceItemProps {
 }
 
 const SourceItem = memo(({ source, onRemove }: SourceItemProps) => {
-  const handleRemove = useCallback(
-    () => onRemove(source.id),
-    [onRemove, source.id]
-  );
+  const handleRemove = useCallback(() => onRemove(source.id), [onRemove, source.id]);
   return (
     <Attachment data={source} key={source.id} onRemove={handleRemove}>
       <AttachmentPreview />
@@ -178,25 +165,18 @@ interface SourceCommandItemProps {
   onAdd: (source: SourceDocumentUIPart) => void;
 }
 
-const SourceCommandItem = memo(
-  ({ source, index, onAdd }: SourceCommandItemProps) => {
-    const handleSelect = useCallback(() => onAdd(source), [onAdd, source]);
-    return (
-      <PromptInputCommandItem
-        key={`${source.title}-${index}`}
-        onSelect={handleSelect}
-      >
-        <GlobeIcon className="text-primary" />
-        <div className="flex flex-col">
-          <span className="font-medium text-sm">{source.title}</span>
-          <span className="text-muted-foreground text-xs">
-            {source.filename}
-          </span>
-        </div>
-      </PromptInputCommandItem>
-    );
-  }
-);
+const SourceCommandItem = memo(({ source, index, onAdd }: SourceCommandItemProps) => {
+  const handleSelect = useCallback(() => onAdd(source), [onAdd, source]);
+  return (
+    <PromptInputCommandItem key={`${source.title}-${index}`} onSelect={handleSelect}>
+      <GlobeIcon className="text-primary" />
+      <div className="flex flex-col">
+        <span className="font-medium text-sm">{source.title}</span>
+        <span className="text-muted-foreground text-xs">{source.filename}</span>
+      </div>
+    </PromptInputCommandItem>
+  );
+});
 
 SourceCommandItem.displayName = "SourceCommandItem";
 
@@ -239,10 +219,7 @@ const sampleTabs = {
 const PromptInputAttachmentsDisplay = () => {
   const attachments = usePromptInputAttachments();
 
-  const handleRemove = useCallback(
-    (id: string) => attachments.remove(id),
-    [attachments]
-  );
+  const handleRemove = useCallback((id: string) => attachments.remove(id), [attachments]);
 
   if (attachments.files.length === 0) {
     return null;
@@ -251,11 +228,7 @@ const PromptInputAttachmentsDisplay = () => {
   return (
     <Attachments variant="inline">
       {attachments.files.map((attachment) => (
-        <AttachmentItem
-          attachment={attachment}
-          key={attachment.id}
-          onRemove={handleRemove}
-        />
+        <AttachmentItem attachment={attachment} key={attachment.id} onRemove={handleRemove} />
       ))}
     </Attachments>
   );
@@ -273,11 +246,7 @@ const PromptInputReferencedSourcesDisplay = () => {
   return (
     <Attachments variant="inline">
       {refs.sources.map((source) => (
-        <SourceItem
-          key={source.id}
-          onRemove={handleRemove}
-          source={source as AttachmentData}
-        />
+        <SourceItem key={source.id} onRemove={handleRemove} source={source as AttachmentData} />
       ))}
     </Attachments>
   );
@@ -286,9 +255,7 @@ const PromptInputReferencedSourcesDisplay = () => {
 const Example = () => {
   const [model, setModel] = useState<string>(models[0].id);
   const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
-  const [status, setStatus] = useState<
-    "submitted" | "streaming" | "ready" | "error"
-  >("ready");
+  const [status, setStatus] = useState<"submitted" | "streaming" | "ready" | "error">("ready");
 
   const selectedModelData = models.find((m) => m.id === model);
 
@@ -323,11 +290,7 @@ const Example = () => {
           <PromptInputHeader>
             <PromptInputHoverCard>
               <PromptInputHoverCardTrigger>
-                <PromptInputButton
-                  className="h-8!"
-                  size="icon-sm"
-                  variant="outline"
-                >
+                <PromptInputButton className="h-8!" size="icon-sm" variant="outline">
                   <AtSignIcon className="text-muted-foreground" size={12} />
                 </PromptInputButton>
               </PromptInputHoverCardTrigger>
@@ -347,9 +310,7 @@ const Example = () => {
                   <p className="font-medium text-muted-foreground text-sm">
                     Attached Project Rules
                   </p>
-                  <p className="ml-4 text-muted-foreground text-sm">
-                    Always Apply:
-                  </p>
+                  <p className="ml-4 text-muted-foreground text-sm">Always Apply:</p>
                   <p className="ml-8 text-sm">ultracite.mdc</p>
                 </div>
                 <p className="bg-sidebar px-4 py-3 text-muted-foreground text-sm">
@@ -404,21 +365,14 @@ const Example = () => {
           </PromptInputBody>
           <PromptInputFooter>
             <PromptInputTools>
-              <ModelSelector
-                onOpenChange={setModelSelectorOpen}
-                open={modelSelectorOpen}
-              >
+              <ModelSelector onOpenChange={setModelSelectorOpen} open={modelSelectorOpen}>
                 <ModelSelectorTrigger asChild>
                   <PromptInputButton>
                     {selectedModelData?.chefSlug && (
-                      <ModelSelectorLogo
-                        provider={selectedModelData.chefSlug}
-                      />
+                      <ModelSelectorLogo provider={selectedModelData.chefSlug} />
                     )}
                     {selectedModelData?.name && (
-                      <ModelSelectorName>
-                        {selectedModelData.name}
-                      </ModelSelectorName>
+                      <ModelSelectorName>{selectedModelData.name}</ModelSelectorName>
                     )}
                   </PromptInputButton>
                 </ModelSelectorTrigger>
@@ -462,10 +416,7 @@ export default Example;
 const SampleFilesMenu = () => {
   const refs = usePromptInputReferencedSources();
 
-  const handleAdd = useCallback(
-    (source: SourceDocumentUIPart) => refs.add(source),
-    [refs]
-  );
+  const handleAdd = useCallback((source: SourceDocumentUIPart) => refs.add(source), [refs]);
 
   return (
     <PromptInputCommand>
@@ -490,8 +441,7 @@ const SampleFilesMenu = () => {
             .filter(
               (source) =>
                 !refs.sources.some(
-                  (s) =>
-                    s.title === source.title && s.filename === source.filename
+                  (s) => s.title === source.title && s.filename === source.filename
                 )
             )
             .map((source, index) => (

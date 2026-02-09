@@ -41,14 +41,14 @@ Factory function. Returns a `Driver` conforming to `@agentxjs/core/driver`.
 
 ```typescript
 class MonoDriver implements Driver {
-  readonly name: string;              // "MonoDriver"
-  readonly sessionId: string | null;  // available after initialize()
-  readonly state: DriverState;        // "idle" | "active" | "disposed"
+  readonly name: string; // "MonoDriver"
+  readonly sessionId: string | null; // available after initialize()
+  readonly state: DriverState; // "idle" | "active" | "disposed"
 
-  initialize(): Promise<void>;       // connects MCP servers, generates session ID
+  initialize(): Promise<void>; // connects MCP servers, generates session ID
   receive(message: UserMessage): AsyncIterable<DriverStreamEvent>;
-  interrupt(): void;                  // aborts current request
-  dispose(): Promise<void>;          // closes MCP clients, cleanup
+  interrupt(): void; // aborts current request
+  dispose(): Promise<void>; // closes MCP clients, cleanup
 }
 ```
 
@@ -95,33 +95,33 @@ const config: MonoDriverConfig = {
 
 ### MonoDriverOptions
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `provider` | `MonoProvider` | `"anthropic"` | LLM provider |
-| `maxSteps` | `number` | `10` | Max agentic tool-calling steps per receive() |
-| `compatibleConfig` | `OpenAICompatibleConfig` | -- | Required for `"openai-compatible"` provider |
+| Field              | Type                     | Default       | Description                                  |
+| ------------------ | ------------------------ | ------------- | -------------------------------------------- |
+| `provider`         | `MonoProvider`           | `"anthropic"` | LLM provider                                 |
+| `maxSteps`         | `number`                 | `10`          | Max agentic tool-calling steps per receive() |
+| `compatibleConfig` | `OpenAICompatibleConfig` | --            | Required for `"openai-compatible"` provider  |
 
 ### OpenAICompatibleConfig
 
 ```typescript
 interface OpenAICompatibleConfig {
-  name: string;       // provider name (for logging)
-  baseURL: string;    // API base URL
-  apiKey?: string;    // overrides top-level apiKey
+  name: string; // provider name (for logging)
+  baseURL: string; // API base URL
+  apiKey?: string; // overrides top-level apiKey
 }
 ```
 
 ### Supported Providers
 
-| Provider | Key | Default Model |
-|---|---|---|
-| Anthropic | `"anthropic"` | `claude-sonnet-4-20250514` |
-| OpenAI | `"openai"` | `gpt-4o` |
-| Google | `"google"` | `gemini-2.0-flash` |
-| xAI | `"xai"` | `grok-3` |
-| DeepSeek | `"deepseek"` | `deepseek-chat` |
-| Mistral | `"mistral"` | `mistral-large-latest` |
-| OpenAI-Compatible | `"openai-compatible"` | `default` |
+| Provider          | Key                   | Default Model              |
+| ----------------- | --------------------- | -------------------------- |
+| Anthropic         | `"anthropic"`         | `claude-sonnet-4-20250514` |
+| OpenAI            | `"openai"`            | `gpt-4o`                   |
+| Google            | `"google"`            | `gemini-2.0-flash`         |
+| xAI               | `"xai"`               | `grok-3`                   |
+| DeepSeek          | `"deepseek"`          | `deepseek-chat`            |
+| Mistral           | `"mistral"`           | `mistral-large-latest`     |
+| OpenAI-Compatible | `"openai-compatible"` | `default`                  |
 
 ## Provider Examples
 
@@ -161,7 +161,7 @@ createMonoDriver({
 
 ```typescript
 createMonoDriver({
-  apiKey: "ollama",     // Ollama doesn't require a real key
+  apiKey: "ollama", // Ollama doesn't require a real key
   agentId: "assistant",
   model: "llama3",
   options: {
@@ -203,7 +203,7 @@ createMonoDriver({
     compatibleConfig: {
       name: "kimi",
       baseURL: "https://api.moonshot.cn/v1",
-      apiKey: "sk-moonshot-xxxxx",   // overrides top-level apiKey
+      apiKey: "sk-moonshot-xxxxx", // overrides top-level apiKey
     },
   },
 });

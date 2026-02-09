@@ -92,7 +92,7 @@ import { createDevtools } from "@agentxjs/devtools";
 
 const devtools = createDevtools({
   fixturesDir: "./fixtures",
-  apiKey: process.env.ANTHROPIC_API_KEY,  // only needed for recording
+  apiKey: process.env.ANTHROPIC_API_KEY, // only needed for recording
 });
 
 // Fixture exists  --> playback (MockDriver)
@@ -137,11 +137,11 @@ const server = await createServer({ platform, createDriver: vcrCreateDriver });
 
 ```typescript
 interface CucumberConfigOptions {
-  paths: string[];         // feature file paths
-  import: string[];        // step definition paths
-  tags?: string;           // default: "not @pending and not @skip"
-  timeout?: number;        // default: 30000 ms
-  format?: string[];       // default: ["progress"]
+  paths: string[]; // feature file paths
+  import: string[]; // step definition paths
+  tags?: string; // default: "not @pending and not @skip"
+  timeout?: number; // default: 30000 ms
+  format?: string[]; // default: ["progress"]
 }
 ```
 
@@ -151,10 +151,10 @@ Runs a UI test scenario using Claude CLI + agent-browser.
 
 ```typescript
 interface UiTesterOptions {
-  model?: string;       // default: "haiku"
+  model?: string; // default: "haiku"
   baseUrl?: string;
-  timeout?: number;     // default: 300000 (5 min)
-  headed?: boolean;     // default: false
+  timeout?: number; // default: 300000 (5 min)
+  headed?: boolean; // default: false
 }
 
 interface UiTestResult {
@@ -183,11 +183,11 @@ assert.ok(result.passed, result.output);
 
 ```typescript
 interface DocTesterOptions {
-  provider?: string;    // default: "anthropic"
-  model?: string;       // default: "claude-haiku-4-5-20251001"
-  apiKey?: string;      // reads from DEEPRACTICE_API_KEY or ANTHROPIC_API_KEY
-  baseUrl?: string;     // reads from DEEPRACTICE_BASE_URL
-  timeout?: number;     // default: 120000 (2 min)
+  provider?: string; // default: "anthropic"
+  model?: string; // default: "claude-haiku-4-5-20251001"
+  apiKey?: string; // reads from DEEPRACTICE_API_KEY or ANTHROPIC_API_KEY
+  baseUrl?: string; // reads from DEEPRACTICE_BASE_URL
+  timeout?: number; // default: 120000 (2 min)
 }
 ```
 
@@ -197,10 +197,10 @@ interface DocTesterOptions {
 interface DevServerOptions {
   cwd: string;
   port: number;
-  command?: string;       // default: "bun"
-  args?: string[];        // default: ["run", "dev"]
-  timeout?: number;       // default: 30000
-  debug?: boolean;        // default: !!process.env.DEBUG
+  command?: string; // default: "bun"
+  args?: string[]; // default: ["run", "dev"]
+  timeout?: number; // default: 30000
+  debug?: boolean; // default: !!process.env.DEBUG
 }
 ```
 
@@ -226,12 +226,12 @@ interface DevtoolsConfig {
 }
 ```
 
-| Method | Description |
-|---|---|
+| Method                                   | Description                                               |
+| ---------------------------------------- | --------------------------------------------------------- |
 | `driver(name, options): Promise<Driver>` | Get driver — playback if fixture exists, record otherwise |
-| `load(name): Promise<Fixture>` | Load a fixture by name |
-| `exists(name): boolean` | Check if fixture exists |
-| `delete(name): Promise<void>` | Delete a fixture |
+| `load(name): Promise<Fixture>`           | Load a fixture by name                                    |
+| `exists(name): boolean`                  | Check if fixture exists                                   |
+| `delete(name): Promise<void>`            | Delete a fixture                                          |
 
 #### `MockDriver`
 
@@ -259,26 +259,26 @@ const fixture = recorder.getFixture(); // after recording
 ```typescript
 import { SIMPLE_REPLY, TOOL_CALL, getFixture, listFixtures } from "@agentxjs/devtools/fixtures";
 
-listFixtures();  // ["simple-reply", "long-reply", "tool-call", "error", "empty"]
+listFixtures(); // ["simple-reply", "long-reply", "tool-call", "error", "empty"]
 ```
 
 ## Configuration
 
 ### Package Exports
 
-| Import path | Contents |
-|---|---|
-| `@agentxjs/devtools` | VCR: `Devtools`, `MockDriver`, `RecordingDriver`, fixtures |
-| `@agentxjs/devtools/mock` | `MockDriver`, `createMockDriver` |
-| `@agentxjs/devtools/recorder` | `RecordingDriver`, `createRecordingDriver` |
-| `@agentxjs/devtools/fixtures` | Built-in fixtures, `getFixture`, `listFixtures` |
-| `@agentxjs/devtools/bdd` | BDD: `createCucumberConfig`, `agentUiTester`, `agentDocTester`, `startDevServer`, paths |
+| Import path                   | Contents                                                                                |
+| ----------------------------- | --------------------------------------------------------------------------------------- |
+| `@agentxjs/devtools`          | VCR: `Devtools`, `MockDriver`, `RecordingDriver`, fixtures                              |
+| `@agentxjs/devtools/mock`     | `MockDriver`, `createMockDriver`                                                        |
+| `@agentxjs/devtools/recorder` | `RecordingDriver`, `createRecordingDriver`                                              |
+| `@agentxjs/devtools/fixtures` | Built-in fixtures, `getFixture`, `listFixtures`                                         |
+| `@agentxjs/devtools/bdd`      | BDD: `createCucumberConfig`, `agentUiTester`, `agentDocTester`, `startDevServer`, paths |
 
 ### Peer Dependencies (optional)
 
-| Package | When needed |
-|---|---|
-| `agentxjs` | `agentDocTester` (uses AgentX SDK for AI evaluation) |
-| `@agentxjs/claude-driver` | Recording with claude-driver |
-| `@playwright/test` | Browser-based BDD tests |
-| `@cucumber/cucumber` | BDD test runner |
+| Package                   | When needed                                          |
+| ------------------------- | ---------------------------------------------------- |
+| `agentxjs`                | `agentDocTester` (uses AgentX SDK for AI evaluation) |
+| `@agentxjs/claude-driver` | Recording with claude-driver                         |
+| `@playwright/test`        | Browser-based BDD tests                              |
+| `@cucumber/cucumber`      | BDD test runner                                      |

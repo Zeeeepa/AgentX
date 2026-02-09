@@ -49,13 +49,13 @@ Build order follows the dependency graph (handled automatically by Turbo):
 
 ## Daily Workflow
 
-| Command | Purpose |
-|---------|---------|
-| `bun dev` | Start dev environment with hot reload |
-| `bun run build` | Rebuild all packages |
-| `bun run bdd` | Run non-UI tests |
-| `bun run bdd:ui` | Run UI tests (requires browser) |
-| `bun run bdd:docs` | Run documentation quality tests |
+| Command            | Purpose                               |
+| ------------------ | ------------------------------------- |
+| `bun dev`          | Start dev environment with hot reload |
+| `bun run build`    | Rebuild all packages                  |
+| `bun run bdd`      | Run non-UI tests                      |
+| `bun run bdd:ui`   | Run UI tests (requires browser)       |
+| `bun run bdd:docs` | Run documentation quality tests       |
 
 ## BDD-First Workflow
 
@@ -63,34 +63,35 @@ Build order follows the dependency graph (handled automatically by Turbo):
 
 Every change starts with a `.feature` file. Follow the 4-step process:
 
-| Step | Action |
-|------|--------|
-| 1 | Write `.feature` file describing the goal |
-| 2 | Write `.steps.ts` with test definitions |
-| 3 | Implement the code |
-| 4 | Run `bun run bdd` until all pass |
+| Step | Action                                    |
+| ---- | ----------------------------------------- |
+| 1    | Write `.feature` file describing the goal |
+| 2    | Write `.steps.ts` with test definitions   |
+| 3    | Implement the code                        |
+| 4    | Run `bun run bdd` until all pass          |
 
 ### Where to put BDD files
 
-| What you're working on | BDD location |
-|------------------------|-------------|
-| A specific package | `packages/<name>/bdd/` |
-| A specific app | `apps/<name>/bdd/` |
-| Monorepo-wide norms | `bdd/` (root) |
+| What you're working on | BDD location           |
+| ---------------------- | ---------------------- |
+| A specific package     | `packages/<name>/bdd/` |
+| A specific app         | `apps/<name>/bdd/`     |
+| Monorepo-wide norms    | `bdd/` (root)          |
 
 Each `bdd/` directory has:
+
 - `cucumber.js` — Cucumber configuration
 - `journeys/` — Feature files organized by role
 - `steps/` — Step definitions
 
 ## Environment Variables
 
-| Variable | Purpose | Required |
-|----------|---------|----------|
-| `ANTHROPIC_API_KEY` | Anthropic API access | Yes |
-| `DEEPRACTICE_API_KEY` | Deepractice API access | Alternative |
-| `DEEPRACTICE_BASE_URL` | Custom API base URL | No |
-| `DEEPRACTICE_MODEL` | Override default model | No |
+| Variable               | Purpose                | Required    |
+| ---------------------- | ---------------------- | ----------- |
+| `ANTHROPIC_API_KEY`    | Anthropic API access   | Yes         |
+| `DEEPRACTICE_API_KEY`  | Deepractice API access | Alternative |
+| `DEEPRACTICE_BASE_URL` | Custom API base URL    | No          |
+| `DEEPRACTICE_MODEL`    | Override default model | No          |
 
 Tests using VCR can run without an API key (replays recorded fixtures).
 
@@ -102,14 +103,14 @@ We use [Conventional Commits](https://www.conventionalcommits.org/):
 type(scope): description
 ```
 
-| Type | Description |
-|------|-------------|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation only |
+| Type       | Description                                             |
+| ---------- | ------------------------------------------------------- |
+| `feat`     | New feature                                             |
+| `fix`      | Bug fix                                                 |
+| `docs`     | Documentation only                                      |
 | `refactor` | Code change that neither fixes a bug nor adds a feature |
-| `test` | Adding or updating tests |
-| `chore` | Maintenance tasks |
+| `test`     | Adding or updating tests                                |
+| `chore`    | Maintenance tasks                                       |
 
 Scope uses package name: `core`, `agentx`, `server`, `mono-driver`, `node-platform`, `claude-driver`, `devtools`, `portagent`, `cli`.
 

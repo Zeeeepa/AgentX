@@ -40,9 +40,9 @@ tsup 是 TypeScript 类库的标准构建工具，基于 esbuild，配置简单�
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/**/index.ts"],  // 自动发现所有入口
+  entry: ["src/**/index.ts"], // 自动发现所有入口
   format: ["esm"],
-  dts: true,                    // 自动生成 .d.ts
+  dts: true, // 自动生成 .d.ts
   sourcemap: true,
   clean: true,
   external: ["依赖包名"],
@@ -77,7 +77,7 @@ entry: {
       "default": "./dist/agent/index.js"
     }
   },
-  "files": ["dist", "src"],  // 同时发布 dist 和 src，方便查看源码
+  "files": ["dist", "src"], // 同时发布 dist 和 src，方便查看源码
   "scripts": {
     "build": "tsup"
   }
@@ -92,7 +92,7 @@ entry: {
 // browser-safe 模块
 await Bun.build({
   entrypoints: ["src/logger/index.ts"],
-  target: "browser",  // 不会添加 node:module polyfill
+  target: "browser", // 不会添加 node:module polyfill
 });
 
 // node-only 模块
@@ -104,11 +104,11 @@ await Bun.build({
 
 ## 最佳实践总结
 
-| 场景 | 构建工具 | 说明 |
-|------|---------|------|
-| **类库（发布到 npm）** | tsup | 自动处理多入口、dts、external |
-| **二进制/CLI 应用** | Bun | 直接运行 .ts，无需构建 |
-| **跨平台库** | 分环境构建 | browser-safe 用 `target: browser` |
+| 场景                   | 构建工具   | 说明                              |
+| ---------------------- | ---------- | --------------------------------- |
+| **类库（发布到 npm）** | tsup       | 自动处理多入口、dts、external     |
+| **二进制/CLI 应用**    | Bun        | 直接运行 .ts，无需构建            |
+| **跨平台库**           | 分环境构建 | browser-safe 用 `target: browser` |
 
 ### 检查清单
 

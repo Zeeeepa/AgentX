@@ -350,8 +350,4 @@ export interface ErrorMessage {
  * Role: Who sent it (user, assistant, tool, system, error)
  * Subtype: What type of message (user, assistant, tool-result, error)
  */
-export type Message =
-  | UserMessage
-  | AssistantMessage
-  | ToolResultMessage
-  | ErrorMessage;
+export type Message = UserMessage | AssistantMessage | ToolResultMessage | ErrorMessage;

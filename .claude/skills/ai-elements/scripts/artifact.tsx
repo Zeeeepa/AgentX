@@ -10,13 +10,7 @@ import {
   ArtifactTitle,
 } from "@/components/ai-elements/artifact";
 import { CodeBlock } from "@/components/ai-elements/code-block";
-import {
-  CopyIcon,
-  DownloadIcon,
-  PlayIcon,
-  RefreshCwIcon,
-  ShareIcon,
-} from "lucide-react";
+import { CopyIcon, DownloadIcon, PlayIcon, RefreshCwIcon, ShareIcon } from "lucide-react";
 
 const handleRun = () => {
   console.log("Run");
@@ -80,12 +74,7 @@ const Example = () => (
       </div>
       <div className="flex items-center gap-2">
         <ArtifactActions>
-          <ArtifactAction
-            icon={PlayIcon}
-            label="Run"
-            onClick={handleRun}
-            tooltip="Run code"
-          />
+          <ArtifactAction icon={PlayIcon} label="Run" onClick={handleRun} tooltip="Run code" />
           <ArtifactAction
             icon={CopyIcon}
             label="Copy"
@@ -114,12 +103,7 @@ const Example = () => (
       </div>
     </ArtifactHeader>
     <ArtifactContent className="p-0">
-      <CodeBlock
-        className="border-none"
-        code={code}
-        language="python"
-        showLineNumbers
-      />
+      <CodeBlock className="border-none" code={code} language="python" showLineNumbers />
     </ArtifactContent>
   </Artifact>
 );

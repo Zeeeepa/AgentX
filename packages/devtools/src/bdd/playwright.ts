@@ -23,9 +23,7 @@ let page: Page | null = null;
 /**
  * Launch browser using system Chrome (singleton)
  */
-export async function launchBrowser(
-  options: BrowserOptions = {}
-): Promise<Browser> {
+export async function launchBrowser(options: BrowserOptions = {}): Promise<Browser> {
   if (browser) return browser;
 
   const headless = options.headless ?? process.env.CI === "true";
@@ -95,10 +93,7 @@ export async function closeBrowser(): Promise<void> {
 /**
  * Wait for a URL to be accessible
  */
-export async function waitForUrl(
-  url: string,
-  timeout = 30000
-): Promise<boolean> {
+export async function waitForUrl(url: string, timeout = 30000): Promise<boolean> {
   const start = Date.now();
   while (Date.now() - start < timeout) {
     try {

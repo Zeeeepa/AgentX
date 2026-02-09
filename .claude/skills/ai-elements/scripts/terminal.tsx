@@ -58,12 +58,7 @@ const Example = () => {
   }, []);
 
   return (
-    <Terminal
-      autoScroll={true}
-      isStreaming={isStreaming}
-      onClear={handleClear}
-      output={output}
-    >
+    <Terminal autoScroll={true} isStreaming={isStreaming} onClear={handleClear} output={output}>
       <TerminalHeader>
         <TerminalTitle>Build Output</TerminalTitle>
         <div className="flex items-center gap-1">

@@ -41,7 +41,11 @@ export interface Image {
   /**
    * Update image metadata (name, description, customData)
    */
-  update(updates: { name?: string; description?: string; customData?: Record<string, unknown> }): Promise<Image>;
+  update(updates: {
+    name?: string;
+    description?: string;
+    customData?: Record<string, unknown>;
+  }): Promise<Image>;
 
   /**
    * Delete this image and its session
